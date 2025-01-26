@@ -111,6 +111,12 @@
     return Array.from(document.querySelector('coords').classList).indexOf('black') === -1;
   }
 
+  function getAndSpeak(filter) {
+    const playerIsWhite = isPlayerWhite();
+    speakString(`You are ${playerIsWhite ? 'white' : 'black'}`);
+    getAndSpeakPieces(filter);
+  }
+
   function getAndSpeakPieces(filter) {
     if (typeof filter === 'string') {
       filter = SQUARE_FILTERS[filter];
@@ -145,9 +151,7 @@
     console.debug('[lichess-board-speaker] command triggered', { value });
     moveInput.value = '';
 
-    const playerIsWhite = isPlayerWhite();
-    speakString(`You are ${playerIsWhite ? 'white' : 'black'}`);
-    getAndSpeakPieces(filter);
+    getAndSpeak(filter);
   }
 
   function createButtons(moveInput) {
@@ -160,7 +164,7 @@
   function createCommandButton(commandName) {
     const button = document.createElement('button');
     button.innerHTML = formatCommand(commandName);
-    button.addEventListener('click', () => getAndSpeakPieces(SQUARE_FILTERS[commandName]));
+    button.addEventListener('click', () => getAndSpeak(SQUARE_FILTERS[commandName]));
     button.style.padding = '2px';
     button.style.margin = '2px';
     return button;
