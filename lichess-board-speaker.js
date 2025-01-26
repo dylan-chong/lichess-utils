@@ -47,10 +47,14 @@
     bq: ({ col, row }) => col <= 4 && row >= 5,
   };
 
+  function formatCommand(commandName) {
+    return `${COMMAND} ${commandName}`;
+  }
+
   const possibleCommands = Object.fromEntries(
     Object
       .entries(SQUARE_FILTERS)
-      .map(([prefix, filter]) => [COMMAND + ' ' + prefix, filter])
+      .map(([commandName, filter]) => [formatCommand(commandName), filter])
   );
 
   function getPiecePosition(transform, squareSize) {
@@ -127,7 +131,7 @@
     return possibleCommandStrings.find(cs => cs.startsWith(inputString));
   }
 
-  function removeRedOnMoveInput(moveInput) {
+  function removeWrongOnInput(moveInput) {
     const possibleCommand = findPossibleCommandMatch(moveInput.value);
     if (!possibleCommand) return;
     moveInput.classList.remove('wrong');
@@ -146,21 +150,43 @@
     getAndSpeakPieces(filter);
   }
 
-  function registerEventHandler() {
-    console.debug('[lichess-board-speaker] setting up input listener');
-    const moveInput = document.querySelector('.keyboard-move input');
-    if (!moveInput) {
-      setTimeout(registerEventHandler, 500);
-      return;
-    }
+  function createButtons(moveInput) {
+    Object
+      .keys(SQUARE_FILTERS)
+      .map(createCommandButton)
+      .map(button => moveInput.parentNode.appendChild(button));
+  }
 
+  function createCommandButton(commandName) {
+    const button = document.createElement('button');
+    button.innerHTML = formatCommand(commandName);
+    button.addEventListener('click', () => getAndSpeakPieces(SQUARE_FILTERS[commandName]));
+    button.style.padding = '2px';
+    button.style.margin = '2px';
+    return button;
+  }
+
+  function setupMoveInputListeners(moveInput) {
     moveInput.addEventListener('input', (event) => {
       userInputChanged(moveInput);
     });
 
-    setInterval(() => removeRedOnMoveInput(moveInput), 50);
+    setInterval(() => removeWrongOnInput(moveInput), 50);
 
-    console.debug('[lichess-board-speaker] input listener set up');
+    console.debug('[lichess-board-speaker] input listeners set up');
+  }
+
+  function setup() {
+    console.debug('[lichess-board-speaker] starting setup');
+
+    const moveInput = document.querySelector('.keyboard-move input');
+    if (!moveInput) {
+      setTimeout(setup, 250);
+      return;
+    }
+
+    setupMoveInputListeners(moveInput);
+    createButtons(moveInput);
   }
 
   function onDocumentReady(handler) {
@@ -172,5 +198,5 @@
     }
   }
 
-  onDocumentReady(registerEventHandler);
+  onDocumentReady(setup);
 })();
