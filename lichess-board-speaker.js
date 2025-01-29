@@ -66,12 +66,21 @@
     const pieces = document.querySelectorAll('cg-board piece');
     const squareSize = document.querySelector('cg-board').offsetWidth / 8;
 
-    return Array.from(pieces).map(piece => {
-      return {
-        name: piece.className,
-        position: getPiecePosition(piece.style.transform, squareSize)
-      };
-    });
+    return Array.from(pieces)
+      .map(piece => {
+        return {
+          name: piece.className,
+          position: getPiecePosition(piece.style.transform, squareSize)
+        };
+      })
+      .toSorted((pieceA, pieceB) => {
+        const a = pieceA.position;
+        const b = pieceB.position;
+        if (a.row !== b.row) {
+          return a.row - b.row;
+        }
+        return a.col - b.col;
+      });
   }
 
   function formatPositions(piecePositions, playerIsWhite) {
