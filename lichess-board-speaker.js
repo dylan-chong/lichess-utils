@@ -66,21 +66,10 @@
     const pieces = document.querySelectorAll('cg-board piece');
     const squareSize = document.querySelector('cg-board').offsetWidth / 8;
 
-    return Array.from(pieces)
-      .map(piece => {
-        return {
-          name: piece.className,
-          position: getPiecePosition(piece.style.transform, squareSize)
-        };
-      })
-      .toSorted((pieceA, pieceB) => {
-        const a = pieceA.position;
-        const b = pieceB.position;
-        if (a.row !== b.row) {
-          return a.row - b.row;
-        }
-        return a.col - b.col;
-      });
+    return Array.from(pieces).map(piece => ({
+      name: piece.className,
+      position: getPiecePosition(piece.style.transform, squareSize)
+    }));
   }
 
   function formatPositions(piecePositions, playerIsWhite) {
@@ -92,6 +81,15 @@
         col = 7 - col;
       }
       return { name: piece.name, colLetter: 'abcdefgh'[col], col: col + 1, row: row + 1 };
+    });
+  }
+
+  function sortPositions(piecePositions) {
+    return piecePositions.toSorted((a, b) => {
+      if (a.row !== b.row) {
+        return a.row - b.row;
+      }
+      return a.col - b.col;
     });
   }
 
@@ -132,12 +130,14 @@
     }
     const piecePositions = getPiecePositions();
     const playerIsWhite = isPlayerWhite();
-    console.debug('[lichess-board-speaker] piece positions', { piecePositions, playerIsWhite });
 
-    const formattedPositions = formatPositions(piecePositions, playerIsWhite);
-    const filteredPositions = formattedPositions.filter(filter);
+    let positions = getPiecePositions();
+    positions = formatPositions(positions, playerIsWhite);
+    positions = sortPositions(positions);
+    positions = positions.filter(filter);;
 
-    const msgs = generatePositionMessage(filteredPositions);
+    console.debug('[lichess-board-speaker] piece positions', { positions, playerIsWhite });
+    const msgs = generatePositionMessage(positions);
     speakPositions(msgs);
   }
 
