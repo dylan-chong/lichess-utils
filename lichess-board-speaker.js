@@ -45,6 +45,9 @@
     wq: ({ col, row }) => col <= 4 && row <= 4,
     bk: ({ col, row }) => col >= 5 && row >= 5,
     bq: ({ col, row }) => col <= 4 && row >= 5,
+
+    ww: ({ row }) => row <= 4,
+    bb: ({ row }) => row >= 5,
   };
 
   function formatCommand(commandName) {
