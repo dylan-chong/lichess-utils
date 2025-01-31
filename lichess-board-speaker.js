@@ -166,19 +166,27 @@
     getAndSpeak(filter);
   }
 
-  function createButtons(moveInput) {
+  function createButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.style.marginLeft = '8px';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
+  function createButtons(container) {
     Object
       .keys(SQUARE_FILTERS)
       .map(createCommandButton)
-      .map(button => moveInput.parentNode.appendChild(button));
+      .map(button => container.appendChild(button));
   }
 
   function createCommandButton(commandName) {
     const button = document.createElement('button');
     button.innerHTML = formatCommand(commandName);
     button.addEventListener('click', () => getAndSpeak(SQUARE_FILTERS[commandName]));
+    button.style.display = 'block';
     button.style.padding = '2px';
-    button.style.margin = '2px';
+    button.style.margin = '8px';
     return button;
   }
 
@@ -202,7 +210,8 @@
     }
 
     setupMoveInputListeners(moveInput);
-    createButtons(moveInput);
+    const buttonContainer = createButtonContainer(moveInput.parentNode);
+    createButtons(buttonContainer);
   }
 
   function onDocumentReady(handler) {
