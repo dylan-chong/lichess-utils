@@ -34,7 +34,7 @@
 
 (function () {
   const SPEAK_RATE = 0.5;
-  const SPEAK_PIECE_REPEATS = 1;
+  const SILENT_PAUSE = '........ wait ........';
 
   const COMMAND = 'pcs';
 
@@ -96,8 +96,11 @@
     });
   }
 
-  function generatePositionMessage(formattedPositions) {
-    return formattedPositions.map(({ name, colLetter, row }) => `"${colLetter}""${row}" ${name}`);
+  function generatePositionMessages(formattedPositions) {
+    return formattedPositions.flatMap(({ name, colLetter, row }) => [
+      `"${colLetter}""${row}" ${name}`,
+      SILENT_PAUSE
+    ]);
   }
 
   function speakString(str, options = {}) {
@@ -105,15 +108,13 @@
     utt.rate = SPEAK_RATE;
     Object.assign(utt, options)
     window.speechSynthesis.speak(utt);
+    return utt;
   }
 
-  function speakPositions(msgs) {
+  function speakMessages(msgs) {
     console.debug('[lichess-board-speaker] speaking positions', { msgs });
     msgs.forEach(msg => {
-      for (let i = 0; i < SPEAK_PIECE_REPEATS; i++) {
-        speakString(msg);
-      }
-      speakString('bla', { volume: 0 });
+      speakString(msg, { volume: msg === SILENT_PAUSE ? 0 : 1 });
     });
   }
 
@@ -121,27 +122,32 @@
     return Array.from(document.querySelector('coords').classList).indexOf('black') === -1;
   }
 
-  function getAndSpeak(filter) {
+  function generateFullMessages(filter) {
     const playerIsWhite = isPlayerWhite();
-    speakString(`You are ${playerIsWhite ? 'white' : 'black'}`);
-    getAndSpeakPieces(filter);
+    const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
+
+    const pieces = getFormattedPositions();
+    const filteredPieces = filterPieces(pieces, filter);
+    const pieceMessages = generatePositionMessages(filteredPieces);
+
+    return [playerColourMsg, ...pieceMessages];
   }
 
-  function getAndSpeakPieces(filter) {
+  function filterPieces(pieces, filter) {
     if (typeof filter === 'string') {
       filter = SQUARE_FILTERS[filter];
     }
+
+    return pieces.filter(filter);;
+  }
+
+  function getFormattedPositions() {
     const piecePositions = getPiecePositions();
     const playerIsWhite = isPlayerWhite();
 
     let positions = getPiecePositions();
     positions = formatPositions(positions, playerIsWhite);
-    positions = sortPositions(positions);
-    positions = positions.filter(filter);;
-
-    console.debug('[lichess-board-speaker] piece positions', { positions, playerIsWhite });
-    const msgs = generatePositionMessage(positions);
-    speakPositions(msgs);
+    return sortPositions(positions);
   }
 
   function findPossibleCommandMatch(inputString) {
@@ -163,7 +169,8 @@
     console.debug('[lichess-board-speaker] command triggered', { value });
     moveInput.value = '';
 
-    getAndSpeak(filter);
+    const msgs = generateFullMessages(filter);
+    speakMessages(msgs);
   }
 
   function createButtonContainer(parentContainer) {
@@ -183,10 +190,17 @@
   function createCommandButton(commandName) {
     const button = document.createElement('button');
     button.innerHTML = formatCommand(commandName);
-    button.addEventListener('click', () => getAndSpeak(SQUARE_FILTERS[commandName]));
     button.style.display = 'block';
     button.style.padding = '2px';
     button.style.margin = '8px';
+
+    const onClick = () => {
+      const msgs = generateFullMessages(SQUARE_FILTERS[commandName]);
+      speakMessages(msgs);
+    };
+
+    button.addEventListener('click', onClick);
+
     return button;
   }
 
