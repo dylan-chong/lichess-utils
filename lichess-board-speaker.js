@@ -36,28 +36,31 @@
   const SPEAK_RATE = 0.5;
   const SILENT_PAUSE = '........ wait ........';
 
-  const COMMAND = 'pcs';
+  const COMMAND_PREFIX = 'p';
 
-  const SQUARE_FILTERS = {
-    a: ({ col, row }) => true,
+  const COMMANDS = {
+    a: () => generateFullMessagesAndSpeak(() => true),
+
     /** white-kingside quadrant */
-    wk: ({ col, row }) => col >= 5 && row <= 4,
-    wq: ({ col, row }) => col <= 4 && row <= 4,
-    bk: ({ col, row }) => col >= 5 && row >= 5,
-    bq: ({ col, row }) => col <= 4 && row >= 5,
+    wk: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row <= 4),
+    wq: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row <= 4),
+    bk: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row >= 5),
+    bq: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5),
 
-    ww: ({ row }) => row <= 4,
-    bb: ({ row }) => row >= 5,
+    ww: () => generateFullMessagesAndSpeak(({ row }) => row <= 4),
+    bb: () => generateFullMessagesAndSpeak(({ row }) => row >= 5),
+
+    s: () => window.speechSynthesis.cancel(),
   };
 
   function formatCommand(commandName) {
-    return `${COMMAND} ${commandName}`;
+    return `${COMMAND_PREFIX}${commandName}`;
   }
 
-  const possibleCommands = Object.fromEntries(
+  const COMMANDS_WITH_PREFIX = Object.fromEntries(
     Object
-      .entries(SQUARE_FILTERS)
-      .map(([commandName, filter]) => [formatCommand(commandName), filter])
+      .entries(COMMANDS)
+      .map(([name, command]) => [formatCommand(name), command])
   );
 
   function getPiecePosition(transform, squareSize) {
@@ -113,6 +116,7 @@
 
   function speakMessages(msgs) {
     console.debug('[lichess-board-speaker] speaking positions', { msgs });
+
     msgs.forEach(msg => {
       speakString(msg, { volume: msg === SILENT_PAUSE ? 0 : 1 });
     });
@@ -151,7 +155,7 @@
   }
 
   function findPossibleCommandMatch(inputString) {
-    const possibleCommandStrings = Object.keys(possibleCommands);
+    const possibleCommandStrings = Object.keys(COMMANDS_WITH_PREFIX);
     return possibleCommandStrings.find(cs => cs.startsWith(inputString));
   }
 
@@ -163,14 +167,13 @@
 
   function userInputChanged(moveInput) {
     const value = moveInput.value;
-    const filter = possibleCommands[value];
-    if (!filter) return;
+    const command = COMMANDS_WITH_PREFIX[value];
+    if (!command) return;
 
     console.debug('[lichess-board-speaker] command triggered', { value });
     moveInput.value = '';
 
-    const msgs = generateFullMessages(filter);
-    speakMessages(msgs);
+    command();
   }
 
   function createButtonContainer(parentContainer) {
@@ -182,9 +185,14 @@
 
   function createButtons(container) {
     Object
-      .keys(SQUARE_FILTERS)
+      .keys(COMMANDS)
       .map(createCommandButton)
       .map(button => container.appendChild(button));
+  }
+
+  function generateFullMessagesAndSpeak(filter) {
+    const msgs = generateFullMessages(filter);
+    speakMessages(msgs);
   }
 
   function createCommandButton(commandName) {
@@ -194,20 +202,12 @@
     button.style.padding = '2px';
     button.style.margin = '8px';
 
-    const onClick = () => {
-      const msgs = generateFullMessages(SQUARE_FILTERS[commandName]);
-      speakMessages(msgs);
-    };
-
-    button.addEventListener('click', onClick);
-
+    button.addEventListener('click', COMMANDS[commandName]);
     return button;
   }
 
   function setupMoveInputListeners(moveInput) {
-    moveInput.addEventListener('input', (event) => {
-      userInputChanged(moveInput);
-    });
+    moveInput.addEventListener('input', (event) => userInputChanged(moveInput));
 
     setInterval(() => removeWrongOnInput(moveInput), 50);
 
@@ -229,7 +229,7 @@
   }
 
   function onDocumentReady(handler) {
-    console.debug('[lichess-board-speaker] set up load handler ...', { possibleCommands });
+    console.debug('[lichess-board-speaker] set up load handler ...', { COMMANDS_WITH_PREFIX });
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', handler);
     } else {
