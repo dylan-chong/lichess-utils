@@ -39,18 +39,41 @@
   const COMMAND_PREFIX = 'p';
 
   const COMMANDS = {
-    a: () => generateFullMessagesAndSpeak(() => true),
+    a: {
+      fullName: 'Speak all pieces',
+      exec: () => generateFullMessagesAndSpeak(() => true)
+    },
 
-    /** white-kingside quadrant */
-    wk: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row <= 4),
-    wq: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row <= 4),
-    bk: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row >= 5),
-    bq: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5),
+    wk: {
+      fullName: "Speak white's kingside",
+      exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row <= 4)
+    },
+    wq: {
+      fullName: "Speak white's queenside",
+      exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row <= 4)
+    },
+    bk: {
+      fullName: "Speak black's kingside",
+      exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row >= 5)
+    },
+    bq: {
+      fullName: "Speak black's queenside",
+      exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5)
+    },
 
-    ww: () => generateFullMessagesAndSpeak(({ row }) => row <= 4),
-    bb: () => generateFullMessagesAndSpeak(({ row }) => row >= 5),
+    ww: {
+      fullName: "Speak white's pieces",
+      exec: () => generateFullMessagesAndSpeak(({ row }) => row <= 4)
+    },
+    bb: {
+      fullName: "Speak black's pieces",
+      exec: () => generateFullMessagesAndSpeak(({ row }) => row >= 5)
+    },
 
-    s: () => window.speechSynthesis.cancel(),
+    s: {
+      fullName: 'Stop speaking',
+      exec: () => window.speechSynthesis.cancel()
+    },
   };
 
   function formatCommand(commandName) {
@@ -173,7 +196,7 @@
     console.debug('[lichess-board-speaker] command triggered', { value });
     moveInput.value = '';
 
-    command();
+    command.exec();
   }
 
   function createButtonContainer(parentContainer) {
@@ -185,7 +208,7 @@
 
   function createButtons(container) {
     Object
-      .keys(COMMANDS)
+      .keys(COMMANDS_WITH_PREFIX)
       .map(createCommandButton)
       .map(button => container.appendChild(button));
   }
@@ -196,13 +219,21 @@
   }
 
   function createCommandButton(commandName) {
+    const { fullName, exec } = COMMANDS_WITH_PREFIX[commandName];
+
     const button = document.createElement('button');
-    button.innerHTML = formatCommand(commandName);
+    button.innerHTML = `${fullName}<br>(${commandName})`;
     button.style.display = 'block';
+    button.style.width = '100%';
     button.style.padding = '2px';
     button.style.margin = '8px';
+    button.style.textAlign = 'left';
 
-    button.addEventListener('click', COMMANDS[commandName]);
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] button clicked', { fullName });
+      exec();
+    });
+
     return button;
   }
 
