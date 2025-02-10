@@ -45,28 +45,28 @@
     },
 
     wk: {
-      fullName: "Speak white's kingside",
+      fullName: "Speak w's k-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row <= 4)
     },
     wq: {
-      fullName: "Speak white's queenside",
+      fullName: "Speak w's q-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row <= 4)
     },
     bk: {
-      fullName: "Speak black's kingside",
+      fullName: "Speak b's k-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row >= 5)
     },
     bq: {
-      fullName: "Speak black's queenside",
+      fullName: "Speak b's q-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5)
     },
 
     ww: {
-      fullName: "Speak white's pieces",
+      fullName: "Speak w's pieces",
       exec: () => generateFullMessagesAndSpeak(({ row }) => row <= 4)
     },
     bb: {
-      fullName: "Speak black's pieces",
+      fullName: "Speak b's pieces",
       exec: () => generateFullMessagesAndSpeak(({ row }) => row >= 5)
     },
 
@@ -215,7 +215,7 @@
     const { fullName, exec } = COMMANDS_WITH_PREFIX[commandName];
 
     const button = document.createElement('button');
-    button.innerHTML = `${fullName}<br>(${commandName})`;
+    button.innerHTML = `${fullName} (${commandName})`;
     button.style.display = 'block';
     button.style.width = '100%';
     button.style.padding = '2px';
