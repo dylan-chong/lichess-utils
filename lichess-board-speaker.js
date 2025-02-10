@@ -34,7 +34,7 @@
 
 (function () {
   const SPEAK_RATE = 0.5;
-  const SILENT_PAUSE = '........ wait ........';
+  const SILENT_PAUSE = '... wait ...';
 
   const COMMAND_PREFIX = 'p';
 
@@ -86,34 +86,43 @@
       .map(([name, command]) => [formatCommand(name), command])
   );
 
-  function getPiecePosition(transform, squareSize) {
-    const [col, row] = transform.replace('translate(', '').replace('px', '').replace(')', '').split(', ').map(parseFloat);
-    return [col / squareSize, row / squareSize].map(Math.floor);
+  function calculatePiecePosition(transform, squareSize, playerIsWhite) {
+    const match = transform.match(/translate\(([\d.]+)px(?:,\s*([\d.]+)px)?\)/);
+    if (!match) return null;
+
+    let col = Math.floor(parseFloat(match[1]) / squareSize);
+    let row = Math.floor(parseFloat(match[2] || 0) / squareSize);
+
+    if (playerIsWhite) {
+      row = 7 - row;
+    } else {
+      col = 7 - col;
+    }
+
+    return [col + 1, row + 1];
   }
 
-  function getPiecePositions() {
+  function getPiecePositions(playerIsWhite) {
     const pieces = document.querySelectorAll('cg-board piece');
     const squareSize = document.querySelector('cg-board').offsetWidth / 8;
 
-    return Array.from(pieces).map(piece => ({
-      name: piece.className,
-      position: getPiecePosition(piece.style.transform, squareSize)
-    }));
+    return Array.from(pieces)
+      .map(piece => {
+        const position = calculatePiecePosition(piece.style.transform, squareSize, playerIsWhite);
+        if (!position) return null;
+
+        const [col, row] = position;
+        return {
+          name: piece.className,
+          col,
+          colLetter: 'abcdefgh'[col - 1],
+          row
+        };
+      })
+      .filter(piece => piece);
   }
 
-  function formatPositions(piecePositions, playerIsWhite) {
-    return piecePositions.map(piece => {
-      let [col, row] = piece.position;
-      if (playerIsWhite) {
-        row = 7 - row;
-      } else {
-        col = 7 - col;
-      }
-      return { name: piece.name, colLetter: 'abcdefgh'[col], col: col + 1, row: row + 1 };
-    });
-  }
-
-  function sortPositions(piecePositions) {
+  function sortPieces(piecePositions) {
     return piecePositions.toSorted((a, b) => {
       if (a.row !== b.row) {
         return a.row - b.row;
@@ -124,7 +133,7 @@
 
   function generatePositionMessages(formattedPositions) {
     return formattedPositions.flatMap(({ name, colLetter, row }) => [
-      `"${colLetter}""${row}" ${name}`,
+      `"${colLetter}" "${row}" ${name}`,
       SILENT_PAUSE
     ]);
   }
@@ -138,7 +147,7 @@
   }
 
   function speakMessages(msgs) {
-    console.debug('[lichess-board-speaker] speaking positions', { msgs });
+    console.debug('[lichess-board-speaker] speaking positions: ', msgs.join('\n'));
 
     msgs.forEach(msg => {
       speakString(msg, { volume: msg === SILENT_PAUSE ? 0 : 1 });
@@ -153,28 +162,12 @@
     const playerIsWhite = isPlayerWhite();
     const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
 
-    const pieces = getFormattedPositions();
-    const filteredPieces = filterPieces(pieces, filter);
-    const pieceMessages = generatePositionMessages(filteredPieces);
+    let pieces = getPiecePositions(playerIsWhite);
+    pieces = sortPieces(pieces);
+    pieces = pieces.filter(filter);
 
+    const pieceMessages = generatePositionMessages(pieces);
     return [playerColourMsg, ...pieceMessages];
-  }
-
-  function filterPieces(pieces, filter) {
-    if (typeof filter === 'string') {
-      filter = SQUARE_FILTERS[filter];
-    }
-
-    return pieces.filter(filter);;
-  }
-
-  function getFormattedPositions() {
-    const piecePositions = getPiecePositions();
-    const playerIsWhite = isPlayerWhite();
-
-    let positions = getPiecePositions();
-    positions = formatPositions(positions, playerIsWhite);
-    return sortPositions(positions);
   }
 
   function findPossibleCommandMatch(inputString) {
