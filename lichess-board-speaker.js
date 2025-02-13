@@ -99,7 +99,7 @@
       col = 7 - col;
     }
 
-    return [col + 1, row + 1];
+    return { col: col + 1, row: row + 1 };
   }
 
   function getPiecePositions(playerIsWhite) {
@@ -111,7 +111,7 @@
         const position = calculatePiecePosition(piece.style.transform, squareSize, playerIsWhite);
         if (!position) return null;
 
-        const [col, row] = position;
+        const { col, row } = position;
         return {
           name: piece.className,
           col,
