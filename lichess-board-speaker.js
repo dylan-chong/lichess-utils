@@ -33,11 +33,24 @@
 // </cg-container>
 
 (function() {
-  const SPEAK_RATE = 0.5;
   const SILENT_PAUSE = '... wait ...';
+  const SPEAK_RATES = [
+    0.2,
+    0.5,
+    0.7,
+    1.0,
+    1.1,
+    1.2,
+  ]
+  const SPEAK_RATE_COMMAND = 'sr';
+  let currentSpeakRateIndex = 1;
+
+  function formatSpeakRateButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
+    return `Speak rate (${SPEAK_RATES[currentSpeakRateIndex]}) ${suffix}`;
+  }
 
   const COMMAND_PREFIX = 'p';
-
   const COMMANDS = {
     a: {
       fullName: 'Speak all pieces',
@@ -70,7 +83,11 @@
       exec: () => generateFullMessagesAndSpeak(({ row }) => row >= 5)
     },
 
-    s: {
+    [SPEAK_RATE_COMMAND]: {
+      fullName: formatSpeakRateButtonText({ withSuffix: false }),
+      exec: () => changeSpeakRate(),
+    },
+    ss: {
       fullName: 'Stop speaking',
       exec: () => window.speechSynthesis.cancel()
     },
@@ -170,7 +187,7 @@
 
   function speakString(str, options = {}) {
     const utt = new SpeechSynthesisUtterance(str);
-    utt.rate = SPEAK_RATE;
+    utt.rate = SPEAK_RATES[currentSpeakRateIndex];
     Object.assign(utt, options)
     window.speechSynthesis.speak(utt);
     return utt;
@@ -265,11 +282,22 @@
     speakMessages(msgs);
   }
 
+  function changeSpeakRate() {
+    currentSpeakRateIndex = (currentSpeakRateIndex + 1) % SPEAK_RATES.length;
+
+    const button = COMMANDS[SPEAK_RATE_COMMAND].button;
+    button.innerText = formatSpeakRateButtonText({ withSuffix: true });
+
+    const suffix = currentSpeakRateIndex === SPEAK_RATES.length - 1 ? ' max' : '';
+    speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
+  }
+
   function createCommandButton(commandName) {
-    const { fullName, exec } = COMMANDS_WITH_PREFIX[commandName];
+    const command = COMMANDS_WITH_PREFIX[commandName];
+    const { fullName, exec } = command;
 
     const button = document.createElement('button');
-    button.innerHTML = `${fullName} (${commandName})`;
+    button.innerText = `${fullName} (${commandName})`;
     button.style.display = 'block';
     button.style.width = '100%';
     button.style.padding = '2px';
@@ -281,11 +309,12 @@
       exec();
     });
 
+    command.button = button;
     return button;
   }
 
   function setupMoveInputListeners(moveInput) {
-    moveInput.addEventListener('input', (event) => userInputChanged(moveInput));
+    moveInput.addEventListener('input', (_event) => userInputChanged(moveInput));
 
     setInterval(() => removeWrongOnInput(moveInput), 50);
 
