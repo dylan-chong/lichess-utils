@@ -146,10 +146,10 @@
 
   function sortPieces(piecePositions) {
     return piecePositions.toSorted((a, b) => {
-      if (a.row !== b.row) {
-        return a.row - b.row;
+      if (a.col !== b.col) {
+        return a.col - b.col;
       }
-      return a.col - b.col;
+      return a.row - b.row;
     });
   }
 
