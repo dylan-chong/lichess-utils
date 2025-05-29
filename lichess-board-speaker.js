@@ -32,7 +32,7 @@
 //     </cg-board>
 // </cg-container>
 
-(function () {
+(function() {
   const SPEAK_RATE = 0.5;
   const SILENT_PAUSE = '... wait ...';
 
@@ -111,9 +111,14 @@
         const position = calculatePiecePosition(piece.style.transform, squareSize, playerIsWhite);
         if (!position) return null;
 
+        const pieceString = piece.className;
+        const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)$/) || [];
+        if (!colour || !type) return null;
+
         const { col, row } = position;
         return {
-          name: piece.className,
+          type,
+          colour,
           col,
           colLetter: 'abcdefgh'[col - 1],
           row
@@ -132,8 +137,8 @@
   }
 
   function generatePositionMessages(formattedPositions) {
-    return formattedPositions.flatMap(({ name, colLetter, row }) => [
-      `"${colLetter}" "${row}" ${name}`,
+    return formattedPositions.flatMap(({ colour, type, colLetter, row }) => [
+      `"${colLetter}" "${row}" ${colour} ${type}`,
       SILENT_PAUSE
     ]);
   }
@@ -163,6 +168,8 @@
     const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
 
     let pieces = getPiecePositions(playerIsWhite);
+
+
     pieces = sortPieces(pieces);
     pieces = pieces.filter(filter);
 
