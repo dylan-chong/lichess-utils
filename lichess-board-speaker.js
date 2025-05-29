@@ -136,11 +136,36 @@
     });
   }
 
-  function generatePositionMessages(formattedPositions) {
-    return formattedPositions.flatMap(({ colour, type, colLetter, row }) => [
-      `"${colLetter}" "${row}" ${colour} ${type}`,
+  function generateSpeakablePosition({ colLetter, row }) {
+    return `"${colLetter}" "${row}"`
+  }
+
+  function generateSinglePositionMessage(piece) {
+    const { colour, type } = piece;
+    return [
+      `${generateSpeakablePosition(piece)} ${colour} ${type}`,
       SILENT_PAUSE
-    ]);
+    ];
+  }
+
+  function generatePositionMessagesFromGroups(piecesGroupedByColourGroupedByType) {
+    return Object
+      .entries(piecesGroupedByColourGroupedByType)
+      .flatMap(([colour, piecesGroupedByType]) => {
+        return Object
+          .entries(piecesGroupedByType)
+          .flatMap(([type, pieces]) => {
+            if (pieces.length === 0) return [];
+            if (pieces.length === 1) return generateSinglePositionMessage(pieces[0]);
+
+            const positions = pieces.map(generateSpeakablePosition).join(', ');
+            return [
+              `${colour} ${type}s on ${positions}`,
+              SILENT_PAUSE,
+              SILENT_PAUSE
+            ]
+          })
+      });
   }
 
   function speakString(str, options = {}) {
@@ -152,7 +177,7 @@
   }
 
   function speakMessages(msgs) {
-    console.debug('[lichess-board-speaker] speaking positions: ', msgs.join('\n'));
+    console.debug('[lichess-board-speaker] speaking messages: ', msgs.join('\n'));
 
     msgs.forEach(msg => {
       speakString(msg, { volume: msg === SILENT_PAUSE ? 0 : 1 });
@@ -168,12 +193,34 @@
     const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
 
     let pieces = getPiecePositions(playerIsWhite);
-
-
     pieces = sortPieces(pieces);
     pieces = pieces.filter(filter);
 
-    const pieceMessages = generatePositionMessages(pieces);
+    let piecesGroupedByColour = {
+      white: pieces.filter(p => p.colour === 'white'),
+      black: pieces.filter(p => p.colour === 'black'),
+    };
+
+    let piecesGroupedByColourGroupedByType = {
+      white: {
+        pawn: piecesGroupedByColour.white.filter(p => p.type === 'pawn'),
+        knight: piecesGroupedByColour.white.filter(p => p.type === 'knight'),
+        bishop: piecesGroupedByColour.white.filter(p => p.type === 'bishop'),
+        rook: piecesGroupedByColour.white.filter(p => p.type === 'rook'),
+        queen: piecesGroupedByColour.white.filter(p => p.type === 'queen'),
+        king: piecesGroupedByColour.white.filter(p => p.type === 'king'),
+      },
+      black: {
+        pawn: piecesGroupedByColour.black.filter(p => p.type === 'pawn'),
+        knight: piecesGroupedByColour.black.filter(p => p.type === 'knight'),
+        bishop: piecesGroupedByColour.black.filter(p => p.type === 'bishop'),
+        rook: piecesGroupedByColour.black.filter(p => p.type === 'rook'),
+        queen: piecesGroupedByColour.black.filter(p => p.type === 'queen'),
+        king: piecesGroupedByColour.black.filter(p => p.type === 'king'),
+      }
+    };
+
+    const pieceMessages = generatePositionMessagesFromGroups(piecesGroupedByColourGroupedByType);
     return [playerColourMsg, ...pieceMessages];
   }
 
