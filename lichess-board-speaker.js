@@ -91,6 +91,11 @@
       fullName: 'Stop speaking',
       exec: () => window.speechSynthesis.cancel()
     },
+
+    l: {
+      fullName: 'List pieces',
+      exec: () => displayPiecesList()
+    }
   };
 
   function formatCommand(commandName) {
@@ -157,6 +162,10 @@
     return `"${colLetter}" "${row}"`
   }
 
+  function generateDisplayablePosition({ colLetter, row }) {
+    return `${colLetter}${row}`
+  }
+
   function generateSinglePositionMessage(piece) {
     const { colour, type } = piece;
     return [
@@ -165,7 +174,7 @@
     ];
   }
 
-  function generatePositionMessagesFromGroups(piecesGroupedByColourGroupedByType) {
+  function generateMessagesFromGroups(piecesGroupedByColourGroupedByType) {
     return Object
       .entries(piecesGroupedByColourGroupedByType)
       .flatMap(([colour, piecesGroupedByType]) => {
@@ -182,6 +191,25 @@
               SILENT_PAUSE
             ]
           })
+      });
+  }
+
+  function generateDisplayTextFromGroups(piecesGroupedByColourGroupedByType) {
+    return Object
+      .entries(piecesGroupedByColourGroupedByType)
+      .flatMap(([colour, piecesGroupedByType]) => {
+        const prefix = `${colour.toUpperCase()}:`;
+        const textLinesForColour = Object
+          .entries(piecesGroupedByType)
+          .flatMap(([type, pieces]) => {
+            if (pieces.length === 0) return [];
+
+            const positions = pieces.map(generateDisplayablePosition).join(', ');
+            return [
+              `${type}: ${positions}`,
+            ]
+          });
+        return [prefix, ...textLinesForColour, ''];
       });
   }
 
@@ -205,20 +233,15 @@
     return Array.from(document.querySelector('coords').classList).indexOf('black') === -1;
   }
 
-  function generateFullMessages(filter) {
-    const playerIsWhite = isPlayerWhite();
-    const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
-
-    let pieces = getPiecePositions(playerIsWhite);
+  function groupPiecesByColourAndType(pieces) {
     pieces = sortPieces(pieces);
-    pieces = pieces.filter(filter);
 
     let piecesGroupedByColour = {
       white: pieces.filter(p => p.colour === 'white'),
       black: pieces.filter(p => p.colour === 'black'),
     };
 
-    let piecesGroupedByColourGroupedByType = {
+    return {
       white: {
         pawn: piecesGroupedByColour.white.filter(p => p.type === 'pawn'),
         knight: piecesGroupedByColour.white.filter(p => p.type === 'knight'),
@@ -236,8 +259,18 @@
         king: piecesGroupedByColour.black.filter(p => p.type === 'king'),
       }
     };
+  }
 
-    const pieceMessages = generatePositionMessagesFromGroups(piecesGroupedByColourGroupedByType);
+  function generateFullMessages(filter) {
+    const playerIsWhite = isPlayerWhite();
+    const playerColourMsg = `You are ${playerIsWhite ? 'white' : 'black'}`;
+
+    let pieces = getPiecePositions(playerIsWhite);
+    pieces = pieces.filter(filter);
+
+    const piecesGrouped = groupPiecesByColourAndType(pieces);
+    const pieceMessages = generateMessagesFromGroups(piecesGrouped);
+
     return [playerColourMsg, ...pieceMessages];
   }
 
@@ -290,6 +323,19 @@
 
     const suffix = currentSpeakRateIndex === SPEAK_RATES.length - 1 ? ' max' : '';
     speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
+  }
+
+  function displayPiecesList() {
+    const playerIsWhite = isPlayerWhite();
+    const pieces = getPiecePositions(playerIsWhite);
+    const piecesGrouped = groupPiecesByColourAndType(pieces);
+
+    const text =
+      generateDisplayTextFromGroups(piecesGrouped)
+        .filter(msg => msg !== SILENT_PAUSE)
+        .join('\n');
+
+    alert(text);
   }
 
   function createCommandButton(commandName) {
