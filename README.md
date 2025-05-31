@@ -2,17 +2,17 @@
 
 ## lichess-board-speaker
 
-Script to make it easy to make the site speak the pieces on the board, or within a specific quadrant.
-
-Supports text input to trigger these commands (desktop).
-
-Supports buttons to trigger the same commands (mobile, desktop).
+Script to make it possible to practice blindfold chess puzzles.
+- Speaks out the pieces on the board: "white pawns on a2 b2. a1 white rook".
+- Supports text input to trigger these commands (desktop).
+- Supports buttons to trigger the same commands (mobile, desktop).
 
 ![screenshot](./screenshot.png)
 
 ### Installation
 
-- add this script using using tampermonkey (chrome, firefox) or userscripts (safari)
+- install the tampermonkey browser extension (chrome, firefox) or userscripts (safari)
+- add [the script code](https://raw.githubusercontent.com/dylan-chong/lichess-utils/refs/heads/main/lichess-board-speaker.js) to the browser extension
 - on lichess.org
     - enable keyboard move input
     - you'll probably want to enable move narration
