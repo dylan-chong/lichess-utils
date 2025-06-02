@@ -322,6 +322,8 @@
   }
 
   function changeSpeakRate() {
+    window.speechSynthesis.cancel();
+
     currentSpeakRateIndex = (currentSpeakRateIndex + 1) % SPEAK_RATES.length;
 
     const button = commandButtons[formatCommand(SPEAK_RATE_COMMAND)];
