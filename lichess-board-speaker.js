@@ -95,10 +95,6 @@
     l: {
       fullName: 'List pieces',
       exec: displayPiecesList
-    },
-    h: {
-      fullName: 'Hide buttons',
-      exec: hideButtons
     }
   };
 
@@ -349,12 +345,6 @@
         .join('\n');
 
     alert(text);
-  }
-
-  function hideButtons() {
-    Object.values(commandButtons).forEach(button => {
-      button.style.display = 'none';
-    })
   }
 
   function createCommandButton(commandName) {
