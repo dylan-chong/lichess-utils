@@ -305,6 +305,7 @@
   function createButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
+    container.style.maxHeight = '50px'; // don't shift text input down (it centres veritcally)
     parentContainer.appendChild(container);
     return container;
   }
