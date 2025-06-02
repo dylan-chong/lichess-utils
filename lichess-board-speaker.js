@@ -94,9 +94,15 @@
 
     l: {
       fullName: 'List pieces',
-      exec: () => displayPiecesList()
+      exec: displayPiecesList
+    },
+    h: {
+      fullName: 'Hide buttons',
+      exec: hideButtons
     }
   };
+
+  const commandButtons = {};
 
   function formatCommand(commandName) {
     return `${COMMAND_PREFIX}${commandName}`;
@@ -318,11 +324,15 @@
   function changeSpeakRate() {
     currentSpeakRateIndex = (currentSpeakRateIndex + 1) % SPEAK_RATES.length;
 
-    const button = COMMANDS[SPEAK_RATE_COMMAND].button;
+    const button = commandButtons[formatCommand(SPEAK_RATE_COMMAND)];
     button.innerText = formatSpeakRateButtonText({ withSuffix: true });
 
     const suffix = currentSpeakRateIndex === SPEAK_RATES.length - 1 ? ' max' : '';
-    speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
+
+    // Delay because otherwise the cancel overlaps due to being async
+    setTimeout(() => {
+      speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
+    }, 0);
   }
 
   function displayPiecesList() {
@@ -336,6 +346,12 @@
         .join('\n');
 
     alert(text);
+  }
+
+  function hideButtons() {
+    Object.values(commandButtons).forEach(button => {
+      button.style.display = 'none';
+    })
   }
 
   function createCommandButton(commandName) {
@@ -355,7 +371,7 @@
       exec();
     });
 
-    command.button = button;
+    commandButtons[commandName] = button;
     return button;
   }
 
