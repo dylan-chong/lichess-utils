@@ -18,6 +18,6 @@ Script to make it possible to practice blindfold chess puzzles.
     - you'll probably want to enable move narration
     - go to a puzzle
     - turn on blindfold mode
-- type into the move input box `pcs wk` to read out pieces on the white-kingside quadrant
+- type into the move input box `pwk` to read out pieces on the white-kingside quadrant
     - (the 'invalid input' sound plays when you type, but just ignore that sound)
 - profit from blindfold chess puzzle practice!
