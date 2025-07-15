@@ -110,6 +110,164 @@
       .map(([name, command]) => [formatCommand(name), command])
   );
 
+  const DRAWING_COLOR = '#ff6b6b';
+
+  // Drawing functionality
+  function parseSquare(square) {
+    if (square.length !== 2) return null;
+    const file = square[0];
+    const rank = square[1];
+    if (file < 'a' || file > 'h' || rank < '1' || rank > '8') return null;
+    return { file, rank };
+  }
+
+  function parseDrawingCommand(command) {
+    if (!command.startsWith('-')) return null;
+
+    const content = command.substring(1);
+    const parts = content.split(',');
+    const circles = [];
+    const arrows = [];
+
+    for (const part of parts) {
+      if (part.length === 2) {
+        // Single square - circle
+        const square = parseSquare(part);
+        if (square) circles.push(square);
+      } else if (part.length === 4) {
+        // Four characters - arrow
+        const from = parseSquare(part.substring(0, 2));
+        const to = parseSquare(part.substring(2, 4));
+        if (from && to) arrows.push({ from, to });
+      } else if (part.length === 3) {
+        // Three characters - circle the first two, ignore the third
+        const square = parseSquare(part.substring(0, 2));
+        if (square) circles.push(square);
+      }
+      // Ignore invalid parts
+    }
+
+    return { circles, arrows };
+  }
+
+  function squareToCoordinates(square, boardSize, isFlipped) {
+    const fileIndex = square.file.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rankIndex = parseInt(square.rank) - 1;
+
+    let x, y;
+    if (isFlipped) {
+      x = (7 - fileIndex) * boardSize / 8 + boardSize / 16;
+      y = rankIndex * boardSize / 8 + boardSize / 16;
+    } else {
+      x = fileIndex * boardSize / 8 + boardSize / 16;
+      y = (7 - rankIndex) * boardSize / 8 + boardSize / 16;
+    }
+
+    return { x, y };
+  }
+
+  function createOrGetSVG() {
+    let svg = document.querySelector('cg-container svg.userscript-drawings');
+    if (!svg) {
+      const container = document.querySelector('cg-container');
+      if (!container) return null;
+
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('userscript-drawings')
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '10';
+
+      container.appendChild(svg);
+    }
+    return svg;
+  }
+
+  function clearDrawings() {
+    const svg = document.querySelector('cg-container svg.userscript-drawings');
+    if (svg) {
+      svg.innerHTML = '';
+    }
+  }
+
+  function drawCircle(svg, x, y, boardSize) {
+    const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    circle.setAttribute('cx', x);
+    circle.setAttribute('cy', y);
+    circle.setAttribute('r', boardSize / 16);
+    circle.setAttribute('fill', 'none');
+    circle.setAttribute('stroke', DRAWING_COLOR);
+    circle.setAttribute('stroke-width', '3');
+    circle.setAttribute('opacity', '0.8');
+    svg.appendChild(circle);
+  }
+
+  function drawArrow(svg, x1, y1, x2, y2, boardSize) {
+    const angle = Math.atan2(y2 - y1, x2 - x1);
+    const arrowLength = boardSize / 20;
+    const arrowAngle = Math.PI / 6;
+
+    // Calculate the arrowhead points first
+    const arrowX1 = x2 - arrowLength * Math.cos(angle - arrowAngle);
+    const arrowY1 = y2 - arrowLength * Math.sin(angle - arrowAngle);
+    const arrowX2 = x2 - arrowLength * Math.cos(angle + arrowAngle);
+    const arrowY2 = y2 - arrowLength * Math.sin(angle + arrowAngle);
+
+    // Shorten the line so it ends at the base of the arrowhead
+    const lineEndX = x2 - (arrowLength * 0.7) * Math.cos(angle);
+    const lineEndY = y2 - (arrowLength * 0.7) * Math.sin(angle);
+
+    // Draw the line (now shortened)
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', lineEndX);
+    line.setAttribute('y2', lineEndY);
+    line.setAttribute('stroke', DRAWING_COLOR);
+    line.setAttribute('stroke-width', '4');
+    line.setAttribute('stroke-linecap', 'round');
+    line.setAttribute('opacity', '0.8');
+    svg.appendChild(line);
+
+    // Draw arrowhead at the original end point
+    const arrowhead = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+    arrowhead.setAttribute('points', `${x2},${y2} ${arrowX1},${arrowY1} ${arrowX2},${arrowY2}`);
+    arrowhead.setAttribute('fill', DRAWING_COLOR);
+    arrowhead.setAttribute('opacity', '0.8');
+    svg.appendChild(arrowhead);
+  }
+
+  function updateDrawings(command) {
+    clearDrawings();
+
+    const drawingData = parseDrawingCommand(command);
+    if (!drawingData) return;
+
+    const svg = createOrGetSVG();
+    if (!svg) return;
+
+    const container = document.querySelector('cg-container');
+    const boardSize = container.offsetWidth;
+    const isFlipped = !isPlayerWhite();
+
+    // Draw circles
+    for (const square of drawingData.circles) {
+      const coords = squareToCoordinates(square, boardSize, isFlipped);
+      drawCircle(svg, coords.x, coords.y, boardSize);
+    }
+
+    // Draw arrows
+    for (const arrow of drawingData.arrows) {
+      const fromCoords = squareToCoordinates(arrow.from, boardSize, isFlipped);
+      const toCoords = squareToCoordinates(arrow.to, boardSize, isFlipped);
+      drawArrow(svg, fromCoords.x, fromCoords.y, toCoords.x, toCoords.y, boardSize);
+    }
+  }
+
   function calculatePiecePosition(transform, squareSize, playerIsWhite) {
     const match = transform.match(/translate\(([\d.]+)px(?:,\s*([\d.]+)px)?\)/);
     if (!match) return null;
@@ -282,18 +440,39 @@
   }
 
   function removeWrongOnInput(moveInput) {
-    const possibleCommand = findPossibleCommandMatch(moveInput.value);
+    const value = moveInput.value;
+
+    // Handle drawing commands
+    if (value.startsWith('-')) {
+      updateDrawings(value);
+      moveInput.classList.remove('wrong');
+      return;
+    }
+
+    clearDrawings();
+
+    // Handle regular commands
+    const possibleCommand = findPossibleCommandMatch(value);
     if (!possibleCommand) return;
     moveInput.classList.remove('wrong');
   }
 
   function userInputChanged(moveInput) {
     const value = moveInput.value;
+
+    // Handle drawing commands
+    if (value.startsWith('-')) {
+      updateDrawings(value);
+      return;
+    }
+
+    // Handle regular commands
     const command = COMMANDS_WITH_PREFIX[value];
     if (!command) return;
 
     console.debug('[lichess-board-speaker] command triggered', { value });
     moveInput.value = '';
+    clearDrawings();
 
     command.exec();
   }
