@@ -95,6 +95,11 @@
     l: {
       fullName: 'List pieces',
       exec: displayPiecesList
+    },
+
+    "-annotate": {
+      fullName: 'Annotate board',
+      exec: setExampleAnnotation
     }
   };
 
@@ -112,7 +117,6 @@
 
   const DRAWING_COLOR = '#ff6b6b';
 
-  // Drawing functionality
   function parseSquare(square) {
     if (square.length !== 2) return null;
     const file = square[0];
@@ -439,6 +443,10 @@
     return possibleCommandStrings.find(cs => cs.startsWith(inputString));
   }
 
+  function setExampleAnnotation() {
+    getMoveInput().value = "-e5f6,g7f6"
+  }
+
   function removeWrongOnInput(moveInput) {
     const value = moveInput.value;
 
@@ -547,24 +555,30 @@
     return button;
   }
 
-  function setupMoveInputListeners(moveInput) {
+  function getMoveInput() {
+    return document.querySelector('.keyboard-move input');
+  }
+
+  function setupMoveInput(moveInput) {
     moveInput.addEventListener('input', (_event) => userInputChanged(moveInput));
 
     setInterval(() => removeWrongOnInput(moveInput), 50);
 
     console.debug('[lichess-board-speaker] input listeners set up');
+
+    moveInput.style.minWidth = '200px';
   }
 
   function setup() {
     console.debug('[lichess-board-speaker] starting setup');
 
-    const moveInput = document.querySelector('.keyboard-move input');
+    const moveInput = getMoveInput();
     if (!moveInput) {
       setTimeout(setup, 250);
       return;
     }
 
-    setupMoveInputListeners(moveInput);
+    setupMoveInput(moveInput);
     const buttonContainer = createButtonContainer(moveInput.parentNode);
     createButtons(buttonContainer);
   }
