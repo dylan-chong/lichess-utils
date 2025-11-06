@@ -2,6 +2,8 @@
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
 // @match       *://lichess.org/*
+// @grant          none
+// @inject-into    content
 // ==/UserScript==
 
 // Example board from lichess puzzle page
