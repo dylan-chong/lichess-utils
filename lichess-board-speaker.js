@@ -645,6 +645,7 @@
   }
 
   let parallaxObserver = null;
+  let resizeObserver = null;
   let clonedBoard = null;
 
   function createOrGetClonedBoard() {
@@ -768,6 +769,23 @@
     }
   }
 
+  function handleContainerResize() {
+    if (!clonedBoard) return;
+
+    const board = document.querySelector('cg-board');
+    if (!board) return;
+
+    const computedStyle = window.getComputedStyle(board);
+    clonedBoard.style.width = computedStyle.width;
+    clonedBoard.style.height = computedStyle.height;
+
+    updateClonedBoard();
+
+    if (dividersEnabled) {
+      drawDividers();
+    }
+  }
+
   function calculateScaleForAngle(angleDegrees) {
     const angleRadians = angleDegrees * Math.PI / 180;
     const cosValue = Math.cos(angleRadians);
@@ -787,6 +805,11 @@
       if (parallaxObserver) {
         parallaxObserver.disconnect();
         parallaxObserver = null;
+      }
+
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
       }
 
       if (currentHoverModeIndex > 0) {
@@ -839,6 +862,19 @@
       attributes: true,
       subtree: true
     });
+
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+    }
+
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    resizeObserver = new ResizeObserver(() => {
+      handleContainerResize();
+    });
+
+    resizeObserver.observe(container);
   }
 
   function toggleParallax() {
