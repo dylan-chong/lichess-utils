@@ -737,7 +737,7 @@
     clonedBoard.style.transformStyle = 'preserve-3d';
 
     const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
-    if (pieceStyle === 'checker' || pieceStyle === '3d') {
+    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers') {
       const pieces = clonedBoard.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
