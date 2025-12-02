@@ -47,9 +47,18 @@
   const SPEAK_RATE_COMMAND = 'sr';
   let currentSpeakRateIndex = 1;
 
+  const PARALLAX_ANGLES = [0, 20, 40, 60, 80];
+  const PARALLAX_COMMAND = 'px';
+  let currentParallaxIndex = 0;
+
   function formatSpeakRateButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
     return `Speak rate (${SPEAK_RATES[currentSpeakRateIndex]}) ${suffix}`;
+  }
+
+  function formatParallaxButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(PARALLAX_COMMAND)})` : '';
+    return `Parallax (${PARALLAX_ANGLES[currentParallaxIndex]}°) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -88,6 +97,10 @@
     [SPEAK_RATE_COMMAND]: {
       fullName: formatSpeakRateButtonText({ withSuffix: false }),
       exec: () => changeSpeakRate(),
+    },
+    [PARALLAX_COMMAND]: {
+      fullName: formatParallaxButtonText({ withSuffix: false }),
+      exec: () => toggleParallax(),
     },
     ss: {
       fullName: 'Stop speaking',
@@ -521,6 +534,38 @@
     setTimeout(() => {
       speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
     }, 0);
+  }
+
+  function applyParallaxTransform() {
+    const board = document.querySelector('cg-board');
+    if (!board) return;
+
+    const container = board.parentElement;
+    const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    
+    if (angle === 0) {
+      board.style.transform = '';
+      board.style.transformStyle = '';
+      if (container) {
+        container.style.perspective = '';
+      }
+    } else {
+      if (container) {
+        container.style.perspective = '1000px';
+      }
+      board.style.transformStyle = 'preserve-3d';
+      board.style.transform = `rotateX(${angle}deg)`;
+      board.style.transformOrigin = 'center center';
+    }
+  }
+
+  function toggleParallax() {
+    currentParallaxIndex = (currentParallaxIndex + 1) % PARALLAX_ANGLES.length;
+
+    const button = commandButtons[formatCommand(PARALLAX_COMMAND)];
+    button.innerText = formatParallaxButtonText({ withSuffix: true });
+
+    applyParallaxTransform();
   }
 
   function displayPiecesList() {
