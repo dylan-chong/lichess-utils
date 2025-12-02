@@ -47,14 +47,14 @@
   const SPEAK_RATE_COMMAND = 'sr';
   let currentSpeakRateIndex = 1;
 
-  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 65, 70, 80];
+  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 70, 80];
   const PARALLAX_COMMAND = 'px';
   let currentParallaxIndex = 0;
 
   const DIVIDERS_COMMAND = 'div';
   let dividersEnabled = false;
 
-  const PIECE_STYLES = ['default', 'checker', '3d'];
+  const PIECE_STYLES = ['default', 'checker', 'sized-checkers'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -707,6 +707,9 @@
       }
       
       if (i === thickness - 1) {
+        layer.style.border = `2px solid ${color === 'white' ? '#ffffff' : '#555555'}`;
+        layer.style.boxSizing = 'border-box';
+        
         const highlight = document.createElement('div');
         highlight.style.position = 'absolute';
         highlight.style.top = '20%';
