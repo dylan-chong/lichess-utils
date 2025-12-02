@@ -47,9 +47,12 @@
   const SPEAK_RATE_COMMAND = 'sr';
   let currentSpeakRateIndex = 1;
 
-  const PARALLAX_ANGLES = [0, 20, 40, 60, 80];
+  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 70, 80];
   const PARALLAX_COMMAND = 'px';
   let currentParallaxIndex = 0;
+
+  const DIVIDERS_COMMAND = 'div';
+  let dividersEnabled = false;
 
   function formatSpeakRateButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
@@ -59,6 +62,12 @@
   function formatParallaxButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(PARALLAX_COMMAND)})` : '';
     return `Parallax (${PARALLAX_ANGLES[currentParallaxIndex]}°) ${suffix}`;
+  }
+
+  function formatDividersButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(DIVIDERS_COMMAND)})` : '';
+    const status = dividersEnabled ? 'ON' : 'OFF';
+    return `Dividers (${status}) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -98,10 +107,6 @@
       fullName: formatSpeakRateButtonText({ withSuffix: false }),
       exec: () => changeSpeakRate(),
     },
-    [PARALLAX_COMMAND]: {
-      fullName: formatParallaxButtonText({ withSuffix: false }),
-      exec: () => toggleParallax(),
-    },
     ss: {
       fullName: 'Stop speaking',
       exec: () => window.speechSynthesis.cancel()
@@ -115,7 +120,17 @@
     "-annotate": {
       fullName: 'Annotate board',
       exec: setExampleAnnotation
-    }
+    },
+
+    // View related commands
+    [PARALLAX_COMMAND]: {
+      fullName: formatParallaxButtonText({ withSuffix: false }),
+      exec: () => toggleParallax(),
+    },
+    [DIVIDERS_COMMAND]: {
+      fullName: formatDividersButtonText({ withSuffix: false }),
+      exec: () => toggleDividers(),
+    },
   };
 
   const commandButtons = {};
@@ -540,21 +555,14 @@
     const board = document.querySelector('cg-board');
     if (!board) return;
 
-    const container = board.parentElement;
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
     
     if (angle === 0) {
       board.style.transform = '';
       board.style.transformStyle = '';
-      if (container) {
-        container.style.perspective = '';
-      }
     } else {
-      if (container) {
-        container.style.perspective = '1000px';
-      }
       board.style.transformStyle = 'preserve-3d';
-      board.style.transform = `rotateX(${angle}deg)`;
+      board.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
       board.style.transformOrigin = 'center center';
     }
   }
@@ -566,6 +574,76 @@
     button.innerText = formatParallaxButtonText({ withSuffix: true });
 
     applyParallaxTransform();
+  }
+
+  function createOrGetDividersSVG() {
+    let svg = document.querySelector('cg-board svg.userscript-dividers');
+    if (!svg) {
+      const board = document.querySelector('cg-board');
+      if (!board) return null;
+
+      svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      svg.classList.add('userscript-dividers');
+      svg.style.position = 'absolute';
+      svg.style.top = '0';
+      svg.style.left = '0';
+      svg.style.width = '100%';
+      svg.style.height = '100%';
+      svg.style.pointerEvents = 'none';
+      svg.style.zIndex = '10';
+
+      board.appendChild(svg);
+    }
+    return svg;
+  }
+
+  function drawDividers() {
+    const svg = createOrGetDividersSVG();
+    if (!svg) return;
+
+    svg.innerHTML = '';
+
+    const board = document.querySelector('cg-board');
+    const boardSize = board.offsetWidth;
+    const midPoint = boardSize / 2;
+
+    const horizontalLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    horizontalLine.setAttribute('x1', 0);
+    horizontalLine.setAttribute('y1', midPoint);
+    horizontalLine.setAttribute('x2', boardSize);
+    horizontalLine.setAttribute('y2', midPoint);
+    horizontalLine.setAttribute('stroke', 'black');
+    horizontalLine.setAttribute('stroke-width', '3');
+    svg.appendChild(horizontalLine);
+
+    const verticalLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    verticalLine.setAttribute('x1', midPoint);
+    verticalLine.setAttribute('y1', 0);
+    verticalLine.setAttribute('x2', midPoint);
+    verticalLine.setAttribute('y2', boardSize);
+    verticalLine.setAttribute('stroke', 'black');
+    verticalLine.setAttribute('stroke-width', '3');
+    svg.appendChild(verticalLine);
+  }
+
+  function clearDividers() {
+    const svg = document.querySelector('cg-board svg.userscript-dividers');
+    if (svg) {
+      svg.remove();
+    }
+  }
+
+  function toggleDividers() {
+    dividersEnabled = !dividersEnabled;
+
+    const button = commandButtons[formatCommand(DIVIDERS_COMMAND)];
+    button.innerText = formatDividersButtonText({ withSuffix: true });
+
+    if (dividersEnabled) {
+      drawDividers();
+    } else {
+      clearDividers();
+    }
   }
 
   function displayPiecesList() {
