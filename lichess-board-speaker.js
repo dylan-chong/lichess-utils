@@ -551,6 +551,52 @@
     }, 0);
   }
 
+  let parallaxObserver = null;
+  let clonedBoard = null;
+
+  function createOrGetClonedBoard() {
+    if (clonedBoard) return clonedBoard;
+
+    const container = document.querySelector('cg-container');
+    const board = document.querySelector('cg-board');
+    if (!container || !board) return null;
+
+    container.style.position = 'relative';
+
+    clonedBoard = document.createElement('cg-board');
+    clonedBoard.classList.add('userscript-parallax-clone');
+    
+    const computedStyle = window.getComputedStyle(board);
+    clonedBoard.style.position = 'absolute';
+    clonedBoard.style.top = '0';
+    clonedBoard.style.left = '0';
+    clonedBoard.style.width = computedStyle.width;
+    clonedBoard.style.height = computedStyle.height;
+    clonedBoard.style.pointerEvents = 'none';
+    clonedBoard.style.zIndex = '100';
+    clonedBoard.style.visibility = 'visible';
+    clonedBoard.style.display = 'block';
+
+    container.appendChild(clonedBoard);
+    return clonedBoard;
+  }
+
+  function updateClonedBoard() {
+    if (!clonedBoard) return;
+
+    const board = document.querySelector('cg-board');
+    if (!board) return;
+
+    clonedBoard.innerHTML = board.innerHTML;
+  }
+
+  function removeClonedBoard() {
+    if (clonedBoard) {
+      clonedBoard.remove();
+      clonedBoard = null;
+    }
+  }
+
   function applyParallaxTransform() {
     const board = document.querySelector('cg-board');
     if (!board) return;
@@ -558,13 +604,46 @@
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
     
     if (angle === 0) {
-      board.style.transform = '';
-      board.style.transformStyle = '';
+      board.style.visibility = '';
+      removeClonedBoard();
+      
+      if (parallaxObserver) {
+        parallaxObserver.disconnect();
+        parallaxObserver = null;
+      }
     } else {
-      board.style.transformStyle = 'preserve-3d';
-      board.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
-      board.style.transformOrigin = 'center center';
+      board.style.visibility = 'hidden';
+      
+      const clone = createOrGetClonedBoard();
+      if (!clone) return;
+
+      updateClonedBoard();
+
+      clone.style.transformStyle = 'preserve-3d';
+      clone.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
+      clone.style.transformOrigin = 'center center';
+      
+      setupParallaxMoveObserver();
     }
+  }
+
+  function setupParallaxMoveObserver() {
+    if (parallaxObserver) {
+      parallaxObserver.disconnect();
+    }
+
+    const board = document.querySelector('cg-board');
+    if (!board) return;
+
+    parallaxObserver = new MutationObserver(() => {
+      updateClonedBoard();
+    });
+
+    parallaxObserver.observe(board, {
+      childList: true,
+      attributes: true,
+      subtree: true
+    });
   }
 
   function toggleParallax() {
