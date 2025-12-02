@@ -54,7 +54,7 @@
   const DIVIDERS_COMMAND = 'div';
   let dividersEnabled = false;
 
-  const PIECE_STYLES = ['default', 'checker'];
+  const PIECE_STYLES = ['default', 'checker', '3d'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -674,13 +674,14 @@
     return clonedBoard;
   }
 
-  function createCheckerPiece(color) {
+  function createCheckerPiece(color, sizePercent = 80) {
     const container = document.createElement('div');
-    container.style.width = '80%';
-    container.style.height = '80%';
+    container.style.width = `${sizePercent}%`;
+    container.style.height = `${sizePercent}%`;
     container.style.position = 'absolute';
-    container.style.top = '10%';
-    container.style.left = '10%';
+    const offset = (100 - sizePercent) / 2;
+    container.style.top = `${offset}%`;
+    container.style.left = `${offset}%`;
     container.style.transformStyle = 'preserve-3d';
     
     const baseColor = color === 'white' ? '#e8e8e8' : '#1a1a1a';
@@ -732,18 +733,36 @@
     clonedBoard.innerHTML = board.innerHTML;
     clonedBoard.style.transformStyle = 'preserve-3d';
 
-    if (PIECE_STYLES[currentPieceStyleIndex] === 'checker') {
+    const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
+    if (pieceStyle === 'checker' || pieceStyle === '3d') {
       const pieces = clonedBoard.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
         const isWhite = classes.includes('white');
         const color = isWhite ? 'white' : 'black';
         
+        let sizePercent;
+        if (pieceStyle === 'checker') {
+          sizePercent = 56;
+        } else {
+          const isPawn = classes.includes('pawn');
+          const isQueen = classes.includes('queen');
+          const isKing = classes.includes('king');
+          
+          if (isPawn) {
+            sizePercent = 40;
+          } else if (isQueen || isKing) {
+            sizePercent = 80;
+          } else {
+            sizePercent = 65;
+          }
+        }
+        
         piece.innerHTML = '';
         piece.style.background = 'none';
         piece.style.transformStyle = 'preserve-3d';
         
-        const checker = createCheckerPiece(color);
+        const checker = createCheckerPiece(color, sizePercent);
         piece.appendChild(checker);
       });
     }
