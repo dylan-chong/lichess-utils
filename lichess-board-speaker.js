@@ -54,6 +54,10 @@
   const DIVIDERS_COMMAND = 'div';
   let dividersEnabled = false;
 
+  const PIECE_STYLES = ['default', 'checker'];
+  const PIECE_STYLE_COMMAND = 'ps';
+  let currentPieceStyleIndex = 0;
+
   function formatSpeakRateButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
     return `Speak rate (${SPEAK_RATES[currentSpeakRateIndex]}) ${suffix}`;
@@ -68,6 +72,11 @@
     const suffix = withSuffix ? ` (${formatCommand(DIVIDERS_COMMAND)})` : '';
     const status = dividersEnabled ? 'ON' : 'OFF';
     return `Dividers (${status}) ${suffix}`;
+  }
+
+  function formatPieceStyleButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(PIECE_STYLE_COMMAND)})` : '';
+    return `Piece style (${PIECE_STYLES[currentPieceStyleIndex]}) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -130,6 +139,10 @@
     [DIVIDERS_COMMAND]: {
       fullName: formatDividersButtonText({ withSuffix: false }),
       exec: () => toggleDividers(),
+    },
+    [PIECE_STYLE_COMMAND]: {
+      fullName: formatPieceStyleButtonText({ withSuffix: false }),
+      exec: () => togglePieceStyle(),
     },
   };
 
@@ -581,6 +594,55 @@
     return clonedBoard;
   }
 
+  function createCheckerPiece(color) {
+    const container = document.createElement('div');
+    container.style.width = '80%';
+    container.style.height = '80%';
+    container.style.position = 'absolute';
+    container.style.top = '10%';
+    container.style.left = '10%';
+    container.style.transformStyle = 'preserve-3d';
+    
+    const baseColor = color === 'white' ? '#e8e8e8' : '#1a1a1a';
+    const darkColor = color === 'white' ? '#999999' : '#000000';
+    const lightColor = color === 'white' ? '#ffffff' : '#333333';
+    const thickness = 8;
+    
+    for (let i = 0; i < thickness; i++) {
+      const layer = document.createElement('div');
+      layer.style.width = '100%';
+      layer.style.height = '100%';
+      layer.style.position = 'absolute';
+      layer.style.borderRadius = '50%';
+      layer.style.transform = `translateZ(${i}px)`;
+      
+      const gradientStart = i === thickness - 1 ? lightColor : baseColor;
+      const gradientEnd = i === 0 ? darkColor : baseColor;
+      
+      layer.style.background = `radial-gradient(circle at 30% 30%, ${gradientStart}, ${gradientEnd})`;
+      
+      if (i === 0) {
+        layer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
+      }
+      
+      if (i === thickness - 1) {
+        const highlight = document.createElement('div');
+        highlight.style.position = 'absolute';
+        highlight.style.top = '20%';
+        highlight.style.left = '25%';
+        highlight.style.width = '30%';
+        highlight.style.height = '30%';
+        highlight.style.borderRadius = '50%';
+        highlight.style.background = 'radial-gradient(circle, rgba(255,255,255,0.7), transparent)';
+        layer.appendChild(highlight);
+      }
+      
+      container.appendChild(layer);
+    }
+    
+    return container;
+  }
+
   function updateClonedBoard() {
     if (!clonedBoard) return;
 
@@ -588,6 +650,23 @@
     if (!board) return;
 
     clonedBoard.innerHTML = board.innerHTML;
+    clonedBoard.style.transformStyle = 'preserve-3d';
+
+    if (PIECE_STYLES[currentPieceStyleIndex] === 'checker') {
+      const pieces = clonedBoard.querySelectorAll('piece');
+      pieces.forEach(piece => {
+        const classes = piece.className;
+        const isWhite = classes.includes('white');
+        const color = isWhite ? 'white' : 'black';
+        
+        piece.innerHTML = '';
+        piece.style.background = 'none';
+        piece.style.transformStyle = 'preserve-3d';
+        
+        const checker = createCheckerPiece(color);
+        piece.appendChild(checker);
+      });
+    }
   }
 
   function removeClonedBoard() {
@@ -722,6 +801,17 @@
       drawDividers();
     } else {
       clearDividers();
+    }
+  }
+
+  function togglePieceStyle() {
+    currentPieceStyleIndex = (currentPieceStyleIndex + 1) % PIECE_STYLES.length;
+
+    const button = commandButtons[formatCommand(PIECE_STYLE_COMMAND)];
+    button.innerText = formatPieceStyleButtonText({ withSuffix: true });
+
+    if (clonedBoard) {
+      updateClonedBoard();
     }
   }
 
