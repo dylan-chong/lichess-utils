@@ -88,7 +88,7 @@
       if (!stored) return;
 
       const settings = JSON.parse(stored);
-      
+
       if (settings.speakRateIndex !== undefined) {
         currentSpeakRateIndex = settings.speakRateIndex;
       }
@@ -134,7 +134,7 @@
 
   function formatParallaxButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(PARALLAX_COMMAND)})` : '';
-    return `Parallax (${PARALLAX_ANGLES[currentParallaxIndex]}°) ${suffix}`;
+    return `Parallax (req kb) (${PARALLAX_ANGLES[currentParallaxIndex]}°) ${suffix}`;
   }
 
   function formatDividersButtonText({ withSuffix }) {
@@ -658,7 +658,7 @@
 
     clonedBoard = document.createElement('cg-board');
     clonedBoard.classList.add('userscript-parallax-clone');
-    
+
     const computedStyle = window.getComputedStyle(board);
     clonedBoard.style.position = 'absolute';
     clonedBoard.style.top = '0';
@@ -683,12 +683,12 @@
     container.style.top = `${offset}%`;
     container.style.left = `${offset}%`;
     container.style.transformStyle = 'preserve-3d';
-    
+
     const baseColor = color === 'white' ? '#e8e8e8' : '#1a1a1a';
     const darkColor = color === 'white' ? '#999999' : '#000000';
     const lightColor = color === 'white' ? '#ffffff' : '#333333';
     const thickness = 8;
-    
+
     for (let i = 0; i < thickness; i++) {
       const layer = document.createElement('div');
       layer.style.width = '100%';
@@ -696,20 +696,20 @@
       layer.style.position = 'absolute';
       layer.style.borderRadius = '50%';
       layer.style.transform = `translateZ(${i}px)`;
-      
+
       const gradientStart = i === thickness - 1 ? lightColor : baseColor;
       const gradientEnd = i === 0 ? darkColor : baseColor;
-      
+
       layer.style.background = `radial-gradient(circle at 30% 30%, ${gradientStart}, ${gradientEnd})`;
-      
+
       if (i === 0) {
         layer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
       }
-      
+
       if (i === thickness - 1) {
         layer.style.border = `2px solid ${color === 'white' ? '#ffffff' : '#555555'}`;
         layer.style.boxSizing = 'border-box';
-        
+
         const highlight = document.createElement('div');
         highlight.style.position = 'absolute';
         highlight.style.top = '20%';
@@ -720,10 +720,10 @@
         highlight.style.background = 'radial-gradient(circle, rgba(255,255,255,0.7), transparent)';
         layer.appendChild(highlight);
       }
-      
+
       container.appendChild(layer);
     }
-    
+
     return container;
   }
 
@@ -743,7 +743,7 @@
         const classes = piece.className;
         const isWhite = classes.includes('white');
         const color = isWhite ? 'white' : 'black';
-        
+
         let sizePercent;
         if (pieceStyle === 'checker') {
           sizePercent = 56;
@@ -751,7 +751,7 @@
           const isPawn = classes.includes('pawn');
           const isQueen = classes.includes('queen');
           const isKing = classes.includes('king');
-          
+
           if (isPawn) {
             sizePercent = 40;
           } else if (isQueen || isKing) {
@@ -760,11 +760,11 @@
             sizePercent = 58.5;
           }
         }
-        
+
         piece.innerHTML = '';
         piece.style.background = 'none';
         piece.style.transformStyle = 'preserve-3d';
-        
+
         const checker = createCheckerPiece(color, sizePercent);
         piece.appendChild(checker);
       });
@@ -783,11 +783,11 @@
     if (!board) return;
 
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
-    
+
     if (angle === 0) {
       board.style.visibility = '';
       removeClonedBoard();
-      
+
       if (parallaxObserver) {
         parallaxObserver.disconnect();
         parallaxObserver = null;
@@ -803,20 +803,20 @@
       }
     } else {
       board.style.visibility = 'hidden';
-      
+
       const clone = createOrGetClonedBoard();
       if (!clone) return;
 
       updateClonedBoard();
 
       clone.style.transformStyle = 'preserve-3d';
-      
+
       if (currentHoverModeIndex === 0) {
         clone.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
       }
-      
+
       clone.style.transformOrigin = 'center center';
-      
+
       setupParallaxMoveObserver();
 
       if (currentHoverModeIndex > 0) {
@@ -880,7 +880,7 @@
 
   function startHoverMode() {
     if (hoverAnimationId) return;
-    
+
     hoverStartTime = null;
     hoverAnimationId = requestAnimationFrame(animateHoverMode);
   }
@@ -891,7 +891,7 @@
       hoverAnimationId = null;
       hoverStartTime = null;
     }
-    
+
     applyParallaxTransform();
   }
 
