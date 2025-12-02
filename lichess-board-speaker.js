@@ -113,6 +113,33 @@
     }
   }
 
+  function updateButtonLabels() {
+    const speakRateButton = commandButtons[formatCommand(SPEAK_RATE_COMMAND)];
+    if (speakRateButton) {
+      speakRateButton.innerText = formatSpeakRateButtonText({ withSuffix: true });
+    }
+
+    const parallaxButton = commandButtons[formatCommand(PARALLAX_COMMAND)];
+    if (parallaxButton) {
+      parallaxButton.innerText = formatParallaxButtonText({ withSuffix: true });
+    }
+
+    const dividersButton = commandButtons[formatCommand(DIVIDERS_COMMAND)];
+    if (dividersButton) {
+      dividersButton.innerText = formatDividersButtonText({ withSuffix: true });
+    }
+
+    const pieceStyleButton = commandButtons[formatCommand(PIECE_STYLE_COMMAND)];
+    if (pieceStyleButton) {
+      pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: true });
+    }
+
+    const hoverModeButton = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
+    if (hoverModeButton) {
+      hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: true });
+    }
+  }
+
   function applyLoadedSettings() {
     if (currentParallaxIndex > 0) {
       applyParallaxTransform();
@@ -1100,6 +1127,7 @@
     const buttonContainer = createButtonContainer(moveInput.parentNode);
     createButtons(buttonContainer);
 
+    updateButtonLabels();
     applyLoadedSettings();
   }
 
