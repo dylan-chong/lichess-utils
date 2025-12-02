@@ -47,7 +47,7 @@
   const SPEAK_RATE_COMMAND = 'sr';
   let currentSpeakRateIndex = 1;
 
-  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 70, 80];
+  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 65, 70, 80];
   const PARALLAX_COMMAND = 'px';
   let currentParallaxIndex = 0;
 
