@@ -58,6 +58,16 @@
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
+  const HOVER_MODE_COMMAND = 'hv';
+  const HOVER_OSCILLATION_ANGLE = 1.5;
+  const HOVER_OSCILLATION_PERIOD_MS = 2000;
+  const HOVER_OSCILLATION_Y_ANGLE = 1.5;
+  const HOVER_OSCILLATION_Y_PERIOD_MS = 2500;
+  const HOVER_MODES = ['off', 'x-only', 'x-and-y'];
+  let currentHoverModeIndex = 0;
+  let hoverAnimationId = null;
+  let hoverStartTime = null;
+
   const SETTINGS_KEY = 'lichess-board-speaker-settings';
 
   function saveSettings() {
@@ -66,6 +76,7 @@
       parallaxIndex: currentParallaxIndex,
       dividersEnabled: dividersEnabled,
       pieceStyleIndex: currentPieceStyleIndex,
+      hoverModeIndex: currentHoverModeIndex,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     console.debug('[lichess-board-speaker] settings saved', settings);
@@ -90,6 +101,11 @@
       if (settings.pieceStyleIndex !== undefined) {
         currentPieceStyleIndex = settings.pieceStyleIndex;
       }
+      if (settings.hoverModeIndex !== undefined) {
+        currentHoverModeIndex = settings.hoverModeIndex;
+      } else if (settings.hoverModeEnabled !== undefined) {
+        currentHoverModeIndex = settings.hoverModeEnabled ? 1 : 0;
+      }
 
       console.debug('[lichess-board-speaker] settings loaded', settings);
     } catch (error) {
@@ -104,6 +120,10 @@
 
     if (dividersEnabled) {
       drawDividers();
+    }
+
+    if (currentHoverModeIndex > 0) {
+      startHoverMode();
     }
   }
 
@@ -126,6 +146,12 @@
   function formatPieceStyleButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(PIECE_STYLE_COMMAND)})` : '';
     return `Piece style (${PIECE_STYLES[currentPieceStyleIndex]}) ${suffix}`;
+  }
+
+  function formatHoverModeButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(HOVER_MODE_COMMAND)})` : '';
+    const status = HOVER_MODES[currentHoverModeIndex];
+    return `Hover mode (${status}) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -192,6 +218,10 @@
     [PIECE_STYLE_COMMAND]: {
       fullName: formatPieceStyleButtonText({ withSuffix: false }),
       exec: () => togglePieceStyle(),
+    },
+    [HOVER_MODE_COMMAND]: {
+      fullName: formatHoverModeButtonText({ withSuffix: false }),
+      exec: () => toggleHoverMode(),
     },
   };
 
@@ -740,6 +770,15 @@
         parallaxObserver.disconnect();
         parallaxObserver = null;
       }
+
+      if (currentHoverModeIndex > 0) {
+        currentHoverModeIndex = 0;
+        const button = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
+        if (button) {
+          button.innerText = formatHoverModeButtonText({ withSuffix: true });
+        }
+        stopHoverMode();
+      }
     } else {
       board.style.visibility = 'hidden';
       
@@ -749,10 +788,18 @@
       updateClonedBoard();
 
       clone.style.transformStyle = 'preserve-3d';
-      clone.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
+      
+      if (currentHoverModeIndex === 0) {
+        clone.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
+      }
+      
       clone.style.transformOrigin = 'center center';
       
       setupParallaxMoveObserver();
+
+      if (currentHoverModeIndex > 0) {
+        hoverStartTime = null;
+      }
     }
   }
 
@@ -782,6 +829,70 @@
     button.innerText = formatParallaxButtonText({ withSuffix: true });
 
     applyParallaxTransform();
+    saveSettings();
+  }
+
+  function animateHoverMode(timestamp) {
+    if (currentHoverModeIndex === 0) return;
+
+    if (!hoverStartTime) {
+      hoverStartTime = timestamp;
+    }
+
+    const elapsed = timestamp - hoverStartTime;
+    const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
+    const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
+    const angleX = baseAngle + oscillationX;
+
+    if (clonedBoard && baseAngle > 0) {
+      if (currentHoverModeIndex === 1) {
+        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg)`;
+      } else if (currentHoverModeIndex === 2) {
+        const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
+        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg)`;
+      }
+    }
+
+    hoverAnimationId = requestAnimationFrame(animateHoverMode);
+  }
+
+  function startHoverMode() {
+    if (hoverAnimationId) return;
+    
+    hoverStartTime = null;
+    hoverAnimationId = requestAnimationFrame(animateHoverMode);
+  }
+
+  function stopHoverMode() {
+    if (hoverAnimationId) {
+      cancelAnimationFrame(hoverAnimationId);
+      hoverAnimationId = null;
+      hoverStartTime = null;
+    }
+    
+    applyParallaxTransform();
+  }
+
+  function toggleHoverMode() {
+    currentHoverModeIndex = (currentHoverModeIndex + 1) % HOVER_MODES.length;
+
+    const button = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
+    button.innerText = formatHoverModeButtonText({ withSuffix: true });
+
+    if (currentHoverModeIndex > 0) {
+      if (currentParallaxIndex === 0) {
+        currentParallaxIndex = 3;
+        const parallaxButton = commandButtons[formatCommand(PARALLAX_COMMAND)];
+        if (parallaxButton) {
+          parallaxButton.innerText = formatParallaxButtonText({ withSuffix: true });
+        }
+        applyParallaxTransform();
+      }
+      startHoverMode();
+    } else {
+      stopHoverMode();
+    }
+
     saveSettings();
   }
 
