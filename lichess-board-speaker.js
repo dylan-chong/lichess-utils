@@ -754,7 +754,7 @@
           } else if (isQueen || isKing) {
             sizePercent = 80;
           } else {
-            sizePercent = 65;
+            sizePercent = 58.5;
           }
         }
         
