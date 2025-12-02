@@ -768,6 +768,12 @@
     }
   }
 
+  function calculateScaleForAngle(angleDegrees) {
+    const angleRadians = angleDegrees * Math.PI / 180;
+    const cosValue = Math.cos(angleRadians);
+    return Math.pow(cosValue, 0.5);
+  }
+
   function applyParallaxTransform() {
     const board = document.querySelector('cg-board');
     if (!board) return;
@@ -802,7 +808,8 @@
       clone.style.transformStyle = 'preserve-3d';
 
       if (currentHoverModeIndex === 0) {
-        clone.style.transform = `perspective(1000px) rotateX(${angle}deg)`;
+        const scale = calculateScaleForAngle(angle);
+        clone.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
       }
 
       clone.style.transformOrigin = 'center center';
@@ -857,11 +864,12 @@
     const angleX = baseAngle + oscillationX;
 
     if (clonedBoard && baseAngle > 0) {
+      const scale = calculateScaleForAngle(angleX);
       if (currentHoverModeIndex === 1) {
-        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg)`;
+        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) scale(${scale})`;
       } else if (currentHoverModeIndex === 2) {
         const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
-        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg)`;
+        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg) scale(${scale})`;
       }
     }
 
