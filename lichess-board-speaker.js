@@ -58,6 +58,55 @@
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
+  const SETTINGS_KEY = 'lichess-board-speaker-settings';
+
+  function saveSettings() {
+    const settings = {
+      speakRateIndex: currentSpeakRateIndex,
+      parallaxIndex: currentParallaxIndex,
+      dividersEnabled: dividersEnabled,
+      pieceStyleIndex: currentPieceStyleIndex,
+    };
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    console.debug('[lichess-board-speaker] settings saved', settings);
+  }
+
+  function loadSettings() {
+    try {
+      const stored = localStorage.getItem(SETTINGS_KEY);
+      if (!stored) return;
+
+      const settings = JSON.parse(stored);
+      
+      if (settings.speakRateIndex !== undefined) {
+        currentSpeakRateIndex = settings.speakRateIndex;
+      }
+      if (settings.parallaxIndex !== undefined) {
+        currentParallaxIndex = settings.parallaxIndex;
+      }
+      if (settings.dividersEnabled !== undefined) {
+        dividersEnabled = settings.dividersEnabled;
+      }
+      if (settings.pieceStyleIndex !== undefined) {
+        currentPieceStyleIndex = settings.pieceStyleIndex;
+      }
+
+      console.debug('[lichess-board-speaker] settings loaded', settings);
+    } catch (error) {
+      console.error('[lichess-board-speaker] failed to load settings', error);
+    }
+  }
+
+  function applyLoadedSettings() {
+    if (currentParallaxIndex > 0) {
+      applyParallaxTransform();
+    }
+
+    if (dividersEnabled) {
+      drawDividers();
+    }
+  }
+
   function formatSpeakRateButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
     return `Speak rate (${SPEAK_RATES[currentSpeakRateIndex]}) ${suffix}`;
@@ -558,7 +607,8 @@
 
     const suffix = currentSpeakRateIndex === SPEAK_RATES.length - 1 ? ' max' : '';
 
-    // Delay because otherwise the cancel overlaps due to being async
+    saveSettings();
+
     setTimeout(() => {
       speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
     }, 0);
@@ -732,6 +782,7 @@
     button.innerText = formatParallaxButtonText({ withSuffix: true });
 
     applyParallaxTransform();
+    saveSettings();
   }
 
   function createOrGetDividersSVG() {
@@ -771,7 +822,7 @@
     horizontalLine.setAttribute('x2', boardSize);
     horizontalLine.setAttribute('y2', midPoint);
     horizontalLine.setAttribute('stroke', 'black');
-    horizontalLine.setAttribute('stroke-width', '3');
+    horizontalLine.setAttribute('stroke-width', '4.5');
     svg.appendChild(horizontalLine);
 
     const verticalLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -780,7 +831,7 @@
     verticalLine.setAttribute('x2', midPoint);
     verticalLine.setAttribute('y2', boardSize);
     verticalLine.setAttribute('stroke', 'black');
-    verticalLine.setAttribute('stroke-width', '3');
+    verticalLine.setAttribute('stroke-width', '4.5');
     svg.appendChild(verticalLine);
   }
 
@@ -802,6 +853,8 @@
     } else {
       clearDividers();
     }
+
+    saveSettings();
   }
 
   function togglePieceStyle() {
@@ -813,6 +866,8 @@
     if (clonedBoard) {
       updateClonedBoard();
     }
+
+    saveSettings();
   }
 
   function displayPiecesList() {
@@ -872,9 +927,13 @@
       return;
     }
 
+    loadSettings();
+
     setupMoveInput(moveInput);
     const buttonContainer = createButtonContainer(moveInput.parentNode);
     createButtons(buttonContainer);
+
+    applyLoadedSettings();
   }
 
   function onDocumentReady(handler) {
