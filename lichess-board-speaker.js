@@ -709,16 +709,6 @@
       if (i === thickness - 1) {
         layer.style.border = `2px solid ${color === 'white' ? '#ffffff' : '#555555'}`;
         layer.style.boxSizing = 'border-box';
-
-        const highlight = document.createElement('div');
-        highlight.style.position = 'absolute';
-        highlight.style.top = '20%';
-        highlight.style.left = '25%';
-        highlight.style.width = '30%';
-        highlight.style.height = '30%';
-        highlight.style.borderRadius = '50%';
-        highlight.style.background = 'radial-gradient(circle, rgba(255,255,255,0.7), transparent)';
-        layer.appendChild(highlight);
       }
 
       container.appendChild(layer);
