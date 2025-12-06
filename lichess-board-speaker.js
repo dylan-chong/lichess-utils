@@ -54,6 +54,10 @@
   const DIVIDERS_COMMAND = 'div';
   let dividersEnabled = false;
 
+  const BLUR_LEVELS = [0, 3, 5, 8, 12, 20];
+  const BLUR_COMMAND = 'blur';
+  let currentBlurIndex = 0;
+
   const PIECE_STYLES = ['default', 'checker', 'sized-checkers'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
@@ -77,6 +81,7 @@
       dividersEnabled: dividersEnabled,
       pieceStyleIndex: currentPieceStyleIndex,
       hoverModeIndex: currentHoverModeIndex,
+      blurIndex: currentBlurIndex,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     console.debug('[lichess-board-speaker] settings saved', settings);
@@ -105,6 +110,11 @@
         currentHoverModeIndex = settings.hoverModeIndex;
       } else if (settings.hoverModeEnabled !== undefined) {
         currentHoverModeIndex = settings.hoverModeEnabled ? 1 : 0;
+      }
+      if (settings.blurIndex !== undefined) {
+        currentBlurIndex = settings.blurIndex;
+      } else if (settings.blurEnabled !== undefined) {
+        currentBlurIndex = settings.blurEnabled ? 1 : 0;
       }
 
       console.debug('[lichess-board-speaker] settings loaded', settings);
@@ -138,6 +148,11 @@
     if (hoverModeButton) {
       hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: true });
     }
+
+    const blurButton = commandButtons[formatCommand(BLUR_COMMAND)];
+    if (blurButton) {
+      blurButton.innerText = formatBlurButtonText({ withSuffix: true });
+    }
   }
 
   function applyLoadedSettings() {
@@ -151,6 +166,10 @@
 
     if (currentHoverModeIndex > 0) {
       startHoverMode();
+    }
+
+    if (currentBlurIndex > 0) {
+      applyBlur();
     }
   }
 
@@ -179,6 +198,11 @@
     const suffix = withSuffix ? ` (${formatCommand(HOVER_MODE_COMMAND)})` : '';
     const status = HOVER_MODES[currentHoverModeIndex];
     return `Hover mode (${status}) ${suffix}`;
+  }
+
+  function formatBlurButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(BLUR_COMMAND)})` : '';
+    return `Blur (${BLUR_LEVELS[currentBlurIndex]}px) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -249,6 +273,10 @@
     [HOVER_MODE_COMMAND]: {
       fullName: formatHoverModeButtonText({ withSuffix: false }),
       exec: () => toggleHoverMode(),
+    },
+    [BLUR_COMMAND]: {
+      fullName: formatBlurButtonText({ withSuffix: false }),
+      exec: () => toggleBlur(),
     },
   };
 
@@ -1061,6 +1089,28 @@
       updateClonedBoard();
     }
 
+    saveSettings();
+  }
+
+  function applyBlur() {
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    const blurAmount = BLUR_LEVELS[currentBlurIndex];
+    if (blurAmount === 0) {
+      container.style.filter = '';
+    } else {
+      container.style.filter = `blur(${blurAmount}px)`;
+    }
+  }
+
+  function toggleBlur() {
+    currentBlurIndex = (currentBlurIndex + 1) % BLUR_LEVELS.length;
+
+    const button = commandButtons[formatCommand(BLUR_COMMAND)];
+    button.innerText = formatBlurButtonText({ withSuffix: true });
+
+    applyBlur();
     saveSettings();
   }
 
