@@ -939,6 +939,11 @@
     button.innerText = formatParallaxButtonText({ withSuffix: true });
 
     applyParallaxTransform();
+
+    if (dividersEnabled) {
+      drawDividers();
+    }
+
     saveSettings();
   }
 
@@ -1038,13 +1043,18 @@
     const boardSize = board.offsetWidth;
     const midPoint = boardSize / 2;
 
+    const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    const baseWidth = 4.5;
+    const angleRadians = angle * Math.PI / 180;
+    const horizontalWidth = angle === 0 ? baseWidth : baseWidth / Math.cos(angleRadians);
+
     const horizontalLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     horizontalLine.setAttribute('x1', 0);
     horizontalLine.setAttribute('y1', midPoint);
     horizontalLine.setAttribute('x2', boardSize);
     horizontalLine.setAttribute('y2', midPoint);
     horizontalLine.setAttribute('stroke', 'black');
-    horizontalLine.setAttribute('stroke-width', '4.5');
+    horizontalLine.setAttribute('stroke-width', horizontalWidth.toString());
     svg.appendChild(horizontalLine);
 
     const verticalLine = document.createElementNS('http://www.w3.org/2000/svg', 'line');
@@ -1053,7 +1063,7 @@
     verticalLine.setAttribute('x2', midPoint);
     verticalLine.setAttribute('y2', boardSize);
     verticalLine.setAttribute('stroke', 'black');
-    verticalLine.setAttribute('stroke-width', '4.5');
+    verticalLine.setAttribute('stroke-width', baseWidth.toString());
     svg.appendChild(verticalLine);
   }
 
