@@ -751,10 +751,10 @@
 
   let parallaxObserver = null;
   let resizeObserver = null;
-  let clonedBoard = null;
+  let customBoardElement = null;
 
-  function createOrGetClonedBoard() {
-    if (clonedBoard) return clonedBoard;
+  function createOrGetCustomBoardElement() {
+    if (customBoardElement) return customBoardElement;
 
     const container = document.querySelector('cg-container');
     const board = document.querySelector('cg-board');
@@ -762,22 +762,22 @@
 
     container.style.position = 'relative';
 
-    clonedBoard = document.createElement('cg-board');
-    clonedBoard.classList.add('userscript-parallax-clone');
+    customBoardElement = document.createElement('cg-board');
+    customBoardElement.classList.add('userscript-custom-board');
 
     const computedStyle = window.getComputedStyle(board);
-    clonedBoard.style.position = 'absolute';
-    clonedBoard.style.top = '0';
-    clonedBoard.style.left = '0';
-    clonedBoard.style.width = computedStyle.width;
-    clonedBoard.style.height = computedStyle.height;
-    clonedBoard.style.pointerEvents = 'none';
-    clonedBoard.style.zIndex = '100';
-    clonedBoard.style.visibility = 'visible';
-    clonedBoard.style.display = 'block';
+    customBoardElement.style.position = 'absolute';
+    customBoardElement.style.top = '0';
+    customBoardElement.style.left = '0';
+    customBoardElement.style.width = computedStyle.width;
+    customBoardElement.style.height = computedStyle.height;
+    customBoardElement.style.pointerEvents = 'none';
+    customBoardElement.style.zIndex = '100';
+    customBoardElement.style.visibility = 'visible';
+    customBoardElement.style.display = 'block';
 
-    container.appendChild(clonedBoard);
-    return clonedBoard;
+    container.appendChild(customBoardElement);
+    return customBoardElement;
   }
 
   function createCheckerPiece(color, sizePercent = 80) {
@@ -835,18 +835,18 @@
     return container;
   }
 
-  function updateClonedBoard() {
-    if (!clonedBoard) return;
+  function updateCustomBoardElement() {
+    if (!customBoardElement) return;
 
     const board = document.querySelector('cg-board');
     if (!board) return;
 
-    clonedBoard.innerHTML = board.innerHTML;
-    clonedBoard.style.transformStyle = 'preserve-3d';
+    customBoardElement.innerHTML = board.innerHTML;
+    customBoardElement.style.transformStyle = 'preserve-3d';
 
     const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
     if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers' || pieceStyle === 'checker-grey') {
-      const pieces = clonedBoard.querySelectorAll('piece');
+      const pieces = customBoardElement.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
         const isWhite = classes.includes('white');
@@ -879,27 +879,27 @@
     }
   }
 
-  function removeClonedBoard() {
-    if (clonedBoard) {
-      clonedBoard.remove();
-      clonedBoard = null;
+  function removeCustomBoardElement() {
+    if (customBoardElement) {
+      customBoardElement.remove();
+      customBoardElement = null;
     }
     
-    const allClonedBoards = document.querySelectorAll('cg-board.userscript-parallax-clone');
-    allClonedBoards.forEach(board => board.remove());
+    const allCustomBoards = document.querySelectorAll('cg-board.userscript-custom-board');
+    allCustomBoards.forEach(board => board.remove());
   }
 
   function handleContainerResize() {
-    if (!clonedBoard) return;
+    if (!customBoardElement) return;
 
     const board = document.querySelector('cg-board');
     if (!board) return;
 
     const computedStyle = window.getComputedStyle(board);
-    clonedBoard.style.width = computedStyle.width;
-    clonedBoard.style.height = computedStyle.height;
+    customBoardElement.style.width = computedStyle.width;
+    customBoardElement.style.height = computedStyle.height;
 
-    updateClonedBoard();
+    updateCustomBoardElement();
 
     if (dividersEnabled) {
       drawDividers();
@@ -917,11 +917,11 @@
     if (!board) return;
 
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
-    const needsClonedBoard = angle > 0 || currentPieceStyleIndex > 0;
+    const needsCustomBoardElement = angle > 0 || currentPieceStyleIndex > 0;
 
-    if (!needsClonedBoard) {
+    if (!needsCustomBoardElement) {
       board.style.visibility = '';
-      removeClonedBoard();
+      removeCustomBoardElement();
 
       if (parallaxObserver) {
         parallaxObserver.disconnect();
@@ -944,21 +944,21 @@
     } else {
       board.style.visibility = 'hidden';
 
-      const clone = createOrGetClonedBoard();
-      if (!clone) return;
+      const customBoard = createOrGetCustomBoardElement();
+      if (!customBoard) return;
 
-      updateClonedBoard();
+      updateCustomBoardElement();
 
       if (currentHoverModeIndex === 0) {
         if (angle > 0) {
           const scale = calculateScaleForAngle(angle);
-          clone.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
+          customBoard.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
         } else {
-          clone.style.transform = '';
+          customBoard.style.transform = '';
         }
       }
 
-      clone.style.transformOrigin = 'center center';
+      customBoard.style.transformOrigin = 'center center';
 
       setupParallaxMoveObserver();
 
@@ -977,7 +977,7 @@
     if (!board) return;
 
     parallaxObserver = new MutationObserver(() => {
-      updateClonedBoard();
+      updateCustomBoardElement();
     });
 
     parallaxObserver.observe(board, {
@@ -1031,13 +1031,13 @@
     const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
     const angleX = baseAngle + oscillationX;
 
-    if (clonedBoard && baseAngle > 0) {
+    if (customBoardElement && baseAngle > 0) {
       const scale = calculateScaleForAngle(angleX);
       if (currentHoverModeIndex === 1) {
-        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) scale(${scale})`;
+        customBoardElement.style.transform = `perspective(1000px) rotateX(${angleX}deg) scale(${scale})`;
       } else if (currentHoverModeIndex === 2) {
         const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
-        clonedBoard.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg) scale(${scale})`;
+        customBoardElement.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg) scale(${scale})`;
       }
     }
 
@@ -1230,7 +1230,7 @@
       }
 
       stopHoverMode();
-      removeClonedBoard();
+      removeCustomBoardElement();
       clearDividers();
       
       const container = document.querySelector('cg-container');
