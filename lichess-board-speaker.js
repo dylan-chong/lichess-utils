@@ -949,8 +949,6 @@
 
       updateClonedBoard();
 
-      clone.style.transformStyle = 'preserve-3d';
-
       if (currentHoverModeIndex === 0) {
         if (angle > 0) {
           const scale = calculateScaleForAngle(angle);
@@ -1218,27 +1216,8 @@
     const button = commandButtons[formatCommand(CUSTOM_BOARD_COMMAND)];
     button.innerText = formatCustomBoardButtonText({ withSuffix: true });
 
-    const boardModContainer = document.querySelector('.board-mod-buttons-container');
-    if (boardModContainer) {
-      boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
-    }
-
     if (customBoardEnabled) {
-      if (currentParallaxIndex > 0 || currentPieceStyleIndex > 0) {
-        applyParallaxTransform();
-      }
-
-      if (dividersEnabled) {
-        drawDividers();
-      }
-
-      if (currentHoverModeIndex > 0) {
-        startHoverMode();
-      }
-
-      if (currentBlurIndex > 0) {
-        applyBlur();
-      }
+      applyLoadedSettings();
     } else {
       if (parallaxObserver) {
         parallaxObserver.disconnect();
