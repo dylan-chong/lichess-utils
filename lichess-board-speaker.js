@@ -58,7 +58,7 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'sized-checkers'];
+  const PIECE_STYLES = ['default', 'checker', 'sized-checkers', 'checker-black'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -783,15 +783,15 @@
     clonedBoard.style.transformStyle = 'preserve-3d';
 
     const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
-    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers') {
+    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers' || pieceStyle === 'checker-black') {
       const pieces = clonedBoard.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
         const isWhite = classes.includes('white');
-        const color = isWhite ? 'white' : 'black';
+        const color = pieceStyle === 'checker-black' ? 'black' : (isWhite ? 'white' : 'black');
 
         let sizePercent;
-        if (pieceStyle === 'checker') {
+        if (pieceStyle === 'checker' || pieceStyle === 'checker-black') {
           sizePercent = 56;
         } else {
           const isPawn = classes.includes('pawn');
