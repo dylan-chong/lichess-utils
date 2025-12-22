@@ -168,7 +168,16 @@
   }
 
   function applyLoadedSettings() {
-    if (currentParallaxIndex > 0) {
+    const boardModContainer = document.querySelector('.board-mod-buttons-container');
+    if (boardModContainer) {
+      boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
+    }
+
+    if (!customBoardEnabled) {
+      return;
+    }
+
+    if (currentParallaxIndex > 0 || currentPieceStyleIndex > 0) {
       applyParallaxTransform();
     }
 
@@ -875,6 +884,9 @@
       clonedBoard.remove();
       clonedBoard = null;
     }
+    
+    const allClonedBoards = document.querySelectorAll('cg-board.userscript-parallax-clone');
+    allClonedBoards.forEach(board => board.remove());
   }
 
   function handleContainerResize() {
@@ -905,8 +917,9 @@
     if (!board) return;
 
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    const needsClonedBoard = angle > 0 || currentPieceStyleIndex > 0;
 
-    if (angle === 0) {
+    if (!needsClonedBoard) {
       board.style.visibility = '';
       removeClonedBoard();
 
@@ -939,8 +952,12 @@
       clone.style.transformStyle = 'preserve-3d';
 
       if (currentHoverModeIndex === 0) {
-        const scale = calculateScaleForAngle(angle);
-        clone.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
+        if (angle > 0) {
+          const scale = calculateScaleForAngle(angle);
+          clone.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
+        } else {
+          clone.style.transform = '';
+        }
       }
 
       clone.style.transformOrigin = 'center center';
@@ -986,6 +1003,8 @@
   }
 
   function toggleParallax() {
+    if (!customBoardEnabled) return;
+
     currentParallaxIndex = (currentParallaxIndex + 1) % PARALLAX_ANGLES.length;
 
     const button = boardModificationButtons[PARALLAX_COMMAND];
@@ -1045,6 +1064,8 @@
   }
 
   function toggleHoverMode() {
+    if (!customBoardEnabled) return;
+
     currentHoverModeIndex = (currentHoverModeIndex + 1) % HOVER_MODES.length;
 
     const button = boardModificationButtons[HOVER_MODE_COMMAND];
@@ -1132,6 +1153,8 @@
   }
 
   function toggleDividers() {
+    if (!customBoardEnabled) return;
+
     dividersEnabled = !dividersEnabled;
 
     const button = boardModificationButtons[DIVIDERS_COMMAND];
@@ -1149,6 +1172,8 @@
   }
 
   function togglePieceStyle() {
+    if (!customBoardEnabled) return;
+
     currentPieceStyleIndex = (currentPieceStyleIndex + 1) % PIECE_STYLES.length;
 
     const button = boardModificationButtons[PIECE_STYLE_COMMAND];
@@ -1156,9 +1181,7 @@
       button.innerText = formatPieceStyleButtonText({ withSuffix: false });
     }
 
-    if (clonedBoard) {
-      updateClonedBoard();
-    }
+    applyParallaxTransform();
 
     saveSettings();
   }
@@ -1176,6 +1199,8 @@
   }
 
   function toggleBlur() {
+    if (!customBoardEnabled) return;
+
     currentBlurIndex = (currentBlurIndex + 1) % BLUR_LEVELS.length;
 
     const button = boardModificationButtons[BLUR_COMMAND];
@@ -1196,6 +1221,55 @@
     const boardModContainer = document.querySelector('.board-mod-buttons-container');
     if (boardModContainer) {
       boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
+    }
+
+    if (customBoardEnabled) {
+      if (currentParallaxIndex > 0 || currentPieceStyleIndex > 0) {
+        applyParallaxTransform();
+      }
+
+      if (dividersEnabled) {
+        drawDividers();
+      }
+
+      if (currentHoverModeIndex > 0) {
+        startHoverMode();
+      }
+
+      if (currentBlurIndex > 0) {
+        applyBlur();
+      }
+    } else {
+      if (parallaxObserver) {
+        parallaxObserver.disconnect();
+        parallaxObserver = null;
+      }
+
+      if (resizeObserver) {
+        resizeObserver.disconnect();
+        resizeObserver = null;
+      }
+
+      stopHoverMode();
+      removeClonedBoard();
+      clearDividers();
+      
+      const container = document.querySelector('cg-container');
+      if (container) {
+        container.style.filter = '';
+      }
+
+      const board = document.querySelector('cg-board');
+      if (board) {
+        board.style.visibility = 'visible';
+        board.style.transform = '';
+        board.style.transformStyle = '';
+      }
+
+      const svg = document.querySelector('cg-container svg.userscript-drawings');
+      if (svg) {
+        svg.remove();
+      }
     }
 
     saveSettings();
