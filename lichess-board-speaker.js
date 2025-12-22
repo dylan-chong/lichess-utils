@@ -58,9 +58,12 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'sized-checkers', 'checker-black'];
+  const PIECE_STYLES = ['default', 'checker', 'sized-checkers', 'checker-grey'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
+
+  const CUSTOM_BOARD_COMMAND = 'cb';
+  let customBoardEnabled = false;
 
   const HOVER_MODE_COMMAND = 'hv';
   const HOVER_OSCILLATION_ANGLE = 1.5;
@@ -82,6 +85,7 @@
       pieceStyleIndex: currentPieceStyleIndex,
       hoverModeIndex: currentHoverModeIndex,
       blurIndex: currentBlurIndex,
+      customBoardEnabled: customBoardEnabled,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     console.debug('[lichess-board-speaker] settings saved', settings);
@@ -116,6 +120,9 @@
       } else if (settings.blurEnabled !== undefined) {
         currentBlurIndex = settings.blurEnabled ? 1 : 0;
       }
+      if (settings.customBoardEnabled !== undefined) {
+        customBoardEnabled = settings.customBoardEnabled;
+      }
 
       console.debug('[lichess-board-speaker] settings loaded', settings);
     } catch (error) {
@@ -129,29 +136,34 @@
       speakRateButton.innerText = formatSpeakRateButtonText({ withSuffix: true });
     }
 
-    const parallaxButton = commandButtons[formatCommand(PARALLAX_COMMAND)];
+    const customBoardButton = commandButtons[formatCommand(CUSTOM_BOARD_COMMAND)];
+    if (customBoardButton) {
+      customBoardButton.innerText = formatCustomBoardButtonText({ withSuffix: true });
+    }
+
+    const parallaxButton = boardModificationButtons[PARALLAX_COMMAND];
     if (parallaxButton) {
-      parallaxButton.innerText = formatParallaxButtonText({ withSuffix: true });
+      parallaxButton.innerText = formatParallaxButtonText({ withSuffix: false });
     }
 
-    const dividersButton = commandButtons[formatCommand(DIVIDERS_COMMAND)];
+    const dividersButton = boardModificationButtons[DIVIDERS_COMMAND];
     if (dividersButton) {
-      dividersButton.innerText = formatDividersButtonText({ withSuffix: true });
+      dividersButton.innerText = formatDividersButtonText({ withSuffix: false });
     }
 
-    const pieceStyleButton = commandButtons[formatCommand(PIECE_STYLE_COMMAND)];
+    const pieceStyleButton = boardModificationButtons[PIECE_STYLE_COMMAND];
     if (pieceStyleButton) {
-      pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: true });
+      pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: false });
     }
 
-    const hoverModeButton = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
+    const hoverModeButton = boardModificationButtons[HOVER_MODE_COMMAND];
     if (hoverModeButton) {
-      hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: true });
+      hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: false });
     }
 
-    const blurButton = commandButtons[formatCommand(BLUR_COMMAND)];
+    const blurButton = boardModificationButtons[BLUR_COMMAND];
     if (blurButton) {
-      blurButton.innerText = formatBlurButtonText({ withSuffix: true });
+      blurButton.innerText = formatBlurButtonText({ withSuffix: false });
     }
   }
 
@@ -203,6 +215,12 @@
   function formatBlurButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(BLUR_COMMAND)})` : '';
     return `Blur (${BLUR_LEVELS[currentBlurIndex]}px) ${suffix}`;
+  }
+
+  function formatCustomBoardButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(CUSTOM_BOARD_COMMAND)})` : '';
+    const status = customBoardEnabled ? 'ON' : 'OFF';
+    return `Custom board (${status}) ${suffix}`;
   }
 
   const COMMAND_PREFIX = 'p';
@@ -257,7 +275,13 @@
       exec: setExampleAnnotation
     },
 
-    // View related commands
+    [CUSTOM_BOARD_COMMAND]: {
+      fullName: formatCustomBoardButtonText({ withSuffix: false }),
+      exec: () => toggleCustomBoard(),
+    },
+  };
+
+  const BOARD_MODIFICATION_COMMANDS = {
     [PARALLAX_COMMAND]: {
       fullName: formatParallaxButtonText({ withSuffix: false }),
       exec: () => toggleParallax(),
@@ -281,6 +305,7 @@
   };
 
   const commandButtons = {};
+  const boardModificationButtons = {};
 
   function formatCommand(commandName) {
     return `${COMMAND_PREFIX}${commandName}`;
@@ -665,7 +690,16 @@
   function createButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
-    container.style.maxHeight = '50px'; // don't shift text input down (it centres veritcally)
+    // container.style.maxHeight = '50px';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
+  function createBoardModButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.classList.add('board-mod-buttons-container');
+    container.style.marginLeft = '8px';
+    container.style.display = customBoardEnabled ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
   }
@@ -674,6 +708,13 @@
     Object
       .keys(COMMANDS_WITH_PREFIX)
       .map(createCommandButton)
+      .map(button => container.appendChild(button));
+  }
+
+  function createBoardModButtons(container) {
+    Object
+      .keys(BOARD_MODIFICATION_COMMANDS)
+      .map(createBoardModButton)
       .map(button => container.appendChild(button));
   }
 
@@ -740,9 +781,20 @@
     container.style.left = `${offset}%`;
     container.style.transformStyle = 'preserve-3d';
 
-    const baseColor = color === 'white' ? '#e8e8e8' : '#1a1a1a';
-    const darkColor = color === 'white' ? '#999999' : '#000000';
-    const lightColor = color === 'white' ? '#ffffff' : '#333333';
+    let baseColor, darkColor, lightColor;
+    if (color === 'white') {
+      baseColor = '#e8e8e8';
+      darkColor = '#999999';
+      lightColor = '#ffffff';
+    } else if (color === 'grey') {
+      baseColor = '#505050';
+      darkColor = '#303030';
+      lightColor = '#707070';
+    } else {
+      baseColor = '#1a1a1a';
+      darkColor = '#000000';
+      lightColor = '#333333';
+    }
     const thickness = 8;
 
     for (let i = 0; i < thickness; i++) {
@@ -763,7 +815,8 @@
       }
 
       if (i === thickness - 1) {
-        layer.style.border = `2px solid ${color === 'white' ? '#ffffff' : '#555555'}`;
+        const borderColor = color === 'white' ? '#ffffff' : (color === 'grey' ? '#888888' : '#555555');
+        layer.style.border = `2px solid ${borderColor}`;
         layer.style.boxSizing = 'border-box';
       }
 
@@ -783,15 +836,15 @@
     clonedBoard.style.transformStyle = 'preserve-3d';
 
     const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
-    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers' || pieceStyle === 'checker-black') {
+    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers' || pieceStyle === 'checker-grey') {
       const pieces = clonedBoard.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
         const isWhite = classes.includes('white');
-        const color = pieceStyle === 'checker-black' ? 'black' : (isWhite ? 'white' : 'black');
+        const color = pieceStyle === 'checker-grey' ? 'grey' : (isWhite ? 'white' : 'black');
 
         let sizePercent;
-        if (pieceStyle === 'checker' || pieceStyle === 'checker-black') {
+        if (pieceStyle === 'checker' || pieceStyle === 'checker-grey') {
           sizePercent = 56;
         } else {
           const isPawn = classes.includes('pawn');
@@ -869,9 +922,9 @@
 
       if (currentHoverModeIndex > 0) {
         currentHoverModeIndex = 0;
-        const button = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
+        const button = boardModificationButtons[HOVER_MODE_COMMAND];
         if (button) {
-          button.innerText = formatHoverModeButtonText({ withSuffix: true });
+          button.innerText = formatHoverModeButtonText({ withSuffix: false });
         }
         stopHoverMode();
       }
@@ -935,8 +988,10 @@
   function toggleParallax() {
     currentParallaxIndex = (currentParallaxIndex + 1) % PARALLAX_ANGLES.length;
 
-    const button = commandButtons[formatCommand(PARALLAX_COMMAND)];
-    button.innerText = formatParallaxButtonText({ withSuffix: true });
+    const button = boardModificationButtons[PARALLAX_COMMAND];
+    if (button) {
+      button.innerText = formatParallaxButtonText({ withSuffix: false });
+    }
 
     applyParallaxTransform();
 
@@ -992,15 +1047,17 @@
   function toggleHoverMode() {
     currentHoverModeIndex = (currentHoverModeIndex + 1) % HOVER_MODES.length;
 
-    const button = commandButtons[formatCommand(HOVER_MODE_COMMAND)];
-    button.innerText = formatHoverModeButtonText({ withSuffix: true });
+    const button = boardModificationButtons[HOVER_MODE_COMMAND];
+    if (button) {
+      button.innerText = formatHoverModeButtonText({ withSuffix: false });
+    }
 
     if (currentHoverModeIndex > 0) {
       if (currentParallaxIndex === 0) {
         currentParallaxIndex = 3;
-        const parallaxButton = commandButtons[formatCommand(PARALLAX_COMMAND)];
+        const parallaxButton = boardModificationButtons[PARALLAX_COMMAND];
         if (parallaxButton) {
-          parallaxButton.innerText = formatParallaxButtonText({ withSuffix: true });
+          parallaxButton.innerText = formatParallaxButtonText({ withSuffix: false });
         }
         applyParallaxTransform();
       }
@@ -1077,8 +1134,10 @@
   function toggleDividers() {
     dividersEnabled = !dividersEnabled;
 
-    const button = commandButtons[formatCommand(DIVIDERS_COMMAND)];
-    button.innerText = formatDividersButtonText({ withSuffix: true });
+    const button = boardModificationButtons[DIVIDERS_COMMAND];
+    if (button) {
+      button.innerText = formatDividersButtonText({ withSuffix: false });
+    }
 
     if (dividersEnabled) {
       drawDividers();
@@ -1092,8 +1151,10 @@
   function togglePieceStyle() {
     currentPieceStyleIndex = (currentPieceStyleIndex + 1) % PIECE_STYLES.length;
 
-    const button = commandButtons[formatCommand(PIECE_STYLE_COMMAND)];
-    button.innerText = formatPieceStyleButtonText({ withSuffix: true });
+    const button = boardModificationButtons[PIECE_STYLE_COMMAND];
+    if (button) {
+      button.innerText = formatPieceStyleButtonText({ withSuffix: false });
+    }
 
     if (clonedBoard) {
       updateClonedBoard();
@@ -1117,10 +1178,26 @@
   function toggleBlur() {
     currentBlurIndex = (currentBlurIndex + 1) % BLUR_LEVELS.length;
 
-    const button = commandButtons[formatCommand(BLUR_COMMAND)];
-    button.innerText = formatBlurButtonText({ withSuffix: true });
+    const button = boardModificationButtons[BLUR_COMMAND];
+    if (button) {
+      button.innerText = formatBlurButtonText({ withSuffix: false });
+    }
 
     applyBlur();
+    saveSettings();
+  }
+
+  function toggleCustomBoard() {
+    customBoardEnabled = !customBoardEnabled;
+
+    const button = commandButtons[formatCommand(CUSTOM_BOARD_COMMAND)];
+    button.innerText = formatCustomBoardButtonText({ withSuffix: true });
+
+    const boardModContainer = document.querySelector('.board-mod-buttons-container');
+    if (boardModContainer) {
+      boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
+    }
+
     saveSettings();
   }
 
@@ -1158,6 +1235,27 @@
     return button;
   }
 
+  function createBoardModButton(commandName) {
+    const command = BOARD_MODIFICATION_COMMANDS[commandName];
+    const { fullName, exec } = command;
+
+    const button = document.createElement('button');
+    button.innerText = fullName;
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.padding = '2px';
+    button.style.margin = '8px';
+    button.style.textAlign = 'left';
+
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] board mod button clicked', { fullName });
+      exec();
+    });
+
+    boardModificationButtons[commandName] = button;
+    return button;
+  }
+
   function getMoveInput() {
     return document.querySelector('.keyboard-move input');
   }
@@ -1186,6 +1284,9 @@
     setupMoveInput(moveInput);
     const buttonContainer = createButtonContainer(moveInput.parentNode);
     createButtons(buttonContainer);
+
+    const boardModContainer = createBoardModButtonContainer(buttonContainer);
+    createBoardModButtons(boardModContainer);
 
     updateButtonLabels();
     applyLoadedSettings();
