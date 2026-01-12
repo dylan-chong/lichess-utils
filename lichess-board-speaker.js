@@ -699,7 +699,7 @@
   function createButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
-    // container.style.maxHeight = '50px';
+    container.style.maxHeight = '50px';
     parentContainer.appendChild(container);
     return container;
   }
