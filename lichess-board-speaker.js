@@ -54,7 +54,7 @@
   const DIVIDERS_COMMAND = 'div';
   let dividersEnabled = false;
 
-  const BLUR_LEVELS = [0, 3, 4, 6, 8, 12, 20];
+  const BLUR_LEVELS = [0, 3, 4, 6, 8];
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
