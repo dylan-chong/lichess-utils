@@ -752,12 +752,21 @@
   let parallaxObserver = null;
   let resizeObserver = null;
   let customBoardElement = null;
+  let boardReplacementObserver = null;
+  let healthCheckInterval = null;
 
   function createOrGetCustomBoardElement() {
-    if (customBoardElement) return customBoardElement;
+    if (customBoardElement && customBoardElement.isConnected) {
+      return customBoardElement;
+    }
+
+    if (customBoardElement && !customBoardElement.isConnected) {
+      console.debug('[lichess-board-speaker] custom board element was disconnected, creating new one');
+      customBoardElement = null;
+    }
 
     const container = document.querySelector('cg-container');
-    const board = document.querySelector('cg-board');
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!container || !board) return null;
 
     container.style.position = 'relative';
@@ -777,6 +786,7 @@
     customBoardElement.style.display = 'block';
 
     container.appendChild(customBoardElement);
+    console.debug('[lichess-board-speaker] created new custom board element');
     return customBoardElement;
   }
 
@@ -836,9 +846,9 @@
   }
 
   function updateCustomBoardElement() {
-    if (!customBoardElement) return;
+    if (!customBoardElement || !customBoardElement.isConnected) return;
 
-    const board = document.querySelector('cg-board');
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) return;
 
     customBoardElement.innerHTML = board.innerHTML;
@@ -889,10 +899,100 @@
     allCustomBoards.forEach(board => board.remove());
   }
 
-  function handleContainerResize() {
-    if (!customBoardElement) return;
+  function cleanupBoardObservers() {
+    if (parallaxObserver) {
+      parallaxObserver.disconnect();
+      parallaxObserver = null;
+    }
+    if (resizeObserver) {
+      resizeObserver.disconnect();
+      resizeObserver = null;
+    }
+  }
 
-    const board = document.querySelector('cg-board');
+  function healthCheck() {
+    if (!customBoardEnabled) return;
+
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) return;
+
+    const needsCustomBoard = currentParallaxIndex > 0 || currentPieceStyleIndex > 0;
+    if (!needsCustomBoard) return;
+
+    if (!customBoardElement || !customBoardElement.isConnected) {
+      console.debug('[lichess-board-speaker] health check: custom board disconnected, recreating');
+      cleanupBoardObservers();
+      customBoardElement = null;
+      applyLoadedSettings();
+      return;
+    }
+
+    if (!parallaxObserver) {
+      console.debug('[lichess-board-speaker] health check: parallax observer missing, recreating');
+      setupParallaxMoveObserver();
+    }
+  }
+
+  function startHealthCheck() {
+    if (healthCheckInterval) return;
+    healthCheckInterval = setInterval(healthCheck, 500);
+  }
+
+  function stopHealthCheck() {
+    if (healthCheckInterval) {
+      clearInterval(healthCheckInterval);
+      healthCheckInterval = null;
+    }
+  }
+
+  function setupBoardReplacementObserver() {
+    if (boardReplacementObserver) {
+      boardReplacementObserver.disconnect();
+    }
+
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    boardReplacementObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === 'childList') {
+          const addedNodes = Array.from(mutation.addedNodes);
+          const removedNodes = Array.from(mutation.removedNodes);
+          
+          const boardAdded = addedNodes.some(node => node.tagName === 'CG-BOARD' && !node.classList.contains('userscript-custom-board'));
+          const boardRemoved = removedNodes.some(node => node.tagName === 'CG-BOARD' && !node.classList.contains('userscript-custom-board'));
+          
+          if (boardAdded || boardRemoved) {
+            console.debug('[lichess-board-speaker] board replaced, re-initializing');
+            
+            cleanupBoardObservers();
+            
+            if (customBoardElement && !customBoardElement.isConnected) {
+              customBoardElement = null;
+            }
+            
+            if (customBoardEnabled) {
+              setTimeout(() => {
+                applyLoadedSettings();
+              }, 50);
+            }
+            
+            break;
+          }
+        }
+      }
+    });
+
+    boardReplacementObserver.observe(container, {
+      childList: true,
+      subtree: false,
+    });
+  }
+
+  function handleContainerResize() {
+    if (!customBoardElement || !customBoardElement.isConnected) return;
+
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) return;
 
     const computedStyle = window.getComputedStyle(board);
@@ -913,8 +1013,11 @@
   }
 
   function applyParallaxTransform() {
-    const board = document.querySelector('cg-board');
-    if (!board) return;
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) {
+      console.debug('[lichess-board-speaker] applyParallaxTransform: board not found');
+      return;
+    }
 
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
     const needsCustomBoardElement = angle > 0 || currentPieceStyleIndex > 0;
@@ -923,15 +1026,7 @@
       board.style.visibility = '';
       removeCustomBoardElement();
 
-      if (parallaxObserver) {
-        parallaxObserver.disconnect();
-        parallaxObserver = null;
-      }
-
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-      }
+      cleanupBoardObservers();
 
       if (currentHoverModeIndex > 0) {
         currentHoverModeIndex = 0;
@@ -945,7 +1040,10 @@
       board.style.visibility = 'hidden';
 
       const customBoard = createOrGetCustomBoardElement();
-      if (!customBoard) return;
+      if (!customBoard) {
+        console.debug('[lichess-board-speaker] applyParallaxTransform: failed to create custom board');
+        return;
+      }
 
       updateCustomBoardElement();
 
@@ -973,8 +1071,11 @@
       parallaxObserver.disconnect();
     }
 
-    const board = document.querySelector('cg-board');
-    if (!board) return;
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) {
+      console.debug('[lichess-board-speaker] setupParallaxMoveObserver: board not found');
+      return;
+    }
 
     parallaxObserver = new MutationObserver(() => {
       updateCustomBoardElement();
@@ -991,7 +1092,10 @@
     }
 
     const container = document.querySelector('cg-container');
-    if (!container) return;
+    if (!container) {
+      console.debug('[lichess-board-speaker] setupParallaxMoveObserver: container not found');
+      return;
+    }
 
     resizeObserver = new ResizeObserver(() => {
       handleContainerResize();
@@ -1089,9 +1193,9 @@
   }
 
   function createOrGetDividersSVG() {
-    let svg = document.querySelector('cg-board svg.userscript-dividers');
+    let svg = document.querySelector('cg-board:not(.userscript-custom-board) svg.userscript-dividers');
     if (!svg) {
-      const board = document.querySelector('cg-board');
+      const board = document.querySelector('cg-board:not(.userscript-custom-board)');
       if (!board) return null;
 
       svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -1115,7 +1219,9 @@
 
     svg.innerHTML = '';
 
-    const board = document.querySelector('cg-board');
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) return;
+    
     const boardSize = board.offsetWidth;
     const midPoint = boardSize / 2;
 
@@ -1144,10 +1250,8 @@
   }
 
   function clearDividers() {
-    const svg = document.querySelector('cg-board svg.userscript-dividers');
-    if (svg) {
-      svg.remove();
-    }
+    const svgs = document.querySelectorAll('cg-board svg.userscript-dividers');
+    svgs.forEach(svg => svg.remove());
   }
 
   function toggleDividers() {
@@ -1217,18 +1321,18 @@
     button.innerText = formatCustomBoardButtonText({ withSuffix: true });
 
     if (customBoardEnabled) {
+      setupBoardReplacementObserver();
+      startHealthCheck();
       applyLoadedSettings();
     } else {
-      if (parallaxObserver) {
-        parallaxObserver.disconnect();
-        parallaxObserver = null;
+      cleanupBoardObservers();
+
+      if (boardReplacementObserver) {
+        boardReplacementObserver.disconnect();
+        boardReplacementObserver = null;
       }
 
-      if (resizeObserver) {
-        resizeObserver.disconnect();
-        resizeObserver = null;
-      }
-
+      stopHealthCheck();
       stopHoverMode();
       removeCustomBoardElement();
       clearDividers();
@@ -1342,6 +1446,12 @@
     createBoardModButtons(boardModContainer);
 
     updateButtonLabels();
+    
+    if (customBoardEnabled) {
+      setupBoardReplacementObserver();
+      startHealthCheck();
+    }
+    
     applyLoadedSettings();
   }
 
