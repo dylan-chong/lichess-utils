@@ -251,7 +251,7 @@
     } else if (pieceType === 'knight') {
       const geometry = createKnightGeometry();
       mesh = new THREE.Mesh(geometry, material);
-      mesh.rotation.y = isWhite ? -Math.PI / 2 : Math.PI / 2;
+      mesh.rotation.y = isWhite ? 0 : Math.PI;
       mesh.position.x = isWhite ? 0.125 : -0.125;
     } else if (pieceType === 'bishop') {
       const geometry = createBishopGeometry();
