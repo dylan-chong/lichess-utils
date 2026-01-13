@@ -730,8 +730,7 @@
   function createButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
-    container.style.maxHeight = '50px';
-    parentContainer.appendChild(container);
+    parentContainer.prepend(container);
     return container;
   }
 
@@ -1529,6 +1528,11 @@
 
     const obfuscationsContainer = createObfuscationsButtonContainer(boardModContainer);
     createObfuscationButtons(obfuscationsContainer);
+
+    const underboard = document.querySelector('.analyse__underboard');
+    if (underboard) {
+      buttonContainer.appendChild(underboard);
+    }
 
     updateButtonLabels();
 
