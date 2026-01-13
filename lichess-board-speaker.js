@@ -922,7 +922,7 @@
     customBoardElement.innerHTML = board.innerHTML;
     customBoardElement.style.transformStyle = 'preserve-3d';
 
-    const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
+    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'default';
     if (pieceStyle === 'checker' || pieceStyle === 'checker-grey') {
       const pieces = customBoardElement.querySelectorAll('piece');
       pieces.forEach(piece => {
@@ -1353,7 +1353,7 @@
     const container = document.querySelector('cg-container');
     if (!container) return;
 
-    const blurAmount = BLUR_LEVELS[currentBlurIndex];
+    const blurAmount = obfuscationsEnabled ? BLUR_LEVELS[currentBlurIndex] : 0;
     if (blurAmount === 0) {
       container.style.filter = '';
     } else {
@@ -1390,23 +1390,8 @@
       obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
     }
 
-    if (!obfuscationsEnabled) {
-      currentPieceStyleIndex = 0;
-      currentBlurIndex = 0;
-
-      const pieceStyleButton = obfuscationButtons[PIECE_STYLE_COMMAND];
-      if (pieceStyleButton) {
-        pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: false });
-      }
-
-      const blurButton = obfuscationButtons[BLUR_COMMAND];
-      if (blurButton) {
-        blurButton.innerText = formatBlurButtonText({ withSuffix: false });
-      }
-
-      applyParallaxTransform();
-      applyBlur();
-    }
+    applyParallaxTransform();
+    applyBlur();
 
     saveSettings();
   }
