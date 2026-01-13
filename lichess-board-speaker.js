@@ -70,6 +70,9 @@
   let canvasElement = null;
   let piecesMeshes = [];
   let canvasAnimationId = null;
+  let lastFrameTime = 0;
+  const TARGET_FPS = 30;
+  const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
 
   function loadThreeJs() {
     return new Promise((resolve, reject) => {
@@ -248,7 +251,7 @@
     } else if (pieceType === 'knight') {
       const geometry = createKnightGeometry();
       mesh = new THREE.Mesh(geometry, material);
-      mesh.rotation.y = isWhite ? 0 : Math.PI;
+      mesh.rotation.y = isWhite ? -Math.PI / 2 : Math.PI / 2;
       mesh.position.x = isWhite ? 0.125 : -0.125;
     } else if (pieceType === 'bishop') {
       const geometry = createBishopGeometry();
@@ -290,7 +293,7 @@
     }
 
     canvasScene = new THREE.Scene();
-    canvasScene.background = new THREE.Color(0x82a86c);
+    canvasScene.background = null;
 
     const fov = 45;
     const aspect = 1;
@@ -437,6 +440,12 @@
   function animate3DCanvas(timestamp) {
     if (!canvasRenderer) return;
 
+    canvasAnimationId = requestAnimationFrame(animate3DCanvas);
+
+    const deltaTime = timestamp - lastFrameTime;
+    if (deltaTime < FRAME_INTERVAL_MS) return;
+    lastFrameTime = timestamp - (deltaTime % FRAME_INTERVAL_MS);
+
     if (currentHoverModeIndex > 0 && hoverStartTime !== null) {
       const elapsed = timestamp - hoverStartTime;
       const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
@@ -461,12 +470,12 @@
     }
 
     render3DCanvas();
-    canvasAnimationId = requestAnimationFrame(animate3DCanvas);
   }
 
   function start3DAnimation() {
     if (canvasAnimationId) return;
     hoverStartTime = performance.now();
+    lastFrameTime = 0;
     canvasAnimationId = requestAnimationFrame(animate3DCanvas);
   }
 
