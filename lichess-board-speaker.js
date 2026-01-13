@@ -727,10 +727,11 @@
     command.exec();
   }
 
-  function createButtonContainer(parentContainer) {
+  function createButtonContainer(keyboardMoveElement) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
-    parentContainer.prepend(container);
+    keyboardMoveElement.parentNode.insertBefore(container, keyboardMoveElement);
+    container.prepend(keyboardMoveElement);
     return container;
   }
 
@@ -1520,7 +1521,8 @@
     loadSettings();
 
     setupMoveInput(moveInput);
-    const buttonContainer = createButtonContainer(moveInput.parentNode);
+    const keyboardMoveElement = moveInput.closest('.keyboard-move');
+    const buttonContainer = createButtonContainer(keyboardMoveElement);
     createButtons(buttonContainer);
 
     const boardModContainer = createBoardModButtonContainer(buttonContainer);
