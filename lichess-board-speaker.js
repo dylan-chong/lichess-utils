@@ -290,7 +290,7 @@
     }
 
     canvasScene = new THREE.Scene();
-    canvasScene.background = null;
+    canvasScene.background = new THREE.Color(0x82a86c);
 
     const fov = 45;
     const aspect = 1;
