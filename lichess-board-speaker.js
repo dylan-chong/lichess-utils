@@ -58,7 +58,7 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'checker-grey'];
+  const PIECE_STYLES = ['default', 'checker', 'checker-grey', 'standing'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -937,6 +937,16 @@
         const checker = createCheckerPiece(color, 56);
         piece.appendChild(checker);
       });
+    } else if (pieceStyle === 'standing') {
+      const pieces = customBoardElement.querySelectorAll('piece');
+
+      pieces.forEach(piece => {
+        piece.style.transformStyle = 'preserve-3d';
+
+        const existingTransform = piece.style.transform;
+        piece.style.transform = `${existingTransform} translateY(-8%) rotateX(-90deg) scale(0.75)`;
+        piece.style.transformOrigin = 'center bottom';
+      });
     }
   }
 
@@ -945,7 +955,7 @@
       customBoardElement.remove();
       customBoardElement = null;
     }
-    
+
     const allCustomBoards = document.querySelectorAll('cg-board.userscript-custom-board');
     allCustomBoards.forEach(board => board.remove());
   }
@@ -1009,25 +1019,25 @@
         if (mutation.type === 'childList') {
           const addedNodes = Array.from(mutation.addedNodes);
           const removedNodes = Array.from(mutation.removedNodes);
-          
+
           const boardAdded = addedNodes.some(node => node.tagName === 'CG-BOARD' && !node.classList.contains('userscript-custom-board'));
           const boardRemoved = removedNodes.some(node => node.tagName === 'CG-BOARD' && !node.classList.contains('userscript-custom-board'));
-          
+
           if (boardAdded || boardRemoved) {
             console.debug('[lichess-board-speaker] board replaced, re-initializing');
-            
+
             cleanupBoardObservers();
-            
+
             if (customBoardElement && !customBoardElement.isConnected) {
               customBoardElement = null;
             }
-            
+
             if (customBoardEnabled) {
               setTimeout(() => {
                 applyLoadedSettings();
               }, 50);
             }
-            
+
             break;
           }
         }
@@ -1272,7 +1282,7 @@
 
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) return;
-    
+
     const boardSize = board.offsetWidth;
     const midPoint = boardSize / 2;
 
@@ -1423,7 +1433,7 @@
       stopHoverMode();
       removeCustomBoardElement();
       clearDividers();
-      
+
       const container = document.querySelector('cg-container');
       if (container) {
         container.style.filter = '';
@@ -1536,12 +1546,12 @@
     createObfuscationButtons(obfuscationsContainer);
 
     updateButtonLabels();
-    
+
     if (customBoardEnabled) {
       setupBoardReplacementObserver();
       startHealthCheck();
     }
-    
+
     applyLoadedSettings();
   }
 
