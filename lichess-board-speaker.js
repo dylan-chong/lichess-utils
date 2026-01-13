@@ -459,7 +459,7 @@
 
       canvasCamera.position.set(0, y, z);
 
-      if (currentHoverModeIndex === 2) {
+      if (currentHoverModeIndex === 1) {
         const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
         const oscillationZRad = oscillationZ * Math.PI / 180;
         canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
@@ -556,11 +556,11 @@
   let customBoardEnabled = false;
 
   const HOVER_MODE_COMMAND = 'hv';
-  const HOVER_OSCILLATION_ANGLE = 1.5;
+  const HOVER_OSCILLATION_ANGLE = 1.95;
   const HOVER_OSCILLATION_PERIOD_MS = 2000;
-  const HOVER_OSCILLATION_Y_ANGLE = 1.5;
+  const HOVER_OSCILLATION_Y_ANGLE = 1.95;
   const HOVER_OSCILLATION_Y_PERIOD_MS = 2500;
-  const HOVER_MODES = ['off', 'x-only', 'x-and-y'];
+  const HOVER_MODES = ['off', 'on'];
   let currentHoverModeIndex = 0;
   let hoverAnimationId = null;
   let hoverStartTime = null;
