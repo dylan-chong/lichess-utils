@@ -500,8 +500,8 @@
   }
 
   function getPiecePositions(playerIsWhite) {
-    const pieces = document.querySelectorAll('cg-board piece');
-    const squareSize = document.querySelector('cg-board').offsetWidth / 8;
+    const pieces = document.querySelectorAll('cg-board:not(.userscript-custom-board) piece');
+    const squareSize = document.querySelector('cg-board:not(.userscript-custom-board)').offsetWidth / 8;
 
     return Array.from(pieces)
       .map(piece => {
