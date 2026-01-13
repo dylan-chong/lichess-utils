@@ -62,6 +62,9 @@
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
+  const OBFUSCATIONS_COMMAND = 'obf';
+  let obfuscationsEnabled = false;
+
   const CUSTOM_BOARD_COMMAND = 'cb';
   let customBoardEnabled = false;
 
@@ -86,6 +89,7 @@
       hoverModeIndex: currentHoverModeIndex,
       blurIndex: currentBlurIndex,
       customBoardEnabled: customBoardEnabled,
+      obfuscationsEnabled: obfuscationsEnabled,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     console.debug('[lichess-board-speaker] settings saved', settings);
@@ -123,6 +127,9 @@
       if (settings.customBoardEnabled !== undefined) {
         customBoardEnabled = settings.customBoardEnabled;
       }
+      if (settings.obfuscationsEnabled !== undefined) {
+        obfuscationsEnabled = settings.obfuscationsEnabled;
+      }
 
       console.debug('[lichess-board-speaker] settings loaded', settings);
     } catch (error) {
@@ -151,7 +158,7 @@
       dividersButton.innerText = formatDividersButtonText({ withSuffix: false });
     }
 
-    const pieceStyleButton = boardModificationButtons[PIECE_STYLE_COMMAND];
+    const pieceStyleButton = obfuscationButtons[PIECE_STYLE_COMMAND];
     if (pieceStyleButton) {
       pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: false });
     }
@@ -161,9 +168,14 @@
       hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: false });
     }
 
-    const blurButton = boardModificationButtons[BLUR_COMMAND];
+    const blurButton = obfuscationButtons[BLUR_COMMAND];
     if (blurButton) {
       blurButton.innerText = formatBlurButtonText({ withSuffix: false });
+    }
+
+    const obfuscationsButton = boardModificationButtons[OBFUSCATIONS_COMMAND];
+    if (obfuscationsButton) {
+      obfuscationsButton.innerText = formatObfuscationsButtonText({ withSuffix: false });
     }
   }
 
@@ -171,6 +183,11 @@
     const boardModContainer = document.querySelector('.board-mod-buttons-container');
     if (boardModContainer) {
       boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
+    }
+
+    const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
+    if (obfuscationsContainer) {
+      obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
     }
 
     if (!customBoardEnabled) {
@@ -224,6 +241,12 @@
   function formatBlurButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(BLUR_COMMAND)})` : '';
     return `Blur (${BLUR_LEVELS[currentBlurIndex]}px) ${suffix}`;
+  }
+
+  function formatObfuscationsButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(OBFUSCATIONS_COMMAND)})` : '';
+    const status = obfuscationsEnabled ? 'ON' : 'OFF';
+    return `Obfuscations (${status}) ${suffix}`;
   }
 
   function formatCustomBoardButtonText({ withSuffix }) {
@@ -299,13 +322,20 @@
       fullName: formatDividersButtonText({ withSuffix: false }),
       exec: () => toggleDividers(),
     },
-    [PIECE_STYLE_COMMAND]: {
-      fullName: formatPieceStyleButtonText({ withSuffix: false }),
-      exec: () => togglePieceStyle(),
-    },
     [HOVER_MODE_COMMAND]: {
       fullName: formatHoverModeButtonText({ withSuffix: false }),
       exec: () => toggleHoverMode(),
+    },
+    [OBFUSCATIONS_COMMAND]: {
+      fullName: formatObfuscationsButtonText({ withSuffix: false }),
+      exec: () => toggleObfuscations(),
+    },
+  };
+
+  const OBFUSCATION_COMMANDS = {
+    [PIECE_STYLE_COMMAND]: {
+      fullName: formatPieceStyleButtonText({ withSuffix: false }),
+      exec: () => togglePieceStyle(),
     },
     [BLUR_COMMAND]: {
       fullName: formatBlurButtonText({ withSuffix: false }),
@@ -315,6 +345,7 @@
 
   const commandButtons = {};
   const boardModificationButtons = {};
+  const obfuscationButtons = {};
 
   function formatCommand(commandName) {
     return `${COMMAND_PREFIX}${commandName}`;
@@ -725,6 +756,43 @@
       .keys(BOARD_MODIFICATION_COMMANDS)
       .map(createBoardModButton)
       .map(button => container.appendChild(button));
+  }
+
+  function createObfuscationsButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.classList.add('obfuscations-buttons-container');
+    container.style.marginLeft = '16px';
+    container.style.display = obfuscationsEnabled ? 'block' : 'none';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
+  function createObfuscationButtons(container) {
+    Object
+      .keys(OBFUSCATION_COMMANDS)
+      .map(createObfuscationButton)
+      .map(button => container.appendChild(button));
+  }
+
+  function createObfuscationButton(commandName) {
+    const command = OBFUSCATION_COMMANDS[commandName];
+    const { fullName, exec } = command;
+
+    const button = document.createElement('button');
+    button.innerText = fullName;
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.padding = '2px';
+    button.style.margin = '8px';
+    button.style.textAlign = 'left';
+
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] obfuscation button clicked', { fullName });
+      exec();
+    });
+
+    obfuscationButtons[commandName] = button;
+    return button;
   }
 
   function generateFullMessagesAndSpeak(filter) {
@@ -1278,7 +1346,7 @@
 
     currentPieceStyleIndex = (currentPieceStyleIndex + 1) % PIECE_STYLES.length;
 
-    const button = boardModificationButtons[PIECE_STYLE_COMMAND];
+    const button = obfuscationButtons[PIECE_STYLE_COMMAND];
     if (button) {
       button.innerText = formatPieceStyleButtonText({ withSuffix: false });
     }
@@ -1305,12 +1373,48 @@
 
     currentBlurIndex = (currentBlurIndex + 1) % BLUR_LEVELS.length;
 
-    const button = boardModificationButtons[BLUR_COMMAND];
+    const button = obfuscationButtons[BLUR_COMMAND];
     if (button) {
       button.innerText = formatBlurButtonText({ withSuffix: false });
     }
 
     applyBlur();
+    saveSettings();
+  }
+
+  function toggleObfuscations() {
+    if (!customBoardEnabled) return;
+
+    obfuscationsEnabled = !obfuscationsEnabled;
+
+    const button = boardModificationButtons[OBFUSCATIONS_COMMAND];
+    if (button) {
+      button.innerText = formatObfuscationsButtonText({ withSuffix: false });
+    }
+
+    const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
+    if (obfuscationsContainer) {
+      obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
+    }
+
+    if (!obfuscationsEnabled) {
+      currentPieceStyleIndex = 0;
+      currentBlurIndex = 0;
+
+      const pieceStyleButton = obfuscationButtons[PIECE_STYLE_COMMAND];
+      if (pieceStyleButton) {
+        pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: false });
+      }
+
+      const blurButton = obfuscationButtons[BLUR_COMMAND];
+      if (blurButton) {
+        blurButton.innerText = formatBlurButtonText({ withSuffix: false });
+      }
+
+      applyParallaxTransform();
+      applyBlur();
+    }
+
     saveSettings();
   }
 
@@ -1445,6 +1549,9 @@
     const boardModContainer = createBoardModButtonContainer(buttonContainer);
     createBoardModButtons(boardModContainer);
 
+    const obfuscationsContainer = createObfuscationsButtonContainer(boardModContainer);
+    createObfuscationButtons(obfuscationsContainer);
+
     updateButtonLabels();
     
     if (customBoardEnabled) {
@@ -1466,3 +1573,4 @@
 
   onDocumentReady(setup);
 })();
+
