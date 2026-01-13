@@ -2,6 +2,7 @@
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
 // @match       *://lichess.org/*
+// @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
 // @inject-into    content
 // ==/UserScript==
@@ -58,9 +59,486 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'checker-grey', 'standing'];
+  const PIECE_STYLES = ['default', 'checker', 'checker-grey', '3d'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
+
+  let threeJsLoaded = false;
+  let canvasRenderer = null;
+  let canvasScene = null;
+  let canvasCamera = null;
+  let canvasElement = null;
+  let piecesMeshes = [];
+  let canvasAnimationId = null;
+
+  function loadThreeJs() {
+    return new Promise((resolve, reject) => {
+      if (threeJsLoaded) {
+        resolve();
+        return;
+      }
+      console.debug('[lichess-board-speaker] Checking for THREE...', typeof THREE);
+      if (typeof THREE !== 'undefined') {
+        threeJsLoaded = true;
+        console.debug('[lichess-board-speaker] Three.js available via @require, version:', THREE.REVISION);
+        resolve();
+        return;
+      }
+      console.error('[lichess-board-speaker] THREE is not defined. Make sure to reinstall the userscript for @require to take effect.');
+      reject(new Error('Three.js not available - ensure @require directive is present in userscript header'));
+    });
+  }
+
+  function createPawnGeometry() {
+    const points = [];
+    points.push(new THREE.Vector2(0, 0));
+    points.push(new THREE.Vector2(0.35, 0));
+    points.push(new THREE.Vector2(0.35, 0.05));
+    points.push(new THREE.Vector2(0.28, 0.1));
+    points.push(new THREE.Vector2(0.15, 0.35));
+    points.push(new THREE.Vector2(0.12, 0.45));
+    points.push(new THREE.Vector2(0.18, 0.55));
+    points.push(new THREE.Vector2(0.18, 0.6));
+    points.push(new THREE.Vector2(0.22, 0.65));
+    points.push(new THREE.Vector2(0.22, 0.85));
+    points.push(new THREE.Vector2(0, 0.85));
+    return new THREE.LatheGeometry(points, 24);
+  }
+
+  function createRookGeometry() {
+    const points = [];
+    points.push(new THREE.Vector2(0, 0));
+    points.push(new THREE.Vector2(0.4, 0));
+    points.push(new THREE.Vector2(0.4, 0.08));
+    points.push(new THREE.Vector2(0.32, 0.12));
+    points.push(new THREE.Vector2(0.22, 0.2));
+    points.push(new THREE.Vector2(0.2, 0.7));
+    points.push(new THREE.Vector2(0.28, 0.75));
+    points.push(new THREE.Vector2(0.28, 0.85));
+    points.push(new THREE.Vector2(0.32, 0.85));
+    points.push(new THREE.Vector2(0.32, 1.0));
+    points.push(new THREE.Vector2(0, 1.0));
+    return new THREE.LatheGeometry(points, 4);
+  }
+
+  function createKnightGeometry() {
+    const shape = new THREE.Shape();
+    shape.moveTo(0, 0);
+    shape.lineTo(0.5, 0);
+    shape.lineTo(0.5, 0.15);
+    shape.lineTo(0.35, 0.2);
+    shape.lineTo(0.25, 0.4);
+    shape.lineTo(0.35, 0.6);
+    shape.lineTo(0.5, 0.75);
+    shape.lineTo(0.55, 1.0);
+    shape.lineTo(0.4, 1.15);
+    shape.lineTo(0.15, 1.2);
+    shape.lineTo(-0.1, 1.1);
+    shape.lineTo(-0.15, 0.9);
+    shape.lineTo(-0.1, 0.7);
+    shape.lineTo(0.05, 0.5);
+    shape.lineTo(0.0, 0.3);
+    shape.lineTo(-0.1, 0.15);
+    shape.lineTo(0, 0);
+    const extrudeSettings = { depth: 0.25, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.03, bevelSegments: 3 };
+    return new THREE.ExtrudeGeometry(shape, extrudeSettings);
+  }
+
+  function createBishopGeometry() {
+    const points = [];
+    points.push(new THREE.Vector2(0, 0));
+    points.push(new THREE.Vector2(0.38, 0));
+    points.push(new THREE.Vector2(0.38, 0.06));
+    points.push(new THREE.Vector2(0.3, 0.1));
+    points.push(new THREE.Vector2(0.18, 0.25));
+    points.push(new THREE.Vector2(0.15, 0.4));
+    points.push(new THREE.Vector2(0.2, 0.5));
+    points.push(new THREE.Vector2(0.2, 0.55));
+    points.push(new THREE.Vector2(0.12, 0.7));
+    points.push(new THREE.Vector2(0.08, 0.95));
+    points.push(new THREE.Vector2(0.15, 1.05));
+    points.push(new THREE.Vector2(0.1, 1.15));
+    points.push(new THREE.Vector2(0.05, 1.2));
+    points.push(new THREE.Vector2(0, 1.25));
+    return new THREE.LatheGeometry(points, 24);
+  }
+
+  function createQueenGeometry() {
+    const points = [];
+    points.push(new THREE.Vector2(0, 0));
+    points.push(new THREE.Vector2(0.42, 0));
+    points.push(new THREE.Vector2(0.42, 0.08));
+    points.push(new THREE.Vector2(0.34, 0.12));
+    points.push(new THREE.Vector2(0.22, 0.25));
+    points.push(new THREE.Vector2(0.18, 0.45));
+    points.push(new THREE.Vector2(0.24, 0.55));
+    points.push(new THREE.Vector2(0.24, 0.6));
+    points.push(new THREE.Vector2(0.16, 0.75));
+    points.push(new THREE.Vector2(0.14, 0.95));
+    points.push(new THREE.Vector2(0.22, 1.05));
+    points.push(new THREE.Vector2(0.28, 1.15));
+    points.push(new THREE.Vector2(0.22, 1.25));
+    points.push(new THREE.Vector2(0.15, 1.3));
+    points.push(new THREE.Vector2(0.08, 1.35));
+    points.push(new THREE.Vector2(0, 1.35));
+    return new THREE.LatheGeometry(points, 8);
+  }
+
+  function createKingGeometry() {
+    const points = [];
+    points.push(new THREE.Vector2(0, 0));
+    points.push(new THREE.Vector2(0.44, 0));
+    points.push(new THREE.Vector2(0.44, 0.08));
+    points.push(new THREE.Vector2(0.36, 0.12));
+    points.push(new THREE.Vector2(0.24, 0.28));
+    points.push(new THREE.Vector2(0.2, 0.5));
+    points.push(new THREE.Vector2(0.26, 0.6));
+    points.push(new THREE.Vector2(0.26, 0.65));
+    points.push(new THREE.Vector2(0.18, 0.8));
+    points.push(new THREE.Vector2(0.16, 1.0));
+    points.push(new THREE.Vector2(0.24, 1.1));
+    points.push(new THREE.Vector2(0.24, 1.2));
+    points.push(new THREE.Vector2(0.18, 1.25));
+    points.push(new THREE.Vector2(0.18, 1.3));
+    points.push(new THREE.Vector2(0, 1.3));
+    const baseGeometry = new THREE.LatheGeometry(points, 24);
+    const crossVertical = new THREE.BoxGeometry(0.08, 0.25, 0.08);
+    const crossHorizontal = new THREE.BoxGeometry(0.2, 0.08, 0.08);
+    return { base: baseGeometry, crossV: crossVertical, crossH: crossHorizontal };
+  }
+
+  function createCheckerGeometry() {
+    const geometry = new THREE.CylinderGeometry(0.4, 0.4, 0.15, 32);
+    return geometry;
+  }
+
+  function getPieceMaterial(isWhite, style) {
+    let color;
+    if (style === 'checker-grey') {
+      color = 0x505050;
+    } else if (style === 'checker') {
+      color = isWhite ? 0xe8e8e8 : 0x1a1a1a;
+    } else {
+      color = isWhite ? 0xf5f5dc : 0x2d2d2d;
+    }
+    return new THREE.MeshStandardMaterial({
+      color: color,
+      roughness: 0.4,
+      metalness: 0.1,
+    });
+  }
+
+  function createPieceMesh(pieceType, isWhite, style) {
+    const material = getPieceMaterial(isWhite, style);
+    let mesh;
+
+    if (style === 'checker' || style === 'checker-grey') {
+      const geometry = createCheckerGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.position.y = 0.075;
+      return mesh;
+    }
+
+    if (pieceType === 'pawn') {
+      const geometry = createPawnGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+    } else if (pieceType === 'rook') {
+      const geometry = createRookGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+    } else if (pieceType === 'knight') {
+      const geometry = createKnightGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+      mesh.rotation.y = isWhite ? -Math.PI / 2 : Math.PI / 2;
+      mesh.position.x = isWhite ? 0.125 : -0.125;
+    } else if (pieceType === 'bishop') {
+      const geometry = createBishopGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+    } else if (pieceType === 'queen') {
+      const geometry = createQueenGeometry();
+      mesh = new THREE.Mesh(geometry, material);
+    } else if (pieceType === 'king') {
+      const geometries = createKingGeometry();
+      const group = new THREE.Group();
+      const baseMesh = new THREE.Mesh(geometries.base, material);
+      group.add(baseMesh);
+      const crossVMesh = new THREE.Mesh(geometries.crossV, material);
+      crossVMesh.position.y = 1.42;
+      group.add(crossVMesh);
+      const crossHMesh = new THREE.Mesh(geometries.crossH, material);
+      crossHMesh.position.y = 1.38;
+      group.add(crossHMesh);
+      mesh = group;
+    }
+
+    return mesh;
+  }
+
+  function setup3DCanvas() {
+    const container = document.querySelector('cg-container');
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!container || !board) {
+      console.error('[lichess-board-speaker] setup3DCanvas: container or board not found', { container, board });
+      return null;
+    }
+
+    const boardSize = board.offsetWidth;
+    console.debug('[lichess-board-speaker] Board size:', boardSize);
+
+    const containerStyle = window.getComputedStyle(container);
+    if (containerStyle.position === 'static') {
+      container.style.position = 'relative';
+    }
+
+    canvasScene = new THREE.Scene();
+    canvasScene.background = null;
+
+    const fov = 45;
+    const aspect = 1;
+    canvasCamera = new THREE.PerspectiveCamera(fov, aspect, 0.1, 1000);
+    canvasCamera.position.set(0, 12, 8);
+    canvasCamera.up.set(0, 0, -1);
+    canvasCamera.lookAt(0, 0, 0);
+
+    canvasRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    canvasRenderer.setSize(boardSize, boardSize);
+    canvasRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    canvasRenderer.shadowMap.enabled = true;
+    canvasRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+
+    canvasElement = canvasRenderer.domElement;
+    canvasElement.style.position = 'absolute';
+    canvasElement.style.top = '0';
+    canvasElement.style.left = '0';
+    canvasElement.style.pointerEvents = 'none';
+    canvasElement.style.zIndex = '100';
+    canvasElement.classList.add('userscript-3d-canvas');
+
+    container.appendChild(canvasElement);
+    console.debug('[lichess-board-speaker] Canvas appended to container');
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    canvasScene.add(ambientLight);
+
+    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    directionalLight.position.set(5, 15, 8);
+    directionalLight.castShadow = true;
+    directionalLight.shadow.mapSize.width = 1024;
+    directionalLight.shadow.mapSize.height = 1024;
+    canvasScene.add(directionalLight);
+
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.3);
+    fillLight.position.set(-5, 10, -5);
+    canvasScene.add(fillLight);
+
+    console.debug('[lichess-board-speaker] 3D canvas setup complete');
+    return { scene: canvasScene, camera: canvasCamera, renderer: canvasRenderer };
+  }
+
+  function boardPositionTo3D(col, row, isFlipped) {
+    let x, z;
+    if (isFlipped) {
+      x = (8 - col) - 4 + 0.5;
+      z = (row - 1) - 4 + 0.5;
+    } else {
+      x = (col - 1) - 4 + 0.5;
+      z = (8 - row) - 4 + 0.5;
+    }
+    return { x, z };
+  }
+
+  function createBoardPlane() {
+    const geometry = new THREE.PlaneGeometry(8, 8);
+    const darkMaterial = new THREE.MeshBasicMaterial({ color: 0x769656 });
+    const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xeeeed2 });
+
+    const boardGroup = new THREE.Group();
+
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const squareGeom = new THREE.PlaneGeometry(1, 1);
+        const isLight = (row + col) % 2 === 0;
+        const square = new THREE.Mesh(squareGeom, isLight ? lightMaterial : darkMaterial);
+        square.position.set(col - 3.5, 0, row - 3.5);
+        square.rotation.x = -Math.PI / 2;
+        boardGroup.add(square);
+      }
+    }
+
+    return boardGroup;
+  }
+
+  function update3DPieces() {
+    if (!canvasScene || !threeJsLoaded) return;
+
+    piecesMeshes.forEach(mesh => {
+      canvasScene.remove(mesh);
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
+    });
+    piecesMeshes = [];
+
+    const existingBoard = canvasScene.getObjectByName('boardPlane');
+    if (!existingBoard) {
+      const boardPlane = createBoardPlane();
+      boardPlane.name = 'boardPlane';
+      canvasScene.add(boardPlane);
+      console.debug('[lichess-board-speaker] Added board plane to scene');
+    }
+
+    const playerIsWhite = isPlayerWhite();
+    const pieces = getPiecePositions(playerIsWhite);
+    const isFlipped = !playerIsWhite;
+    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'default';
+
+    console.debug('[lichess-board-speaker] Rendering pieces:', pieces.length, 'pieces found');
+
+    pieces.forEach(piece => {
+      const mesh = createPieceMesh(piece.type, piece.colour === 'white', pieceStyle);
+      if (!mesh) return;
+
+      const pos = boardPositionTo3D(piece.col, piece.row, isFlipped);
+      mesh.position.set(pos.x, 0, pos.z);
+
+      const scale = 0.65;
+      mesh.scale.set(scale, scale, scale);
+
+      canvasScene.add(mesh);
+      piecesMeshes.push(mesh);
+    });
+
+    console.debug('[lichess-board-speaker] Scene children count:', canvasScene.children.length);
+  }
+
+  function update3DCameraAngle() {
+    if (!canvasCamera) return;
+
+    const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    const angleRad = angle * Math.PI / 180;
+
+    const distance = 15;
+    const y = Math.cos(angleRad) * distance;
+    const z = Math.sin(angleRad) * distance;
+
+    canvasCamera.position.set(0, y, z);
+    canvasCamera.up.set(0, 0, -1);
+    canvasCamera.lookAt(0, 0, 0);
+
+    console.debug('[lichess-board-speaker] Camera angle:', angle, 'position:', canvasCamera.position);
+  }
+
+  function render3DCanvas() {
+    if (!canvasRenderer || !canvasScene || !canvasCamera) {
+      console.error('[lichess-board-speaker] render3DCanvas: missing renderer, scene, or camera', { canvasRenderer, canvasScene, canvasCamera });
+      return;
+    }
+    canvasRenderer.render(canvasScene, canvasCamera);
+  }
+
+  function animate3DCanvas(timestamp) {
+    if (!canvasRenderer) return;
+
+    if (currentHoverModeIndex > 0 && hoverStartTime !== null) {
+      const elapsed = timestamp - hoverStartTime;
+      const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
+      const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
+      const angleX = baseAngle + oscillationX;
+      const angleRad = angleX * Math.PI / 180;
+
+      const distance = 15;
+      const y = Math.cos(angleRad) * distance;
+      const z = Math.sin(angleRad) * distance;
+
+      canvasCamera.position.set(0, y, z);
+
+      if (currentHoverModeIndex === 2) {
+        const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
+        const oscillationZRad = oscillationZ * Math.PI / 180;
+        canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
+      }
+
+      canvasCamera.up.set(0, 0, -1);
+      canvasCamera.lookAt(0, 0, 0);
+    }
+
+    render3DCanvas();
+    canvasAnimationId = requestAnimationFrame(animate3DCanvas);
+  }
+
+  function start3DAnimation() {
+    if (canvasAnimationId) return;
+    hoverStartTime = performance.now();
+    canvasAnimationId = requestAnimationFrame(animate3DCanvas);
+  }
+
+  function stop3DAnimation() {
+    if (canvasAnimationId) {
+      cancelAnimationFrame(canvasAnimationId);
+      canvasAnimationId = null;
+    }
+  }
+
+  function cleanup3DCanvas() {
+    stop3DAnimation();
+
+    if (canvasElement) {
+      canvasElement.remove();
+      canvasElement = null;
+    }
+
+    if (canvasRenderer) {
+      canvasRenderer.dispose();
+      canvasRenderer = null;
+    }
+
+    piecesMeshes.forEach(mesh => {
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
+    });
+    piecesMeshes = [];
+
+    canvasScene = null;
+    canvasCamera = null;
+
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (board) {
+      showOriginalBoard(board);
+      showBoardPieces(board);
+    }
+  }
+
+  function resize3DCanvas() {
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board || !canvasRenderer || !canvasElement) return;
+
+    const boardSize = board.offsetWidth;
+    canvasRenderer.setSize(boardSize, boardSize);
+    render3DCanvas();
+  }
+
+  async function init3DMode() {
+    try {
+      console.debug('[lichess-board-speaker] Initializing 3D mode...');
+      await loadThreeJs();
+      console.debug('[lichess-board-speaker] Setting up 3D canvas...');
+      const result = setup3DCanvas();
+      if (!result) {
+        console.error('[lichess-board-speaker] Failed to set up 3D canvas - container or board not found');
+        return;
+      }
+      console.debug('[lichess-board-speaker] Canvas element:', canvasElement);
+      console.debug('[lichess-board-speaker] Renderer:', canvasRenderer);
+      update3DCameraAngle();
+      update3DPieces();
+      if (currentHoverModeIndex > 0) {
+        start3DAnimation();
+      } else {
+        render3DCanvas();
+      }
+      console.debug('[lichess-board-speaker] 3D mode initialization complete');
+    } catch (error) {
+      console.error('[lichess-board-speaker] Failed to initialize 3D mode:', error);
+    }
+  }
 
   const OBFUSCATIONS_COMMAND = 'obf';
   let obfuscationsEnabled = false;
@@ -823,143 +1301,10 @@
 
   let parallaxObserver = null;
   let resizeObserver = null;
-  let customBoardElement = null;
   let boardReplacementObserver = null;
   let healthCheckInterval = null;
 
-  function createOrGetCustomBoardElement() {
-    if (customBoardElement && customBoardElement.isConnected) {
-      return customBoardElement;
-    }
-
-    if (customBoardElement && !customBoardElement.isConnected) {
-      console.debug('[lichess-board-speaker] custom board element was disconnected, creating new one');
-      customBoardElement = null;
-    }
-
-    const container = document.querySelector('cg-container');
-    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
-    if (!container || !board) return null;
-
-    container.style.position = 'relative';
-
-    customBoardElement = document.createElement('cg-board');
-    customBoardElement.classList.add('userscript-custom-board');
-
-    const computedStyle = window.getComputedStyle(board);
-    customBoardElement.style.position = 'absolute';
-    customBoardElement.style.top = '0';
-    customBoardElement.style.left = '0';
-    customBoardElement.style.width = computedStyle.width;
-    customBoardElement.style.height = computedStyle.height;
-    customBoardElement.style.pointerEvents = 'none';
-    customBoardElement.style.zIndex = '100';
-    customBoardElement.style.visibility = 'visible';
-    customBoardElement.style.display = 'block';
-
-    container.appendChild(customBoardElement);
-    console.debug('[lichess-board-speaker] created new custom board element');
-    return customBoardElement;
-  }
-
-  function createCheckerPiece(color, sizePercent = 80) {
-    const container = document.createElement('div');
-    container.style.width = `${sizePercent}%`;
-    container.style.height = `${sizePercent}%`;
-    container.style.position = 'absolute';
-    const offset = (100 - sizePercent) / 2;
-    container.style.top = `${offset}%`;
-    container.style.left = `${offset}%`;
-    container.style.transformStyle = 'preserve-3d';
-
-    let baseColor, darkColor, lightColor;
-    if (color === 'white') {
-      baseColor = '#e8e8e8';
-      darkColor = '#999999';
-      lightColor = '#ffffff';
-    } else if (color === 'grey') {
-      baseColor = '#505050';
-      darkColor = '#303030';
-      lightColor = '#707070';
-    } else {
-      baseColor = '#1a1a1a';
-      darkColor = '#000000';
-      lightColor = '#333333';
-    }
-    const thickness = 8;
-
-    for (let i = 0; i < thickness; i++) {
-      const layer = document.createElement('div');
-      layer.style.width = '100%';
-      layer.style.height = '100%';
-      layer.style.position = 'absolute';
-      layer.style.borderRadius = '50%';
-      layer.style.transform = `translateZ(${i}px)`;
-
-      const gradientStart = i === thickness - 1 ? lightColor : baseColor;
-      const gradientEnd = i === 0 ? darkColor : baseColor;
-
-      layer.style.background = `radial-gradient(circle at 30% 30%, ${gradientStart}, ${gradientEnd})`;
-
-      if (i === 0) {
-        layer.style.boxShadow = '0 2px 8px rgba(0,0,0,0.5)';
-      }
-
-      if (i === thickness - 1) {
-        const borderColor = color === 'white' ? '#ffffff' : (color === 'grey' ? '#888888' : '#555555');
-        layer.style.border = `2px solid ${borderColor}`;
-        layer.style.boxSizing = 'border-box';
-      }
-
-      container.appendChild(layer);
-    }
-
-    return container;
-  }
-
-  function updateCustomBoardElement() {
-    if (!customBoardElement || !customBoardElement.isConnected) return;
-
-    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
-    if (!board) return;
-
-    customBoardElement.innerHTML = board.innerHTML;
-    customBoardElement.style.transformStyle = 'preserve-3d';
-
-    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'default';
-    if (pieceStyle === 'checker' || pieceStyle === 'checker-grey') {
-      const pieces = customBoardElement.querySelectorAll('piece');
-      pieces.forEach(piece => {
-        const classes = piece.className;
-        const isWhite = classes.includes('white');
-        const color = pieceStyle === 'checker-grey' ? 'grey' : (isWhite ? 'white' : 'black');
-
-        piece.innerHTML = '';
-        piece.style.background = 'none';
-        piece.style.transformStyle = 'preserve-3d';
-
-        const checker = createCheckerPiece(color, 56);
-        piece.appendChild(checker);
-      });
-    } else if (pieceStyle === 'standing') {
-      const pieces = customBoardElement.querySelectorAll('piece');
-
-      pieces.forEach(piece => {
-        piece.style.transformStyle = 'preserve-3d';
-
-        const existingTransform = piece.style.transform;
-        piece.style.transform = `${existingTransform} translateY(-8%) rotateX(-90deg) scale(0.75)`;
-        piece.style.transformOrigin = 'center bottom';
-      });
-    }
-  }
-
   function removeCustomBoardElement() {
-    if (customBoardElement) {
-      customBoardElement.remove();
-      customBoardElement = null;
-    }
-
     const allCustomBoards = document.querySelectorAll('cg-board.userscript-custom-board');
     allCustomBoards.forEach(board => board.remove());
   }
@@ -984,10 +1329,10 @@
     const needsCustomBoard = currentParallaxIndex > 0 || currentPieceStyleIndex > 0;
     if (!needsCustomBoard) return;
 
-    if (!customBoardElement || !customBoardElement.isConnected) {
-      console.debug('[lichess-board-speaker] health check: custom board disconnected, recreating');
+    if (!canvasElement || !canvasElement.isConnected) {
+      console.debug('[lichess-board-speaker] health check: canvas disconnected, recreating');
       cleanupBoardObservers();
-      customBoardElement = null;
+      cleanup3DCanvas();
       applyLoadedSettings();
       return;
     }
@@ -1031,10 +1376,7 @@
             console.debug('[lichess-board-speaker] board replaced, re-initializing');
 
             cleanupBoardObservers();
-
-            if (customBoardElement && !customBoardElement.isConnected) {
-              customBoardElement = null;
-            }
+            cleanup3DCanvas();
 
             if (customBoardEnabled) {
               setTimeout(() => {
@@ -1055,17 +1397,7 @@
   }
 
   function handleContainerResize() {
-    if (!customBoardElement || !customBoardElement.isConnected) return;
-
-    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
-    if (!board) return;
-
-    const computedStyle = window.getComputedStyle(board);
-    customBoardElement.style.width = computedStyle.width;
-    customBoardElement.style.height = computedStyle.height;
-
-    updateCustomBoardElement();
-
+    resize3DCanvas();
     if (dividersEnabled) {
       drawDividers();
     }
@@ -1077,6 +1409,28 @@
     return Math.pow(cosValue, 0.5);
   }
 
+  function hideBoardPieces(board) {
+    const pieces = board.querySelectorAll('piece');
+    pieces.forEach(piece => {
+      piece.style.visibility = 'hidden';
+    });
+  }
+
+  function showBoardPieces(board) {
+    const pieces = board.querySelectorAll('piece');
+    pieces.forEach(piece => {
+      piece.style.visibility = '';
+    });
+  }
+
+  function hideOriginalBoard(board) {
+    board.style.opacity = '0';
+  }
+
+  function showOriginalBoard(board) {
+    board.style.opacity = '';
+  }
+
   function applyParallaxTransform() {
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) {
@@ -1085,11 +1439,13 @@
     }
 
     const angle = PARALLAX_ANGLES[currentParallaxIndex];
-    const needsCustomBoardElement = angle > 0 || currentPieceStyleIndex > 0;
+    const needsCustomBoard = angle > 0 || currentPieceStyleIndex > 0;
 
-    if (!needsCustomBoardElement) {
-      board.style.visibility = '';
+    if (!needsCustomBoard) {
+      showOriginalBoard(board);
+      showBoardPieces(board);
       removeCustomBoardElement();
+      cleanup3DCanvas();
 
       cleanupBoardObservers();
 
@@ -1102,32 +1458,12 @@
         stopHoverMode();
       }
     } else {
-      board.style.visibility = 'hidden';
+      hideOriginalBoard(board);
+      hideBoardPieces(board);
+      removeCustomBoardElement();
 
-      const customBoard = createOrGetCustomBoardElement();
-      if (!customBoard) {
-        console.debug('[lichess-board-speaker] applyParallaxTransform: failed to create custom board');
-        return;
-      }
-
-      updateCustomBoardElement();
-
-      if (currentHoverModeIndex === 0) {
-        if (angle > 0) {
-          const scale = calculateScaleForAngle(angle);
-          customBoard.style.transform = `perspective(1000px) rotateX(${angle}deg) scale(${scale})`;
-        } else {
-          customBoard.style.transform = '';
-        }
-      }
-
-      customBoard.style.transformOrigin = 'center center';
-
+      init3DMode();
       setupParallaxMoveObserver();
-
-      if (currentHoverModeIndex > 0) {
-        hoverStartTime = null;
-      }
     }
   }
 
@@ -1143,7 +1479,9 @@
     }
 
     parallaxObserver = new MutationObserver(() => {
-      updateCustomBoardElement();
+      hideBoardPieces(board);
+      update3DPieces();
+      render3DCanvas();
     });
 
     parallaxObserver.observe(board, {
@@ -1179,7 +1517,12 @@
       button.innerText = formatParallaxButtonText({ withSuffix: false });
     }
 
-    applyParallaxTransform();
+    if (canvasCamera) {
+      update3DCameraAngle();
+      render3DCanvas();
+    } else {
+      applyParallaxTransform();
+    }
 
     if (dividersEnabled) {
       drawDividers();
@@ -1188,46 +1531,14 @@
     saveSettings();
   }
 
-  function animateHoverMode(timestamp) {
-    if (currentHoverModeIndex === 0) return;
-
-    if (!hoverStartTime) {
-      hoverStartTime = timestamp;
-    }
-
-    const elapsed = timestamp - hoverStartTime;
-    const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
-    const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
-    const angleX = baseAngle + oscillationX;
-
-    if (customBoardElement && baseAngle > 0) {
-      const scale = calculateScaleForAngle(angleX);
-      if (currentHoverModeIndex === 1) {
-        customBoardElement.style.transform = `perspective(1000px) rotateX(${angleX}deg) scale(${scale})`;
-      } else if (currentHoverModeIndex === 2) {
-        const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
-        customBoardElement.style.transform = `perspective(1000px) rotateX(${angleX}deg) rotateZ(${oscillationZ}deg) scale(${scale})`;
-      }
-    }
-
-    hoverAnimationId = requestAnimationFrame(animateHoverMode);
-  }
-
   function startHoverMode() {
-    if (hoverAnimationId) return;
-
-    hoverStartTime = null;
-    hoverAnimationId = requestAnimationFrame(animateHoverMode);
+    start3DAnimation();
   }
 
   function stopHoverMode() {
-    if (hoverAnimationId) {
-      cancelAnimationFrame(hoverAnimationId);
-      hoverAnimationId = null;
-      hoverStartTime = null;
-    }
-
-    applyParallaxTransform();
+    stop3DAnimation();
+    update3DCameraAngle();
+    render3DCanvas();
   }
 
   function toggleHoverMode() {
@@ -1348,7 +1659,12 @@
       button.innerText = formatPieceStyleButtonText({ withSuffix: false });
     }
 
-    applyParallaxTransform();
+    if (canvasScene) {
+      update3DPieces();
+      render3DCanvas();
+    } else {
+      applyParallaxTransform();
+    }
 
     saveSettings();
   }
@@ -1394,7 +1710,12 @@
       obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
     }
 
-    applyParallaxTransform();
+    if (canvasScene) {
+      update3DPieces();
+      render3DCanvas();
+    } else {
+      applyParallaxTransform();
+    }
     applyBlur();
 
     saveSettings();
@@ -1421,6 +1742,7 @@
       stopHealthCheck();
       stopHoverMode();
       removeCustomBoardElement();
+      cleanup3DCanvas();
       clearDividers();
 
       const container = document.querySelector('cg-container');
@@ -1431,6 +1753,7 @@
       const board = document.querySelector('cg-board');
       if (board) {
         board.style.visibility = 'visible';
+        board.style.opacity = '';
         board.style.transform = '';
         board.style.transformStyle = '';
       }
