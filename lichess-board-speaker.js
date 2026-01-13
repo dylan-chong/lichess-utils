@@ -730,8 +730,12 @@
   function createButtonContainer(keyboardMoveElement) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
-    keyboardMoveElement.parentNode.insertBefore(container, keyboardMoveElement);
-    container.prepend(keyboardMoveElement);
+    container.style.minWidth = '280px';
+
+    keyboardMoveElement.style.width = '100%';
+    keyboardMoveElement.style.display = 'block'; // disable display:flex to prevent flex-row
+    keyboardMoveElement.appendChild(container);
+
     return container;
   }
 
