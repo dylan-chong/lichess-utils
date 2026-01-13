@@ -58,7 +58,7 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'sized-checkers', 'checker-grey'];
+  const PIECE_STYLES = ['default', 'checker', 'checker-grey'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -923,35 +923,18 @@
     customBoardElement.style.transformStyle = 'preserve-3d';
 
     const pieceStyle = PIECE_STYLES[currentPieceStyleIndex];
-    if (pieceStyle === 'checker' || pieceStyle === 'sized-checkers' || pieceStyle === 'checker-grey') {
+    if (pieceStyle === 'checker' || pieceStyle === 'checker-grey') {
       const pieces = customBoardElement.querySelectorAll('piece');
       pieces.forEach(piece => {
         const classes = piece.className;
         const isWhite = classes.includes('white');
         const color = pieceStyle === 'checker-grey' ? 'grey' : (isWhite ? 'white' : 'black');
 
-        let sizePercent;
-        if (pieceStyle === 'checker' || pieceStyle === 'checker-grey') {
-          sizePercent = 56;
-        } else {
-          const isPawn = classes.includes('pawn');
-          const isQueen = classes.includes('queen');
-          const isKing = classes.includes('king');
-
-          if (isPawn) {
-            sizePercent = 40;
-          } else if (isQueen || isKing) {
-            sizePercent = 80;
-          } else {
-            sizePercent = 58.5;
-          }
-        }
-
         piece.innerHTML = '';
         piece.style.background = 'none';
         piece.style.transformStyle = 'preserve-3d';
 
-        const checker = createCheckerPiece(color, sizePercent);
+        const checker = createCheckerPiece(color, 56);
         piece.appendChild(checker);
       });
     }
