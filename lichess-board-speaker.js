@@ -76,6 +76,7 @@
   const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
   let slideAnimationEndTime = 0;
   const SLIDE_ANIMATION_POLL_DURATION_MS = 200;
+  let drawing3DObjects = [];
 
   function loadThreeJs() {
     return new Promise((resolve, reject) => {
@@ -592,6 +593,8 @@
   function cleanup3DCanvas() {
     stop3DAnimation();
 
+    clear3DDrawings();
+
     if (canvasElement) {
       canvasElement.remove();
       canvasElement = null;
@@ -1030,6 +1033,10 @@
     if (svg) {
       svg.innerHTML = '';
     }
+    clear3DDrawings();
+    if (canvasScene) {
+      render3DCanvas();
+    }
   }
 
   function drawCircle(svg, x, y, boardSize) {
@@ -1079,7 +1086,123 @@
     svg.appendChild(arrowhead);
   }
 
+  function squareTo3DCoordinates(square, isFlipped) {
+    const fileIndex = square.file.charCodeAt(0) - 'a'.charCodeAt(0);
+    const rankIndex = parseInt(square.rank) - 1;
+
+    let x, z;
+    if (isFlipped) {
+      x = (7 - fileIndex) - 3.5;
+      z = rankIndex - 3.5;
+    } else {
+      x = fileIndex - 3.5;
+      z = (7 - rankIndex) - 3.5;
+    }
+
+    return { x, z };
+  }
+
+  function clear3DDrawings() {
+    if (!canvasScene) return;
+
+    for (const obj of drawing3DObjects) {
+      canvasScene.remove(obj);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+      if (obj.children) {
+        obj.children.forEach(child => {
+          if (child.geometry) child.geometry.dispose();
+          if (child.material) child.material.dispose();
+        });
+      }
+    }
+    drawing3DObjects = [];
+  }
+
+  function create3DCircle(x, z) {
+    const geometry = new THREE.TorusGeometry(0.35, 0.06, 8, 32);
+    const material = new THREE.MeshStandardMaterial({
+      color: 0xff6b6b,
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const torus = new THREE.Mesh(geometry, material);
+    torus.position.set(x, 0.05, z);
+    torus.rotation.x = -Math.PI / 2;
+    return torus;
+  }
+
+  function create3DArrow(x1, z1, x2, z2) {
+    const group = new THREE.Group();
+
+    const dx = x2 - x1;
+    const dz = z2 - z1;
+    const length = Math.sqrt(dx * dx + dz * dz);
+    const angle = Math.atan2(-dx, -dz);
+
+    const arrowHeadLength = 0.45;
+    const shaftLength = length - arrowHeadLength;
+
+    const shaftGeometry = new THREE.CylinderGeometry(0.07, 0.07, shaftLength, 8);
+    const shaftMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff6b6b,
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const shaft = new THREE.Mesh(shaftGeometry, shaftMaterial);
+    shaft.position.set(0, 0, -shaftLength / 2);
+    shaft.rotation.x = Math.PI / 2;
+    group.add(shaft);
+
+    const headGeometry = new THREE.ConeGeometry(0.22, arrowHeadLength, 8);
+    const headMaterial = new THREE.MeshStandardMaterial({
+      color: 0xff6b6b,
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+    const head = new THREE.Mesh(headGeometry, headMaterial);
+    head.position.set(0, 0, -(shaftLength + arrowHeadLength / 2));
+    head.rotation.x = -Math.PI / 2;
+    group.add(head);
+
+    group.position.set(x1, 0.08, z1);
+    group.rotation.y = angle;
+
+    return group;
+  }
+
+  function update3DDrawings(command) {
+    clear3DDrawings();
+
+    const drawingData = parseDrawingCommand(command);
+    if (!drawingData || !canvasScene) return;
+
+    const isFlipped = !isPlayerWhite();
+
+    for (const square of drawingData.circles) {
+      const coords = squareTo3DCoordinates(square, isFlipped);
+      const circle = create3DCircle(coords.x, coords.z);
+      canvasScene.add(circle);
+      drawing3DObjects.push(circle);
+    }
+
+    for (const arrow of drawingData.arrows) {
+      const fromCoords = squareTo3DCoordinates(arrow.from, isFlipped);
+      const toCoords = squareTo3DCoordinates(arrow.to, isFlipped);
+      const arrow3D = create3DArrow(fromCoords.x, fromCoords.z, toCoords.x, toCoords.z);
+      canvasScene.add(arrow3D);
+      drawing3DObjects.push(arrow3D);
+    }
+
+    render3DCanvas();
+  }
+
   function updateDrawings(command) {
+    if (customBoardEnabled && canvasScene) {
+      update3DDrawings(command);
+      return;
+    }
+
     clearDrawings();
 
     const drawingData = parseDrawingCommand(command);
@@ -1092,13 +1215,11 @@
     const boardSize = container.offsetWidth;
     const isFlipped = !isPlayerWhite();
 
-    // Draw circles
     for (const square of drawingData.circles) {
       const coords = squareToCoordinates(square, boardSize, isFlipped);
       drawCircle(svg, coords.x, coords.y, boardSize);
     }
 
-    // Draw arrows
     for (const arrow of drawingData.arrows) {
       const fromCoords = squareToCoordinates(arrow.from, boardSize, isFlipped);
       const toCoords = squareToCoordinates(arrow.to, boardSize, isFlipped);
