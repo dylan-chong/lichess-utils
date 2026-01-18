@@ -69,10 +69,13 @@
   let canvasCamera = null;
   let canvasElement = null;
   let piecesMeshes = [];
+  let pieceMeshMap = new Map();
   let canvasAnimationId = null;
   let lastFrameTime = 0;
-  const TARGET_FPS = 30;
+  const TARGET_FPS = 60;
   const FRAME_INTERVAL_MS = 1000 / TARGET_FPS;
+  let slideAnimationEndTime = 0;
+  const SLIDE_ANIMATION_POLL_DURATION_MS = 200;
 
   function loadThreeJs() {
     return new Promise((resolve, reject) => {
@@ -364,6 +367,44 @@
     return { x, z };
   }
 
+  function pixelPositionTo3D(pixelX, pixelY, boardSize, isFlipped) {
+    const normalizedX = pixelX / boardSize * 8;
+    const normalizedY = pixelY / boardSize * 8;
+
+    let x, z;
+    if (isFlipped) {
+      x = (8 - normalizedX) - 4;
+      z = normalizedY - 4;
+    } else {
+      x = normalizedX - 4;
+      z = (8 - normalizedY) - 4;
+    }
+    return { x, z };
+  }
+
+  function getTransformPixels(piece) {
+    const computedTransform = window.getComputedStyle(piece).transform;
+
+    if (computedTransform && computedTransform !== 'none') {
+      const matrixMatch = computedTransform.match(/matrix\(([^)]+)\)/);
+      if (matrixMatch) {
+        const values = matrixMatch[1].split(',').map(v => parseFloat(v.trim()));
+        return { x: values[4], y: values[5] };
+      }
+    }
+
+    const inlineTransform = piece.style.transform;
+    const translateMatch = inlineTransform.match(/translate\(([\d.]+)px(?:,\s*([\d.]+)px)?\)/);
+    if (translateMatch) {
+      return {
+        x: parseFloat(translateMatch[1]),
+        y: parseFloat(translateMatch[2] || 0)
+      };
+    }
+
+    return null;
+  }
+
   function createBoardPlane() {
     const geometry = new THREE.PlaneGeometry(8, 8);
     const darkMaterial = new THREE.MeshBasicMaterial({ color: 0x769656 });
@@ -388,43 +429,73 @@
   function update3DPieces() {
     if (!canvasScene || !threeJsLoaded) return;
 
-    piecesMeshes.forEach(mesh => {
-      canvasScene.remove(mesh);
-      if (mesh.geometry) mesh.geometry.dispose();
-      if (mesh.material) mesh.material.dispose();
-    });
-    piecesMeshes = [];
-
     const existingBoard = canvasScene.getObjectByName('boardPlane');
     if (!existingBoard) {
       const boardPlane = createBoardPlane();
       boardPlane.name = 'boardPlane';
       canvasScene.add(boardPlane);
-      console.debug('[lichess-board-speaker] Added board plane to scene');
     }
 
-    const playerIsWhite = isPlayerWhite();
-    const pieces = getPiecePositions(playerIsWhite);
-    const isFlipped = !playerIsWhite;
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) return;
+
+    const boardSize = board.offsetWidth;
+    const isFlipped = !isPlayerWhite();
     const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'default';
 
-    console.debug('[lichess-board-speaker] Rendering pieces:', pieces.length, 'pieces found');
+    const pieceElements = document.querySelectorAll('cg-board:not(.userscript-custom-board) piece');
+    const currentPieceIds = new Set();
 
-    pieces.forEach(piece => {
-      const mesh = createPieceMesh(piece.type, piece.colour === 'white', pieceStyle);
-      if (!mesh) return;
+    pieceElements.forEach(pieceEl => {
+      const pieceString = pieceEl.className;
+      const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)(?:\s+anim)?$/) || [];
+      if (!colour || !type) return;
 
-      const pos = boardPositionTo3D(piece.col, piece.row, isFlipped);
-      mesh.position.set(pos.x, 0, pos.z);
+      const pixels = getTransformPixels(pieceEl);
+      if (!pixels) return;
 
-      const scale = 0.65;
-      mesh.scale.set(scale, scale, scale);
+      const pieceId = `${colour}-${type}-${Math.round(pixels.x)}-${Math.round(pixels.y)}`;
+      currentPieceIds.add(pieceId);
 
-      canvasScene.add(mesh);
-      piecesMeshes.push(mesh);
+      let mesh = pieceMeshMap.get(pieceId);
+
+      if (!mesh) {
+        for (const [key, existingMesh] of pieceMeshMap.entries()) {
+          if (key.startsWith(`${colour}-${type}-`) && !currentPieceIds.has(key)) {
+            mesh = existingMesh;
+            pieceMeshMap.delete(key);
+            pieceMeshMap.set(pieceId, mesh);
+            break;
+          }
+        }
+      }
+
+      if (!mesh) {
+        mesh = createPieceMesh(type, colour === 'white', pieceStyle);
+        if (!mesh) return;
+
+        const scale = 0.65;
+        mesh.scale.set(scale, scale, scale);
+        canvasScene.add(mesh);
+        piecesMeshes.push(mesh);
+        pieceMeshMap.set(pieceId, mesh);
+      }
+
+      const pos3D = pixelPositionTo3D(pixels.x + boardSize / 16, pixels.y + boardSize / 16, boardSize, isFlipped);
+      mesh.position.x = pos3D.x;
+      mesh.position.z = pos3D.z;
     });
 
-    console.debug('[lichess-board-speaker] Scene children count:', canvasScene.children.length);
+    for (const [key, mesh] of pieceMeshMap.entries()) {
+      if (!currentPieceIds.has(key)) {
+        canvasScene.remove(mesh);
+        if (mesh.geometry) mesh.geometry.dispose();
+        if (mesh.material) mesh.material.dispose();
+        pieceMeshMap.delete(key);
+        const idx = piecesMeshes.indexOf(mesh);
+        if (idx > -1) piecesMeshes.splice(idx, 1);
+      }
+    }
   }
 
   function update3DCameraAngle() {
@@ -453,38 +524,55 @@
   }
 
   function animate3DCanvas(timestamp) {
-    if (!canvasRenderer) return;
-
-    canvasAnimationId = requestAnimationFrame(animate3DCanvas);
-
-    const deltaTime = timestamp - lastFrameTime;
-    if (deltaTime < FRAME_INTERVAL_MS) return;
-    lastFrameTime = timestamp - (deltaTime % FRAME_INTERVAL_MS);
-
-    if (currentHoverModeIndex > 0 && hoverStartTime !== null) {
-      const elapsed = timestamp - hoverStartTime;
-      const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
-      const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
-      const angleX = baseAngle + oscillationX;
-      const angleRad = angleX * Math.PI / 180;
-
-      const distance = 15;
-      const y = Math.cos(angleRad) * distance;
-      const z = Math.sin(angleRad) * distance;
-
-      canvasCamera.position.set(0, y, z);
-
-      if (currentHoverModeIndex === 1) {
-        const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
-        const oscillationZRad = oscillationZ * Math.PI / 180;
-        canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
-      }
-
-      canvasCamera.up.set(0, 0, -1);
-      canvasCamera.lookAt(0, 0, 0);
+    if (!canvasRenderer) {
+      canvasAnimationId = null;
+      return;
     }
 
-    render3DCanvas();
+    const isPollingSlideAnimation = timestamp < slideAnimationEndTime;
+    const needsContinuousAnimation = isPollingSlideAnimation || currentHoverModeIndex > 0;
+
+    const deltaTime = timestamp - lastFrameTime;
+    const shouldRenderFrame = deltaTime >= FRAME_INTERVAL_MS;
+
+    if (shouldRenderFrame) {
+      lastFrameTime = timestamp - (deltaTime % FRAME_INTERVAL_MS);
+
+      if (isPollingSlideAnimation) {
+        update3DPieces();
+      }
+
+      if (currentHoverModeIndex > 0 && hoverStartTime !== null) {
+        const elapsed = timestamp - hoverStartTime;
+        const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
+        const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
+        const angleX = baseAngle + oscillationX;
+        const angleRad = angleX * Math.PI / 180;
+
+        const distance = 15;
+        const y = Math.cos(angleRad) * distance;
+        const z = Math.sin(angleRad) * distance;
+
+        canvasCamera.position.set(0, y, z);
+
+        if (currentHoverModeIndex === 1) {
+          const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
+          const oscillationZRad = oscillationZ * Math.PI / 180;
+          canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
+        }
+
+        canvasCamera.up.set(0, 0, -1);
+        canvasCamera.lookAt(0, 0, 0);
+      }
+
+      render3DCanvas();
+    }
+
+    if (needsContinuousAnimation) {
+      canvasAnimationId = requestAnimationFrame(animate3DCanvas);
+    } else {
+      canvasAnimationId = null;
+    }
   }
 
   function start3DAnimation() {
@@ -519,6 +607,8 @@
       if (mesh.material) mesh.material.dispose();
     });
     piecesMeshes = [];
+    pieceMeshMap.clear();
+    slideAnimationEndTime = 0;
 
     canvasScene = null;
     canvasCamera = null;
@@ -1042,7 +1132,7 @@
         if (!position) return null;
 
         const pieceString = piece.className;
-        const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)$/) || [];
+        const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)(?:\s+anim)?$/) || [];
         if (!colour || !type) return null;
 
         const { col, row } = position;
@@ -1503,9 +1593,15 @@
     }
 
     parallaxObserver = new MutationObserver(() => {
+      console.log('######################', new Date().toISOString());
       hideBoardPieces(board);
       update3DPieces();
       render3DCanvas();
+
+      slideAnimationEndTime = performance.now() + SLIDE_ANIMATION_POLL_DURATION_MS;
+      if (canvasAnimationId === null) {
+        start3DAnimation();
+      }
     });
 
     parallaxObserver.observe(board, {
@@ -1908,4 +2004,3 @@
 
   onDocumentReady(setup);
 })();
-
