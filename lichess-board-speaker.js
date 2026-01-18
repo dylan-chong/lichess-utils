@@ -77,6 +77,7 @@
   let slideAnimationEndTime = 0;
   const SLIDE_ANIMATION_POLL_DURATION_MS = 200;
   let drawing3DObjects = [];
+  let dragging3DPiece = null;
 
   function loadThreeJs() {
     return new Promise((resolve, reject) => {
@@ -481,8 +482,10 @@
 
     pieceElements.forEach(pieceEl => {
       const pieceString = pieceEl.className;
-      const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)(?:\s+anim)?$/) || [];
+      const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)(?:\s+(?:anim|dragging|ghost))*$/) || [];
       if (!colour || !type) return;
+
+      if (pieceEl.classList.contains('ghost')) return;
 
       const pixels = getTransformPixels(pieceEl);
       if (!pixels) return;
@@ -514,9 +517,11 @@
         pieceMeshMap.set(pieceId, mesh);
       }
 
-      const pos3D = pixelPositionTo3D(pixels.x + boardSize / 16, pixels.y + boardSize / 16, boardSize, isFlipped);
-      mesh.position.x = pos3D.x;
-      mesh.position.z = pos3D.z;
+      if (mesh !== dragging3DPiece) {
+        const pos3D = pixelPositionTo3D(pixels.x + boardSize / 16, pixels.y + boardSize / 16, boardSize, isFlipped);
+        mesh.position.x = pos3D.x;
+        mesh.position.z = pos3D.z;
+      }
 
       if (pieceStyle === 'icons') {
         mesh.rotation.z = isFlipped ? 0 : Math.PI;
@@ -561,6 +566,106 @@
       return;
     }
     canvasRenderer.render(canvasScene, canvasCamera);
+  }
+
+  function project3DToScreen(x3D, z3D) {
+    if (!canvasCamera || !canvasRenderer) return null;
+
+    const vector = new THREE.Vector3(x3D, 0, z3D);
+    vector.project(canvasCamera);
+
+    const canvas = canvasRenderer.domElement;
+    const screenX = (vector.x * 0.5 + 0.5) * canvas.width / window.devicePixelRatio;
+    const screenY = (-vector.y * 0.5 + 0.5) * canvas.height / window.devicePixelRatio;
+
+    return { x: screenX, y: screenY };
+  }
+
+  function setupDragHandling() {
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    container.addEventListener('mousemove', handleDragMove, true);
+    container.addEventListener('mouseup', handleDragEnd, true);
+    container.addEventListener('mouseleave', handleDragEnd, true);
+  }
+
+  function findDragging3DPiece() {
+    const ghostPiece = document.querySelector('piece.ghost');
+    if (!ghostPiece) return null;
+
+    const pieceString = ghostPiece.className;
+    const [_match, colour, type] = pieceString.match(/^(white|black)\s+(king|queen|rook|bishop|knight|pawn)/) || [];
+    if (!colour || !type) return null;
+
+    const pixels = getTransformPixels(ghostPiece);
+    if (pixels) {
+      const pieceId = `${colour}-${type}-${Math.round(pixels.x)}-${Math.round(pixels.y)}`;
+      const exactMatch = pieceMeshMap.get(pieceId);
+      if (exactMatch) return exactMatch;
+    }
+
+    for (const [key, mesh] of pieceMeshMap.entries()) {
+      if (key.startsWith(`${colour}-${type}-`)) {
+        return mesh;
+      }
+    }
+    return null;
+  }
+
+  function handleDragMove(event) {
+    if (!customBoardEnabled || !canvasScene) return;
+
+    const draggingPiece = document.querySelector('piece.dragging');
+    if (!draggingPiece) {
+      if (dragging3DPiece) {
+        handleDragEnd();
+      }
+      return;
+    }
+
+    if (!dragging3DPiece) {
+      dragging3DPiece = findDragging3DPiece();
+      if (!dragging3DPiece) return;
+    }
+
+    const pos3D = screenTo3DPosition(event.clientX, event.clientY);
+
+    if (pos3D) {
+      dragging3DPiece.position.x = pos3D.x;
+      dragging3DPiece.position.z = pos3D.z;
+      render3DCanvas();
+    }
+  }
+
+  function handleDragEnd() {
+    if (dragging3DPiece) {
+      dragging3DPiece = null;
+      update3DPieces();
+      render3DCanvas();
+    }
+  }
+
+  function screenTo3DPosition(clientX, clientY) {
+    if (!canvasCamera || !canvasRenderer || !canvasScene) return null;
+
+    const canvas = canvasRenderer.domElement;
+    const rect = canvas.getBoundingClientRect();
+    const ndcX = ((clientX - rect.left) / rect.width) * 2 - 1;
+    const ndcY = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(new THREE.Vector2(ndcX, ndcY), canvasCamera);
+
+    const boardPlane = canvasScene.getObjectByName('boardPlane');
+    if (!boardPlane) return null;
+
+    const intersects = raycaster.intersectObject(boardPlane, true);
+    if (intersects.length > 0) {
+      return { x: intersects[0].point.x, z: intersects[0].point.z };
+    }
+
+    return null;
   }
 
   function animate3DCanvas(timestamp) {
@@ -637,6 +742,8 @@
 
     clear3DDrawings();
 
+    dragging3DPiece = null;
+
     if (canvasElement) {
       canvasElement.remove();
       canvasElement = null;
@@ -700,6 +807,7 @@
       console.debug('[lichess-board-speaker] Renderer:', canvasRenderer);
       update3DCameraAngle();
       update3DPieces();
+      setupDragHandling();
       if (currentHoverModeIndex > 0) {
         start3DAnimation();
       } else {
