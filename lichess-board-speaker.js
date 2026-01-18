@@ -517,6 +517,10 @@
       const pos3D = pixelPositionTo3D(pixels.x + boardSize / 16, pixels.y + boardSize / 16, boardSize, isFlipped);
       mesh.position.x = pos3D.x;
       mesh.position.z = pos3D.z;
+
+      if (pieceStyle === 'icons') {
+        mesh.rotation.z = isFlipped ? 0 : Math.PI;
+      }
     });
 
     for (const [key, mesh] of pieceMeshMap.entries()) {
