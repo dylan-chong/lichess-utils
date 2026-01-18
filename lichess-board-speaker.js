@@ -1092,18 +1092,12 @@
     svg.appendChild(arrowhead);
   }
 
-  function squareTo3DCoordinates(square, isFlipped) {
+  function squareTo3DCoordinates(square) {
     const fileIndex = square.file.charCodeAt(0) - 'a'.charCodeAt(0);
     const rankIndex = parseInt(square.rank) - 1;
 
-    let x, z;
-    if (isFlipped) {
-      x = fileIndex - 3.5;
-      z = rankIndex - 3.5;
-    } else {
-      x = 3.5 - fileIndex;
-      z = (7 - rankIndex) - 3.5;
-    }
+    const x = 3.5 - fileIndex;
+    const z = rankIndex - 3.5;
 
     return { x, z };
   }
@@ -1183,18 +1177,16 @@
     const drawingData = parseDrawingCommand(command);
     if (!drawingData || !canvasScene) return;
 
-    const isFlipped = !isPlayerWhite();
-
     for (const square of drawingData.circles) {
-      const coords = squareTo3DCoordinates(square, isFlipped);
+      const coords = squareTo3DCoordinates(square);
       const circle = create3DCircle(coords.x, coords.z);
       canvasScene.add(circle);
       drawing3DObjects.push(circle);
     }
 
     for (const arrow of drawingData.arrows) {
-      const fromCoords = squareTo3DCoordinates(arrow.from, isFlipped);
-      const toCoords = squareTo3DCoordinates(arrow.to, isFlipped);
+      const fromCoords = squareTo3DCoordinates(arrow.from);
+      const toCoords = squareTo3DCoordinates(arrow.to);
       const arrow3D = create3DArrow(fromCoords.x, fromCoords.z, toCoords.x, toCoords.z);
       canvasScene.add(arrow3D);
       drawing3DObjects.push(arrow3D);
