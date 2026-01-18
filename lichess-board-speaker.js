@@ -59,7 +59,7 @@
   const BLUR_COMMAND = 'blur';
   let currentBlurIndex = 0;
 
-  const PIECE_STYLES = ['default', 'checker', 'checker-grey', '3d'];
+  const PIECE_STYLES = ['icons', 'checker', 'checker-grey', '3d'];
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
@@ -249,6 +249,34 @@
     });
   }
 
+  function getPieceIconUrl(pieceType, isWhite) {
+    const colorChar = isWhite ? 'w' : 'b';
+    const pieceChar = pieceType === 'knight' ? 'N' : pieceType.charAt(0).toUpperCase();
+    return `https://lichess1.org/assets/piece/cburnett/${colorChar}${pieceChar}.svg`;
+  }
+
+  function createIconPieceMesh(pieceType, isWhite) {
+    const geometry = new THREE.PlaneGeometry(0.9, 0.9);
+    const material = new THREE.MeshBasicMaterial({
+      transparent: true,
+      side: THREE.DoubleSide,
+      depthWrite: false,
+    });
+
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.rotation.x = -Math.PI / 2;
+    mesh.position.y = 0.01;
+
+    const loader = new THREE.TextureLoader();
+    loader.load(getPieceIconUrl(pieceType, isWhite), (texture) => {
+      material.map = texture;
+      material.needsUpdate = true;
+      render3DCanvas();
+    });
+
+    return mesh;
+  }
+
   function createPieceMesh(pieceType, isWhite, style) {
     const material = getPieceMaterial(isWhite, style);
     let mesh;
@@ -258,6 +286,10 @@
       mesh = new THREE.Mesh(geometry, material);
       mesh.position.y = 0.075;
       return mesh;
+    }
+
+    if (style === 'icons') {
+      return createIconPieceMesh(pieceType, isWhite);
     }
 
     if (pieceType === 'pawn') {
@@ -442,7 +474,7 @@
 
     const boardSize = board.offsetWidth;
     const isFlipped = !isPlayerWhite();
-    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'default';
+    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'icons';
 
     const pieceElements = document.querySelectorAll('cg-board:not(.userscript-custom-board) piece');
     const currentPieceIds = new Set();
