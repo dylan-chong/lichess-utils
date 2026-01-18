@@ -126,24 +126,38 @@
 
   function createKnightGeometry() {
     const shape = new THREE.Shape();
-    shape.moveTo(0, 0);
-    shape.lineTo(0.5, 0);
-    shape.lineTo(0.5, 0.15);
-    shape.lineTo(0.35, 0.2);
-    shape.lineTo(0.25, 0.4);
-    shape.lineTo(0.35, 0.6);
-    shape.lineTo(0.5, 0.75);
-    shape.lineTo(0.55, 1.0);
-    shape.lineTo(0.4, 1.15);
-    shape.lineTo(0.15, 1.2);
-    shape.lineTo(-0.1, 1.1);
-    shape.lineTo(-0.15, 0.9);
-    shape.lineTo(-0.1, 0.7);
-    shape.lineTo(0.05, 0.5);
-    shape.lineTo(0.0, 0.3);
-    shape.lineTo(-0.1, 0.15);
-    shape.lineTo(0, 0);
-    const extrudeSettings = { depth: 0.25, bevelEnabled: true, bevelThickness: 0.05, bevelSize: 0.03, bevelSegments: 3 };
+    shape.moveTo(-0.15, 0);
+    shape.lineTo(0.35, 0);
+    shape.lineTo(0.35, 0.08);
+    shape.lineTo(0.25, 0.12);
+    shape.lineTo(0.15, 0.18);
+    shape.quadraticCurveTo(0.08, 0.35, 0.1, 0.5);
+    shape.quadraticCurveTo(0.15, 0.65, 0.25, 0.75);
+    shape.quadraticCurveTo(0.35, 0.85, 0.38, 0.95);
+    shape.lineTo(0.42, 1.0);
+    shape.lineTo(0.45, 1.08);
+    shape.lineTo(0.42, 1.12);
+    shape.lineTo(0.35, 1.08);
+    shape.quadraticCurveTo(0.25, 1.02, 0.18, 1.08);
+    shape.lineTo(0.22, 1.18);
+    shape.lineTo(0.18, 1.22);
+    shape.lineTo(0.1, 1.15);
+    shape.quadraticCurveTo(-0.05, 1.05, -0.15, 1.1);
+    shape.quadraticCurveTo(-0.25, 1.12, -0.32, 1.05);
+    shape.lineTo(-0.35, 0.95);
+    shape.lineTo(-0.3, 0.88);
+    shape.lineTo(-0.2, 0.9);
+    shape.quadraticCurveTo(-0.1, 0.85, -0.15, 0.75);
+    shape.lineTo(-0.25, 0.7);
+    shape.lineTo(-0.35, 0.65);
+    shape.lineTo(-0.38, 0.55);
+    shape.lineTo(-0.32, 0.5);
+    shape.lineTo(-0.22, 0.52);
+    shape.quadraticCurveTo(-0.12, 0.48, -0.1, 0.38);
+    shape.quadraticCurveTo(-0.08, 0.25, -0.15, 0.15);
+    shape.lineTo(-0.2, 0.08);
+    shape.lineTo(-0.15, 0);
+    const extrudeSettings = { depth: 0.22, bevelEnabled: true, bevelThickness: 0.04, bevelSize: 0.03, bevelSegments: 4 };
     return new THREE.ExtrudeGeometry(shape, extrudeSettings);
   }
 
@@ -252,7 +266,8 @@
       const geometry = createKnightGeometry();
       mesh = new THREE.Mesh(geometry, material);
       mesh.rotation.y = isWhite ? 0 : Math.PI;
-      mesh.position.x = isWhite ? 0.125 : -0.125;
+      mesh.position.x = isWhite ? 0.05 : -0.05;
+      mesh.position.z = isWhite ? -0.11 : 0.11;
     } else if (pieceType === 'bishop') {
       const geometry = createBishopGeometry();
       mesh = new THREE.Mesh(geometry, material);
