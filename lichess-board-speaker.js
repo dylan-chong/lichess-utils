@@ -629,6 +629,18 @@
     }
   }
 
+  function clear3DPieces() {
+    if (!canvasScene) return;
+
+    piecesMeshes.forEach(mesh => {
+      canvasScene.remove(mesh);
+      if (mesh.geometry) mesh.geometry.dispose();
+      if (mesh.material) mesh.material.dispose();
+    });
+    piecesMeshes = [];
+    pieceMeshMap.clear();
+  }
+
   function resize3DCanvas() {
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board || !canvasRenderer || !canvasElement) return;
@@ -1899,6 +1911,7 @@
     }
 
     if (canvasScene) {
+      clear3DPieces();
       update3DPieces();
       render3DCanvas();
     } else {
