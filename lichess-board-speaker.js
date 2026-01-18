@@ -256,7 +256,7 @@
   }
 
   function createIconPieceMesh(pieceType, isWhite) {
-    const geometry = new THREE.PlaneGeometry(0.9, 0.9);
+    const geometry = new THREE.PlaneGeometry(1.4, 1.4);
     const material = new THREE.MeshBasicMaterial({
       transparent: true,
       side: THREE.DoubleSide,
