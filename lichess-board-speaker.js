@@ -374,10 +374,10 @@
 
     let x, z;
     if (isFlipped) {
-      x = (8 - normalizedX) - 4;
+      x = normalizedX - 4;
       z = normalizedY - 4;
     } else {
-      x = normalizedX - 4;
+      x = 4 - normalizedX;
       z = (8 - normalizedY) - 4;
     }
     return { x, z };
@@ -509,8 +509,11 @@
     const y = Math.cos(angleRad) * distance;
     const z = Math.sin(angleRad) * distance;
 
-    canvasCamera.position.set(0, y, z);
-    canvasCamera.up.set(0, 0, -1);
+    const isFlipped = !isPlayerWhite();
+    const zDirection = isFlipped ? 1 : -1;
+
+    canvasCamera.position.set(0, y, z * zDirection);
+    canvasCamera.up.set(0, 0, -1 * zDirection);
     canvasCamera.lookAt(0, 0, 0);
 
     console.debug('[lichess-board-speaker] Camera angle:', angle, 'position:', canvasCamera.position);
@@ -554,7 +557,10 @@
         const y = Math.cos(angleRad) * distance;
         const z = Math.sin(angleRad) * distance;
 
-        canvasCamera.position.set(0, y, z);
+        const isFlipped = !isPlayerWhite();
+        const zDirection = isFlipped ? 1 : -1;
+
+        canvasCamera.position.set(0, y, z * zDirection);
 
         if (currentHoverModeIndex === 1) {
           const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
@@ -562,7 +568,7 @@
           canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
         }
 
-        canvasCamera.up.set(0, 0, -1);
+        canvasCamera.up.set(0, 0, -1 * zDirection);
         canvasCamera.lookAt(0, 0, 0);
       }
 
@@ -1092,10 +1098,10 @@
 
     let x, z;
     if (isFlipped) {
-      x = (7 - fileIndex) - 3.5;
+      x = fileIndex - 3.5;
       z = rankIndex - 3.5;
     } else {
-      x = fileIndex - 3.5;
+      x = 3.5 - fileIndex;
       z = (7 - rankIndex) - 3.5;
     }
 
