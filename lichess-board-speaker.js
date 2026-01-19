@@ -461,6 +461,10 @@
     return boardGroup;
   }
 
+  function isBlindfoldMode() {
+    return document.querySelector('.puzzle__board.blindfold, .main-board.blindfold') !== null;
+  }
+
   function update3DPieces() {
     if (!canvasScene || !threeJsLoaded) return;
 
@@ -538,6 +542,11 @@
         const idx = piecesMeshes.indexOf(mesh);
         if (idx > -1) piecesMeshes.splice(idx, 1);
       }
+    }
+
+    const blindfoldActive = isBlindfoldMode();
+    for (const mesh of piecesMeshes) {
+      mesh.visible = !blindfoldActive;
     }
   }
 
@@ -810,6 +819,7 @@
       update3DCameraAngle();
       update3DPieces();
       setupDragHandling();
+      setupBlindfoldObserver();
       if (currentHoverModeIndex > 0) {
         start3DAnimation();
       } else {
@@ -1730,6 +1740,7 @@
   let parallaxObserver = null;
   let resizeObserver = null;
   let boardReplacementObserver = null;
+  let blindfoldObserver = null;
   let healthCheckInterval = null;
 
   function removeCustomBoardElement() {
@@ -1746,6 +1757,29 @@
       resizeObserver.disconnect();
       resizeObserver = null;
     }
+    if (blindfoldObserver) {
+      blindfoldObserver.disconnect();
+      blindfoldObserver = null;
+    }
+  }
+
+  function setupBlindfoldObserver() {
+    if (blindfoldObserver) {
+      blindfoldObserver.disconnect();
+    }
+
+    const boardContainer = document.querySelector('.puzzle__board, .main-board');
+    if (!boardContainer) return;
+
+    blindfoldObserver = new MutationObserver(() => {
+      update3DPieces();
+      render3DCanvas();
+    });
+
+    blindfoldObserver.observe(boardContainer, {
+      attributes: true,
+      attributeFilter: ['class'],
+    });
   }
 
   function healthCheck() {
