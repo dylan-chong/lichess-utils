@@ -77,6 +77,7 @@
   let slideAnimationEndTime = 0;
   const SLIDE_ANIMATION_POLL_DURATION_MS = 200;
   let drawing3DObjects = [];
+  let divider3DObjects = [];
   let dragging3DPiece = null;
 
   function loadThreeJs() {
@@ -741,6 +742,7 @@
     stop3DAnimation();
 
     clear3DDrawings();
+    clear3DDividers();
 
     dragging3DPiece = null;
 
@@ -1351,6 +1353,43 @@
     render3DCanvas();
   }
 
+  function clear3DDividers() {
+    if (!canvasScene) return;
+
+    for (const obj of divider3DObjects) {
+      canvasScene.remove(obj);
+      if (obj.geometry) obj.geometry.dispose();
+      if (obj.material) obj.material.dispose();
+    }
+    divider3DObjects = [];
+  }
+
+  function draw3DDividers() {
+    clear3DDividers();
+
+    if (!canvasScene) return;
+
+    const dividerMaterial = new THREE.MeshStandardMaterial({
+      color: 0x000000,
+      roughness: 0.5,
+      metalness: 0.1,
+    });
+
+    const horizontalGeometry = new THREE.BoxGeometry(8, 0.08, 0.08);
+    const horizontalDivider = new THREE.Mesh(horizontalGeometry, dividerMaterial.clone());
+    horizontalDivider.position.set(0, 0.04, 0);
+    canvasScene.add(horizontalDivider);
+    divider3DObjects.push(horizontalDivider);
+
+    const verticalGeometry = new THREE.BoxGeometry(0.08, 0.08, 8);
+    const verticalDivider = new THREE.Mesh(verticalGeometry, dividerMaterial.clone());
+    verticalDivider.position.set(0, 0.04, 0);
+    canvasScene.add(verticalDivider);
+    divider3DObjects.push(verticalDivider);
+
+    render3DCanvas();
+  }
+
   function updateDrawings(command) {
     if (customBoardEnabled && canvasScene) {
       update3DDrawings(command);
@@ -1868,7 +1907,6 @@
     }
 
     parallaxObserver = new MutationObserver(() => {
-      console.log('######################', new Date().toISOString());
       hideBoardPieces(board);
       update3DPieces();
       render3DCanvas();
@@ -1985,6 +2023,11 @@
   }
 
   function drawDividers() {
+    if (customBoardEnabled && canvasScene) {
+      draw3DDividers();
+      return;
+    }
+
     const svg = createOrGetDividersSVG();
     if (!svg) return;
 
@@ -2023,6 +2066,10 @@
   function clearDividers() {
     const svgs = document.querySelectorAll('cg-board svg.userscript-dividers');
     svgs.forEach(svg => svg.remove());
+    clear3DDividers();
+    if (canvasScene) {
+      render3DCanvas();
+    }
   }
 
   function toggleDividers() {
