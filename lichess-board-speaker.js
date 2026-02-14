@@ -1097,33 +1097,40 @@
   const COMMAND_PREFIX = 'p';
   const COMMANDS = {
     a: {
-      fullName: 'Speak all pieces',
+      fullName: '🔊 all pieces',
+      tooltip: 'Speak all pieces',
       exec: () => generateFullMessagesAndSpeak(() => true)
     },
 
     wk: {
-      fullName: "Speak w's k-side",
+      fullName: "🔊 ♔ side",
+      tooltip: "Speak white's king-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row <= 4)
     },
     wq: {
-      fullName: "Speak w's q-side",
+      fullName: "🔊 ♕ side",
+      tooltip: "Speak white's queen-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row <= 4)
     },
     bk: {
-      fullName: "Speak b's k-side",
+      fullName: "🔊 ♚ side",
+      tooltip: "Speak black's king-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col >= 5 && row >= 5)
     },
     bq: {
-      fullName: "Speak b's q-side",
+      fullName: "🔊 ♛ side",
+      tooltip: "Speak black's queen-side",
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5)
     },
 
     ww: {
-      fullName: "Speak w's pieces",
+      fullName: "🔊 w's pieces",
+      tooltip: "Speak white's pieces",
       exec: () => generateFullMessagesAndSpeak(({ row }) => row <= 4)
     },
     bb: {
-      fullName: "Speak b's pieces",
+      fullName: "🔊 b's pieces",
+      tooltip: "Speak black's pieces",
       exec: () => generateFullMessagesAndSpeak(({ row }) => row >= 5)
     },
 
@@ -1170,6 +1177,10 @@
       exec: () => toggleObfuscations(),
     },
   };
+
+  const BOARD_MOD_BUTTON_GROUPS = [
+    [PARALLAX_COMMAND, DIVIDERS_COMMAND, HOVER_MODE_COMMAND],
+  ];
 
   const OBFUSCATION_COMMANDS = {
     [PIECE_STYLE_COMMAND]: {
@@ -1747,18 +1758,80 @@
     return container;
   }
 
+  const COMMAND_BUTTON_GROUPS = [
+    ['pwk', 'pwq', 'pbk', 'pbq'],
+    ['pa', 'pww', 'pbb'],
+  ];
+
+  function getCommandButtonGroup(commandName) {
+    return COMMAND_BUTTON_GROUPS.find(group => group.includes(commandName));
+  }
+
+  function createButtonGroupRow() {
+    const row = document.createElement('div');
+    row.style.display = 'flex';
+    row.style.flexWrap = 'wrap';
+    row.style.gap = '4px';
+    row.style.margin = '8px';
+    return row;
+  }
+
   function createButtons(container) {
+    const processedGroups = new Set();
+
     Object
       .keys(COMMANDS_WITH_PREFIX)
-      .map(createCommandButton)
-      .map(button => container.appendChild(button));
+      .forEach(commandName => {
+        const group = getCommandButtonGroup(commandName);
+
+        if (!group) {
+          const button = createCommandButton(commandName, { inline: false });
+          container.appendChild(button);
+          return;
+        }
+
+        const groupKey = group.join(',');
+        if (processedGroups.has(groupKey)) return;
+        processedGroups.add(groupKey);
+
+        const row = createButtonGroupRow();
+        group.forEach(name => {
+          const button = createCommandButton(name, { inline: true });
+          row.appendChild(button);
+        });
+        container.appendChild(row);
+      });
+  }
+
+  function getBoardModButtonGroup(commandName) {
+    return BOARD_MOD_BUTTON_GROUPS.find(group => group.includes(commandName));
   }
 
   function createBoardModButtons(container) {
+    const processedGroups = new Set();
+
     Object
       .keys(BOARD_MODIFICATION_COMMANDS)
-      .map(createBoardModButton)
-      .map(button => container.appendChild(button));
+      .forEach(commandName => {
+        const group = getBoardModButtonGroup(commandName);
+
+        if (!group) {
+          const button = createBoardModButton(commandName, { inline: false });
+          container.appendChild(button);
+          return;
+        }
+
+        const groupKey = group.join(',');
+        if (processedGroups.has(groupKey)) return;
+        processedGroups.add(groupKey);
+
+        const row = createButtonGroupRow();
+        group.forEach(name => {
+          const button = createBoardModButton(name, { inline: true });
+          row.appendChild(button);
+        });
+        container.appendChild(row);
+      });
   }
 
   function createObfuscationsButtonContainer(parentContainer) {
@@ -1791,6 +1864,7 @@
 
     const button = document.createElement('button');
     button.innerText = fullName;
+    button.title = fullName;
     button.style.display = 'block';
     button.style.width = '100%';
     button.style.padding = '2px';
@@ -1828,6 +1902,7 @@
 
     const button = document.createElement('button');
     button.innerText = fullName;
+    button.title = fullName;
     button.style.display = 'block';
     button.style.width = '100%';
     button.style.padding = '2px';
@@ -2528,17 +2603,25 @@
     alert(text);
   }
 
-  function createCommandButton(commandName) {
+  function createCommandButton(commandName, { inline } = { inline: false }) {
     const command = COMMANDS_WITH_PREFIX[commandName];
-    const { fullName, exec } = command;
+    const { fullName, tooltip, exec } = command;
 
     const button = document.createElement('button');
-    button.innerText = `${fullName} (${commandName})`;
-    button.style.display = 'block';
-    button.style.width = '100%';
+    button.title = `${tooltip || fullName} (${commandName})`;
     button.style.padding = '2px';
-    button.style.margin = '8px';
     button.style.textAlign = 'left';
+
+    button.innerText = `${fullName} (${commandName})`;
+
+    if (inline) {
+      button.style.display = 'inline-block';
+      button.style.flex = '1 1 auto';
+    } else {
+      button.style.display = 'block';
+      button.style.width = '100%';
+      button.style.margin = '8px';
+    }
 
     button.addEventListener('click', () => {
       console.debug('[lichess-board-speaker] button clicked', { fullName });
@@ -2549,17 +2632,25 @@
     return button;
   }
 
-  function createBoardModButton(commandName) {
+  function createBoardModButton(commandName, { inline } = { inline: false }) {
     const command = BOARD_MODIFICATION_COMMANDS[commandName];
     const { fullName, exec } = command;
 
     const button = document.createElement('button');
-    button.innerText = fullName;
-    button.style.display = 'block';
-    button.style.width = '100%';
+    button.title = fullName;
     button.style.padding = '2px';
-    button.style.margin = '8px';
     button.style.textAlign = 'left';
+
+    if (inline) {
+      button.innerText = fullName;
+      button.style.display = 'inline-block';
+      button.style.flex = '1 1 auto';
+    } else {
+      button.innerText = fullName;
+      button.style.display = 'block';
+      button.style.width = '100%';
+      button.style.margin = '8px';
+    }
 
     button.addEventListener('click', () => {
       console.debug('[lichess-board-speaker] board mod button clicked', { fullName });
