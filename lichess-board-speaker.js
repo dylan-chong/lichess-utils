@@ -1145,6 +1145,7 @@
 
     l: {
       fullName: 'List pieces',
+      tooltip: 'List pieces (shows who you are and whose turn it is)',
       exec: displayPiecesList
     },
 
@@ -2595,12 +2596,15 @@
     const pieces = getPiecePositions(playerIsWhite);
     const piecesGrouped = groupPiecesByColourAndType(pieces);
 
-    const text =
+    const playerColour = playerIsWhite ? 'white' : 'black';
+    const header = `You: ${playerColour}`;
+
+    const piecesText =
       generateDisplayTextFromGroups(piecesGrouped)
         .filter(msg => msg !== SILENT_PAUSE)
         .join('\n');
 
-    alert(text);
+    alert(`${header}\n\n${piecesText}`);
   }
 
   function createCommandButton(commandName, { inline } = { inline: false }) {
