@@ -37,38 +37,76 @@
 
 (function() {
   const SILENT_PAUSE = '... wait ...';
-  const SPEAK_RATES = [
-    0.2,
-    0.5,
-    0.7,
-    1.0,
-    1.1,
-    1.2,
-  ]
-  const SPEAK_RATE_COMMAND = 'sr';
-  let currentSpeakRateIndex = 1;
+  const state = {
+    speakRateIndex: 1,
+    parallaxIndex: 0,
+    dividersEnabled: false,
+    blurIndex: 0,
+    pieceStyleIndex: 0,
+    blackSegmentsModeIndex: 0,
+    blackSegmentsTimingIndex: 0,
+    obfuscationsEnabled: false,
+    customBoardEnabled: false,
+    hoverModeIndex: 0,
+  };
 
-  const PARALLAX_ANGLES = [0, 20, 40, 50, 60, 65, 70, 80];
-  const PARALLAX_COMMAND = 'px';
-  let currentParallaxIndex = 0;
+  const SPEAK_RATE_OPTIONS = [
+    { label: '0.2', value: 0.2 },
+    { label: '0.5', value: 0.5 },
+    { label: '0.7', value: 0.7 },
+    { label: '1.0', value: 1.0 },
+    { label: '1.1', value: 1.1 },
+    { label: '1.2', value: 1.2 },
+  ];
 
-  const DIVIDERS_COMMAND = 'div';
-  let dividersEnabled = false;
+  const PARALLAX_OPTIONS = [
+    { label: '0°', value: 0 },
+    { label: '20°', value: 20 },
+    { label: '40°', value: 40 },
+    { label: '50°', value: 50 },
+    { label: '60°', value: 60 },
+    { label: '65°', value: 65 },
+    { label: '70°', value: 70 },
+    { label: '80°', value: 80 },
+  ];
 
-  const BLUR_LEVELS = [0, 3, 4, 6, 8];
-  const BLUR_COMMAND = 'blur';
-  let currentBlurIndex = 0;
+  const BLUR_OPTIONS = [
+    { label: '0px', value: 0 },
+    { label: '3px', value: 3 },
+    { label: '4px', value: 4 },
+    { label: '6px', value: 6 },
+    { label: '8px', value: 8 },
+  ];
 
-  const PIECE_STYLES = ['icons', 'checker', 'checker-grey', '3d'];
-  const PIECE_STYLE_COMMAND = 'ps';
-  let currentPieceStyleIndex = 0;
+  const PIECE_STYLE_OPTIONS = [
+    { label: 'icons', createMesh: (pieceType, isWhite) => createIconPieceMesh(pieceType, isWhite), rotateForFlip: true },
+    { label: 'checker', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0xe8e8e8, 0x1a1a1a), rotateForFlip: false },
+    { label: 'checker-grey', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0x505050, 0x505050), rotateForFlip: false },
+    { label: '3d', createMesh: create3DPieceMesh, rotateForFlip: false },
+  ];
 
-  const BLACK_SEGMENTS_MODES = ['None', '1/4', '1/2', '3/4'];
-  const BLACK_SEGMENTS_TIMINGS = [10, 30, 60, null];
-  const BLACK_SEGMENTS_COMMAND = 'bs';
-  const BLACK_SEGMENTS_TIMING_COMMAND = 'bst';
-  let currentBlackSegmentsModeIndex = 0;
-  let currentBlackSegmentsTimingIndex = 0;
+  const BLACK_SEGMENTS_MODE_OPTIONS = [
+    { label: 'None', getQuadrants: () => [] },
+    { label: '1/4', getQuadrants: (counter) => [counter % 4] },
+    { label: '1/2', getQuadrants: (counter) => counter % 2 === 0 ? [0, 3] : [1, 2] },
+    { label: '3/4', getQuadrants: (counter) => {
+      const visible = counter % 4;
+      return [0, 1, 2, 3].filter(q => q !== visible);
+    }},
+  ];
+
+  const BLACK_SEGMENTS_TIMING_OPTIONS = [
+    { label: 'Rotate every 10s', value: 10 },
+    { label: 'Rotate every 30s', value: 30 },
+    { label: 'Rotate every 60s', value: 60 },
+    { label: "Don't rotate", value: null },
+  ];
+
+  const HOVER_MODE_OPTIONS = [
+    { label: 'off' },
+    { label: 'on' },
+  ];
+
   let blackSegmentsCounter = 0;
   let blackSegmentsIntervalId = null;
 
@@ -244,22 +282,6 @@
     return geometry;
   }
 
-  function getPieceMaterial(isWhite, style) {
-    let color;
-    if (style === 'checker-grey') {
-      color = 0x505050;
-    } else if (style === 'checker') {
-      color = isWhite ? 0xe8e8e8 : 0x1a1a1a;
-    } else {
-      color = isWhite ? 0xf5f5dc : 0x2d2d2d;
-    }
-    return new THREE.MeshStandardMaterial({
-      color: color,
-      roughness: 0.4,
-      metalness: 0.1,
-    });
-  }
-
   function getPieceIconUrl(pieceType, isWhite) {
     const colorChar = isWhite ? 'w' : 'b';
     const pieceChar = pieceType === 'knight' ? 'N' : pieceType.charAt(0).toUpperCase();
@@ -288,20 +310,19 @@
     return mesh;
   }
 
-  function createPieceMesh(pieceType, isWhite, style) {
-    const material = getPieceMaterial(isWhite, style);
+  function createCheckerPieceMesh(isWhite, whiteColor, blackColor) {
+    const color = isWhite ? whiteColor : blackColor;
+    const material = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.1 });
+    const geometry = createCheckerGeometry();
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.y = 0.075;
+    return mesh;
+  }
+
+  function create3DPieceMesh(pieceType, isWhite) {
+    const color = isWhite ? 0xf5f5dc : 0x2d2d2d;
+    const material = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.1 });
     let mesh;
-
-    if (style === 'checker' || style === 'checker-grey') {
-      const geometry = createCheckerGeometry();
-      mesh = new THREE.Mesh(geometry, material);
-      mesh.position.y = 0.075;
-      return mesh;
-    }
-
-    if (style === 'icons') {
-      return createIconPieceMesh(pieceType, isWhite);
-    }
 
     if (pieceType === 'pawn') {
       const geometry = createPawnGeometry();
@@ -336,6 +357,15 @@
     }
 
     return mesh;
+  }
+
+  function getCurrentPieceStyleOption() {
+    return state.obfuscationsEnabled ? PIECE_STYLE_OPTIONS[state.pieceStyleIndex] : PIECE_STYLE_OPTIONS[0];
+  }
+
+  function createPieceMesh(pieceType, isWhite) {
+    const option = getCurrentPieceStyleOption();
+    return option.createMesh(pieceType, isWhite);
   }
 
   function setup3DCanvas() {
@@ -465,7 +495,7 @@
 
         const screenCol = isFlipped ? col : 7 - col;
         const screenRow = isFlipped ? row : 7 - row;
-        const isBlackedOut = obfuscationsEnabled && isPositionInBlackedOutQuadrant(screenCol, screenRow);
+        const isBlackedOut = state.obfuscationsEnabled && isPositionInBlackedOutQuadrant(screenCol, screenRow);
         let material;
         if (isBlackedOut) {
           material = blackMaterial;
@@ -502,7 +532,7 @@
 
     const boardSize = board.offsetWidth;
     const isFlipped = !isPlayerWhite();
-    const pieceStyle = obfuscationsEnabled ? PIECE_STYLES[currentPieceStyleIndex] : 'icons';
+    const pieceStyleOption = getCurrentPieceStyleOption();
 
     const pieceElements = document.querySelectorAll('cg-board:not(.userscript-custom-board) piece');
     const currentPieceIds = new Set();
@@ -534,7 +564,7 @@
       }
 
       if (!mesh) {
-        mesh = createPieceMesh(type, colour === 'white', pieceStyle);
+        mesh = createPieceMesh(type, colour === 'white');
         if (!mesh) return;
 
         const scale = 0.65;
@@ -556,7 +586,7 @@
       mesh.userData.col = col;
       mesh.userData.row = row;
 
-      if (pieceStyle === 'icons') {
+      if (pieceStyleOption.rotateForFlip) {
         mesh.rotation.z = isFlipped ? 0 : Math.PI;
       }
     });
@@ -576,7 +606,7 @@
     for (const mesh of piecesMeshes) {
       const col = mesh.userData.col;
       const row = mesh.userData.row;
-      const inBlackedOutQuadrant = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row);
+      const inBlackedOutQuadrant = state.obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row);
       mesh.visible = !blindfoldActive && !inBlackedOutQuadrant;
     }
   }
@@ -584,7 +614,7 @@
   function update3DCameraAngle() {
     if (!canvasCamera) return;
 
-    const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    const angle = PARALLAX_OPTIONS[state.parallaxIndex].value;
     const angleRad = angle * Math.PI / 180;
 
     const distance = 15;
@@ -655,7 +685,7 @@
   }
 
   function handleDragMove(event) {
-    if (!customBoardEnabled || !canvasScene) return;
+    if (!state.customBoardEnabled || !canvasScene) return;
 
     const draggingPiece = document.querySelector('piece.dragging');
     if (!draggingPiece) {
@@ -716,7 +746,7 @@
     }
 
     const isPollingSlideAnimation = timestamp < slideAnimationEndTime;
-    const needsContinuousAnimation = isPollingSlideAnimation || currentHoverModeIndex > 0;
+    const needsContinuousAnimation = isPollingSlideAnimation || state.hoverModeIndex > 0;
 
     const deltaTime = timestamp - lastFrameTime;
     const shouldRenderFrame = deltaTime >= FRAME_INTERVAL_MS;
@@ -728,9 +758,9 @@
         update3DPieces();
       }
 
-      if (currentHoverModeIndex > 0 && hoverStartTime !== null) {
+      if (state.hoverModeIndex > 0 && hoverStartTime !== null) {
         const elapsed = timestamp - hoverStartTime;
-        const baseAngle = PARALLAX_ANGLES[currentParallaxIndex];
+        const baseAngle = PARALLAX_OPTIONS[state.parallaxIndex].value;
         const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
         const angleX = baseAngle + oscillationX;
         const angleRad = angleX * Math.PI / 180;
@@ -744,7 +774,7 @@
 
         canvasCamera.position.set(0, y, z * zDirection);
 
-        if (currentHoverModeIndex === 1) {
+        if (state.hoverModeIndex === 1) {
           const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
           const oscillationZRad = oscillationZ * Math.PI / 180;
           canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
@@ -851,7 +881,7 @@
       update3DPieces();
       setupDragHandling();
       setupBlindfoldObserver();
-      if (currentHoverModeIndex > 0) {
+      if (state.hoverModeIndex > 0) {
         start3DAnimation();
       } else {
         render3DCanvas();
@@ -862,39 +892,18 @@
     }
   }
 
-  const OBFUSCATIONS_COMMAND = 'obf';
-  let obfuscationsEnabled = false;
-
-  const CUSTOM_BOARD_COMMAND = 'cb';
-  let customBoardEnabled = false;
-
-  const HOVER_MODE_COMMAND = 'hv';
   const HOVER_OSCILLATION_ANGLE = 1.95;
   const HOVER_OSCILLATION_PERIOD_MS = 2000;
   const HOVER_OSCILLATION_Y_ANGLE = 1.95;
   const HOVER_OSCILLATION_Y_PERIOD_MS = 2500;
-  const HOVER_MODES = ['off', 'on'];
-  let currentHoverModeIndex = 0;
   let hoverAnimationId = null;
   let hoverStartTime = null;
 
   const SETTINGS_KEY = 'lichess-board-speaker-settings';
 
   function saveSettings() {
-    const settings = {
-      speakRateIndex: currentSpeakRateIndex,
-      parallaxIndex: currentParallaxIndex,
-      dividersEnabled: dividersEnabled,
-      pieceStyleIndex: currentPieceStyleIndex,
-      hoverModeIndex: currentHoverModeIndex,
-      blurIndex: currentBlurIndex,
-      customBoardEnabled: customBoardEnabled,
-      obfuscationsEnabled: obfuscationsEnabled,
-      blackSegmentsModeIndex: currentBlackSegmentsModeIndex,
-      blackSegmentsTimingIndex: currentBlackSegmentsTimingIndex,
-    };
-    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
-    console.debug('[lichess-board-speaker] settings saved', settings);
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state));
+    console.debug('[lichess-board-speaker] settings saved', state);
   }
 
   function loadSettings() {
@@ -902,201 +911,359 @@
       const stored = localStorage.getItem(SETTINGS_KEY);
       if (!stored) return;
 
-      const settings = JSON.parse(stored);
-
-      if (settings.speakRateIndex !== undefined) {
-        currentSpeakRateIndex = settings.speakRateIndex;
-      }
-      if (settings.parallaxIndex !== undefined) {
-        currentParallaxIndex = settings.parallaxIndex;
-      }
-      if (settings.dividersEnabled !== undefined) {
-        dividersEnabled = settings.dividersEnabled;
-      }
-      if (settings.pieceStyleIndex !== undefined) {
-        currentPieceStyleIndex = settings.pieceStyleIndex;
-      }
-      if (settings.hoverModeIndex !== undefined) {
-        currentHoverModeIndex = settings.hoverModeIndex;
-      } else if (settings.hoverModeEnabled !== undefined) {
-        currentHoverModeIndex = settings.hoverModeEnabled ? 1 : 0;
-      }
-      if (settings.blurIndex !== undefined) {
-        currentBlurIndex = settings.blurIndex;
-      } else if (settings.blurEnabled !== undefined) {
-        currentBlurIndex = settings.blurEnabled ? 1 : 0;
-      }
-      if (settings.customBoardEnabled !== undefined) {
-        customBoardEnabled = settings.customBoardEnabled;
-      }
-      if (settings.obfuscationsEnabled !== undefined) {
-        obfuscationsEnabled = settings.obfuscationsEnabled;
-      }
-      if (settings.blackSegmentsModeIndex !== undefined) {
-        currentBlackSegmentsModeIndex = settings.blackSegmentsModeIndex;
-      }
-      if (settings.blackSegmentsTimingIndex !== undefined) {
-        currentBlackSegmentsTimingIndex = settings.blackSegmentsTimingIndex;
+      const loaded = JSON.parse(stored);
+      for (const key of Object.keys(state)) {
+        if (loaded[key] !== undefined) {
+          state[key] = loaded[key];
+        }
       }
 
-      console.debug('[lichess-board-speaker] settings loaded', settings);
+      console.debug('[lichess-board-speaker] settings loaded', state);
     } catch (error) {
       console.error('[lichess-board-speaker] failed to load settings', error);
     }
   }
 
   function updateButtonLabels() {
-    const speakRateButton = commandButtons[formatCommand(SPEAK_RATE_COMMAND)];
-    if (speakRateButton) {
-      speakRateButton.innerText = formatSpeakRateButtonText({ withSuffix: true });
+    for (const { setting, withSuffix } of SETTINGS_WITH_COMMAND_BUTTONS) {
+      const button = commandButtons[formatCommand(setting.command)];
+      if (button) {
+        button.innerText = setting.formatLabel({ withSuffix });
+      }
     }
 
-    const customBoardButton = commandButtons[formatCommand(CUSTOM_BOARD_COMMAND)];
-    if (customBoardButton) {
-      customBoardButton.innerText = formatCustomBoardButtonText({ withSuffix: true });
+    for (const { setting } of SETTINGS_WITH_BOARD_MOD_BUTTONS) {
+      updateSettingButtonLabel(setting, boardModificationButtons);
     }
 
-    const parallaxButton = boardModificationButtons[PARALLAX_COMMAND];
-    if (parallaxButton) {
-      parallaxButton.innerText = formatParallaxButtonText({ withSuffix: false });
+    for (const { setting } of SETTINGS_WITH_OBFUSCATION_BUTTONS) {
+      updateSettingButtonLabel(setting, obfuscationButtons);
     }
 
-    const dividersButton = boardModificationButtons[DIVIDERS_COMMAND];
-    if (dividersButton) {
-      dividersButton.innerText = formatDividersButtonText({ withSuffix: false });
-    }
-
-    const pieceStyleButton = obfuscationButtons[PIECE_STYLE_COMMAND];
-    if (pieceStyleButton) {
-      pieceStyleButton.innerText = formatPieceStyleButtonText({ withSuffix: false });
-    }
-
-    const hoverModeButton = boardModificationButtons[HOVER_MODE_COMMAND];
-    if (hoverModeButton) {
-      hoverModeButton.innerText = formatHoverModeButtonText({ withSuffix: false });
-    }
-
-    const blurButton = obfuscationButtons[BLUR_COMMAND];
-    if (blurButton) {
-      blurButton.innerText = formatBlurButtonText({ withSuffix: false });
-    }
-
-    const obfuscationsButton = boardModificationButtons[OBFUSCATIONS_COMMAND];
-    if (obfuscationsButton) {
-      obfuscationsButton.innerText = formatObfuscationsButtonText({ withSuffix: false });
-    }
-
-    const blackSegmentsButton = obfuscationButtons[BLACK_SEGMENTS_COMMAND];
-    if (blackSegmentsButton) {
-      blackSegmentsButton.innerText = formatBlackSegmentsButtonText({ withSuffix: false });
-    }
-
-    const blackSegmentsTimingButton = blackSegmentsButtons[BLACK_SEGMENTS_TIMING_COMMAND];
-    if (blackSegmentsTimingButton) {
-      blackSegmentsTimingButton.innerText = formatBlackSegmentsTimingButtonText({ withSuffix: false });
+    for (const { setting } of SETTINGS_WITH_BLACK_SEGMENTS_BUTTONS) {
+      updateSettingButtonLabel(setting, blackSegmentsButtons);
     }
   }
 
   function applyLoadedSettings() {
     const boardModContainer = document.querySelector('.board-mod-buttons-container');
     if (boardModContainer) {
-      boardModContainer.style.display = customBoardEnabled ? 'block' : 'none';
+      boardModContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
     }
 
     const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
     if (obfuscationsContainer) {
-      obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
+      obfuscationsContainer.style.display = state.obfuscationsEnabled ? 'block' : 'none';
     }
 
     const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
     if (blackSegmentsContainer) {
-      blackSegmentsContainer.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
+      blackSegmentsContainer.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
     }
 
     // Start black segments interval if mode is active
-    if (currentBlackSegmentsModeIndex > 0 && obfuscationsEnabled && customBoardEnabled) {
+    if (state.blackSegmentsModeIndex > 0 && state.obfuscationsEnabled && state.customBoardEnabled) {
       startBlackSegmentsInterval();
     }
 
-    if (!customBoardEnabled) {
+    if (!state.customBoardEnabled) {
       return;
     }
 
-    if (currentParallaxIndex > 0 || currentPieceStyleIndex > 0) {
+    if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
       applyParallaxTransform();
     }
 
-    if (dividersEnabled) {
+    if (state.dividersEnabled) {
       drawDividers();
     }
 
-    if (currentHoverModeIndex > 0) {
+    if (state.hoverModeIndex > 0) {
       startHoverMode();
     }
 
-    if (currentBlurIndex > 0) {
+    if (state.blurIndex > 0) {
       applyBlur();
     }
   }
 
-  function formatSpeakRateButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_COMMAND)})` : '';
-    return `Speak rate (${SPEAK_RATES[currentSpeakRateIndex]}) ${suffix}`;
-  }
-
-  function formatParallaxButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(PARALLAX_COMMAND)})` : '';
-    return `Parallax (req kb) (${PARALLAX_ANGLES[currentParallaxIndex]}°) ${suffix}`;
-  }
-
-  function formatDividersButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(DIVIDERS_COMMAND)})` : '';
-    const status = dividersEnabled ? 'ON' : 'OFF';
-    return `Dividers (${status}) ${suffix}`;
-  }
-
-  function formatPieceStyleButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(PIECE_STYLE_COMMAND)})` : '';
-    return `Piece style (${PIECE_STYLES[currentPieceStyleIndex]}) ${suffix}`;
-  }
-
-  function formatHoverModeButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(HOVER_MODE_COMMAND)})` : '';
-    const status = HOVER_MODES[currentHoverModeIndex];
-    return `Hover mode (${status}) ${suffix}`;
-  }
-
-  function formatBlurButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(BLUR_COMMAND)})` : '';
-    return `Blur (${BLUR_LEVELS[currentBlurIndex]}px) ${suffix}`;
-  }
-
-  function formatBlackSegmentsButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_COMMAND)})` : '';
-    const mode = BLACK_SEGMENTS_MODES[currentBlackSegmentsModeIndex];
-    return `Black segments (${mode}) ${suffix}`;
-  }
-
-  function formatBlackSegmentsTimingButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_TIMING_COMMAND)})` : '';
-    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex];
-    const label = timing === null ? 'Don\'t rotate' : `Rotate every ${timing}s`;
-    return `${label} ${suffix}`;
-  }
-
-  function formatObfuscationsButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(OBFUSCATIONS_COMMAND)})` : '';
-    const status = obfuscationsEnabled ? 'ON' : 'OFF';
-    return `Obfuscations (${status}) ${suffix}`;
-  }
-
-  function formatCustomBoardButtonText({ withSuffix }) {
-    const suffix = withSuffix ? ` (${formatCommand(CUSTOM_BOARD_COMMAND)})` : '';
-    const status = customBoardEnabled ? 'ON' : 'OFF';
-    return `Custom board (${status}) ${suffix}`;
-  }
-
   const COMMAND_PREFIX = 'p';
+
+  function formatCommand(commandName) {
+    return `${COMMAND_PREFIX}${commandName}`;
+  }
+
+  const SPEAK_RATE_SETTING = {
+    command: 'sr',
+    stateKey: 'speakRateIndex',
+    options: SPEAK_RATE_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = SPEAK_RATE_OPTIONS[state.speakRateIndex];
+      const suffix = withSuffix ? ` (${formatCommand(SPEAK_RATE_SETTING.command)})` : '';
+      return `Speak rate (${option.value})${suffix}`;
+    },
+    apply: () => {
+      window.speechSynthesis.cancel();
+      const option = SPEAK_RATE_OPTIONS[state.speakRateIndex];
+      const isMax = state.speakRateIndex === SPEAK_RATE_OPTIONS.length - 1;
+      setTimeout(() => speakString('Rate ' + option.value + (isMax ? ' max' : '')), 0);
+    },
+  };
+
+  const PARALLAX_SETTING = {
+    command: 'px',
+    stateKey: 'parallaxIndex',
+    options: PARALLAX_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = PARALLAX_OPTIONS[state.parallaxIndex];
+      const suffix = withSuffix ? ` (${formatCommand(PARALLAX_SETTING.command)})` : '';
+      return `Parallax (req kb) (${option.value}°)${suffix}`;
+    },
+    apply: () => {
+      if (canvasCamera) {
+        update3DCameraAngle();
+        render3DCanvas();
+      } else {
+        applyParallaxTransform();
+      }
+      if (state.dividersEnabled) {
+        drawDividers();
+      }
+    },
+  };
+
+  const DIVIDERS_SETTING = {
+    command: 'div',
+    stateKey: 'dividersEnabled',
+    options: [{ label: 'OFF' }, { label: 'ON' }],
+    formatLabel: ({ withSuffix }) => {
+      const suffix = withSuffix ? ` (${formatCommand(DIVIDERS_SETTING.command)})` : '';
+      const status = state.dividersEnabled ? 'ON' : 'OFF';
+      return `Dividers (${status})${suffix}`;
+    },
+    apply: () => {
+      if (state.dividersEnabled) {
+        drawDividers();
+      } else {
+        clearDividers();
+      }
+    },
+  };
+
+  const PIECE_STYLE_SETTING = {
+    command: 'ps',
+    stateKey: 'pieceStyleIndex',
+    options: PIECE_STYLE_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = PIECE_STYLE_OPTIONS[state.pieceStyleIndex];
+      const suffix = withSuffix ? ` (${formatCommand(PIECE_STYLE_SETTING.command)})` : '';
+      return `Piece style (${option.label})${suffix}`;
+    },
+    apply: () => {
+      if (canvasScene) {
+        clear3DPieces();
+        update3DPieces();
+        render3DCanvas();
+      } else {
+        applyParallaxTransform();
+      }
+    },
+  };
+
+  const HOVER_MODE_SETTING = {
+    command: 'hv',
+    stateKey: 'hoverModeIndex',
+    options: HOVER_MODE_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = HOVER_MODE_OPTIONS[state.hoverModeIndex];
+      const suffix = withSuffix ? ` (${formatCommand(HOVER_MODE_SETTING.command)})` : '';
+      return `Hover mode (${option.label})${suffix}`;
+    },
+    apply: () => {
+      if (state.hoverModeIndex > 0) {
+        if (state.parallaxIndex === 0) {
+          state.parallaxIndex = 3;
+          updateSettingButtonLabel(PARALLAX_SETTING, boardModificationButtons);
+          applyParallaxTransform();
+        }
+        startHoverMode();
+      } else {
+        stopHoverMode();
+      }
+    },
+  };
+
+  const BLUR_SETTING = {
+    command: 'blur',
+    stateKey: 'blurIndex',
+    options: BLUR_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = BLUR_OPTIONS[state.blurIndex];
+      const suffix = withSuffix ? ` (${formatCommand(BLUR_SETTING.command)})` : '';
+      return `Blur (${option.value}px)${suffix}`;
+    },
+    apply: () => {
+      applyBlur();
+    },
+  };
+
+  const OBFUSCATIONS_SETTING = {
+    command: 'obf',
+    stateKey: 'obfuscationsEnabled',
+    options: [{ label: 'OFF' }, { label: 'ON' }],
+    formatLabel: ({ withSuffix }) => {
+      const suffix = withSuffix ? ` (${formatCommand(OBFUSCATIONS_SETTING.command)})` : '';
+      const status = state.obfuscationsEnabled ? 'ON' : 'OFF';
+      return `Obfuscations (${status})${suffix}`;
+    },
+    apply: () => {
+      const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
+      if (obfuscationsContainer) {
+        obfuscationsContainer.style.display = state.obfuscationsEnabled ? 'block' : 'none';
+      }
+      if (state.obfuscationsEnabled && state.blackSegmentsModeIndex > 0) {
+        restartBlackSegmentsInterval();
+      } else {
+        stopBlackSegmentsInterval();
+      }
+      if (canvasScene) {
+        updateBlackSegments();
+      } else {
+        applyParallaxTransform();
+      }
+      applyBlur();
+    },
+  };
+
+  const CUSTOM_BOARD_SETTING = {
+    command: 'cb',
+    stateKey: 'customBoardEnabled',
+    options: [{ label: 'OFF' }, { label: 'ON' }],
+    formatLabel: ({ withSuffix }) => {
+      const suffix = withSuffix ? ` (${formatCommand(CUSTOM_BOARD_SETTING.command)})` : '';
+      const status = state.customBoardEnabled ? 'ON' : 'OFF';
+      return `Custom board (${status})${suffix}`;
+    },
+    apply: () => {
+      const boardModContainer = document.querySelector('.board-mod-buttons-container');
+      if (boardModContainer) {
+        boardModContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
+      }
+      if (state.customBoardEnabled) {
+        setupBoardReplacementObserver();
+        startHealthCheck();
+        applyLoadedSettings();
+      } else {
+        cleanupBoardObservers();
+        if (boardReplacementObserver) {
+          boardReplacementObserver.disconnect();
+          boardReplacementObserver = null;
+        }
+        stopHealthCheck();
+        stopHoverMode();
+        stopBlackSegmentsInterval();
+        removeCustomBoardElement();
+        cleanup3DCanvas();
+        clearDividers();
+        const container = document.querySelector('cg-container');
+        if (container) {
+          container.style.filter = '';
+        }
+        const board = document.querySelector('cg-board');
+        if (board) {
+          board.style.visibility = 'visible';
+          board.style.opacity = '';
+          board.style.transform = '';
+          board.style.transformStyle = '';
+        }
+        const svg = document.querySelector('cg-container svg.userscript-drawings');
+        if (svg) {
+          svg.remove();
+        }
+      }
+    },
+  };
+
+  const BLACK_SEGMENTS_MODE_SETTING = {
+    command: 'bs',
+    stateKey: 'blackSegmentsModeIndex',
+    options: BLACK_SEGMENTS_MODE_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = BLACK_SEGMENTS_MODE_OPTIONS[state.blackSegmentsModeIndex];
+      const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_MODE_SETTING.command)})` : '';
+      return `Black segments (${option.label})${suffix}`;
+    },
+    apply: () => {
+      const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
+      if (blackSegmentsContainer) {
+        blackSegmentsContainer.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
+      }
+      if (state.blackSegmentsModeIndex > 0) {
+        restartBlackSegmentsInterval();
+      } else {
+        stopBlackSegmentsInterval();
+      }
+      updateBlackSegments();
+    },
+  };
+
+  const BLACK_SEGMENTS_TIMING_SETTING = {
+    command: 'bst',
+    stateKey: 'blackSegmentsTimingIndex',
+    options: BLACK_SEGMENTS_TIMING_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = BLACK_SEGMENTS_TIMING_OPTIONS[state.blackSegmentsTimingIndex];
+      const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_TIMING_SETTING.command)})` : '';
+      return `${option.label}${suffix}`;
+    },
+    apply: () => {
+      restartBlackSegmentsInterval();
+    },
+  };
+
+  const SETTINGS_WITH_COMMAND_BUTTONS = [
+    { setting: SPEAK_RATE_SETTING, withSuffix: true },
+    { setting: CUSTOM_BOARD_SETTING, withSuffix: true },
+  ];
+
+  const SETTINGS_WITH_BOARD_MOD_BUTTONS = [
+    { setting: PARALLAX_SETTING },
+    { setting: DIVIDERS_SETTING },
+    { setting: HOVER_MODE_SETTING },
+    { setting: OBFUSCATIONS_SETTING },
+  ];
+
+  const SETTINGS_WITH_OBFUSCATION_BUTTONS = [
+    { setting: PIECE_STYLE_SETTING },
+    { setting: BLUR_SETTING },
+    { setting: BLACK_SEGMENTS_MODE_SETTING },
+  ];
+
+  const SETTINGS_WITH_BLACK_SEGMENTS_BUTTONS = [
+    { setting: BLACK_SEGMENTS_TIMING_SETTING },
+  ];
+
+  function updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix } = {}) {
+    const key = buttonKey || setting.command;
+    const button = buttonMap[key];
+    if (button) {
+      button.innerText = setting.formatLabel({ withSuffix: withSuffix || false });
+    }
+  }
+
+  function cycleSetting(setting, buttonMap, { buttonKey, withSuffix } = {}) {
+    if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
+    state[setting.stateKey] = (state[setting.stateKey] + 1) % setting.options.length;
+    updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix });
+    setting.apply();
+    saveSettings();
+  }
+
+  const commandButtons = {};
+  const boardModificationButtons = {};
+  const obfuscationButtons = {};
+  const blackSegmentsButtons = {};
+
   const COMMANDS = {
     a: {
       fullName: '🔊 all pieces',
@@ -1136,9 +1303,9 @@
       exec: () => generateFullMessagesAndSpeak(({ row }) => row >= 5)
     },
 
-    [SPEAK_RATE_COMMAND]: {
-      fullName: formatSpeakRateButtonText({ withSuffix: false }),
-      exec: () => changeSpeakRate(),
+    [SPEAK_RATE_SETTING.command]: {
+      fullName: SPEAK_RATE_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(SPEAK_RATE_SETTING, commandButtons, { buttonKey: formatCommand(SPEAK_RATE_SETTING.command), withSuffix: true }),
     },
     ss: {
       fullName: 'Stop speaking',
@@ -1156,66 +1323,57 @@
       exec: setExampleAnnotation
     },
 
-    [CUSTOM_BOARD_COMMAND]: {
-      fullName: formatCustomBoardButtonText({ withSuffix: false }),
+    [CUSTOM_BOARD_SETTING.command]: {
+      fullName: CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleCustomBoard(),
     },
   };
 
   const BOARD_MODIFICATION_COMMANDS = {
-    [PARALLAX_COMMAND]: {
-      fullName: formatParallaxButtonText({ withSuffix: false }),
-      exec: () => toggleParallax(),
+    [PARALLAX_SETTING.command]: {
+      fullName: PARALLAX_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(PARALLAX_SETTING, boardModificationButtons),
     },
-    [DIVIDERS_COMMAND]: {
-      fullName: formatDividersButtonText({ withSuffix: false }),
+    [DIVIDERS_SETTING.command]: {
+      fullName: DIVIDERS_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleDividers(),
     },
-    [HOVER_MODE_COMMAND]: {
-      fullName: formatHoverModeButtonText({ withSuffix: false }),
+    [HOVER_MODE_SETTING.command]: {
+      fullName: HOVER_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleHoverMode(),
     },
-    [OBFUSCATIONS_COMMAND]: {
-      fullName: formatObfuscationsButtonText({ withSuffix: false }),
+    [OBFUSCATIONS_SETTING.command]: {
+      fullName: OBFUSCATIONS_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleObfuscations(),
     },
   };
 
   const BOARD_MOD_BUTTON_GROUPS = [
-    [PARALLAX_COMMAND, DIVIDERS_COMMAND, HOVER_MODE_COMMAND],
+    [PARALLAX_SETTING.command, DIVIDERS_SETTING.command, HOVER_MODE_SETTING.command],
   ];
 
   const OBFUSCATION_COMMANDS = {
-    [PIECE_STYLE_COMMAND]: {
-      fullName: formatPieceStyleButtonText({ withSuffix: false }),
-      exec: () => togglePieceStyle(),
+    [PIECE_STYLE_SETTING.command]: {
+      fullName: PIECE_STYLE_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(PIECE_STYLE_SETTING, obfuscationButtons),
     },
-    [BLUR_COMMAND]: {
-      fullName: formatBlurButtonText({ withSuffix: false }),
-      exec: () => toggleBlur(),
+    [BLUR_SETTING.command]: {
+      fullName: BLUR_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(BLUR_SETTING, obfuscationButtons),
     },
-    [BLACK_SEGMENTS_COMMAND]: {
-      fullName: formatBlackSegmentsButtonText({ withSuffix: false }),
+    [BLACK_SEGMENTS_MODE_SETTING.command]: {
+      fullName: BLACK_SEGMENTS_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleBlackSegmentsMode(),
       hasNested: true,
     },
   };
 
   const BLACK_SEGMENTS_COMMANDS = {
-    [BLACK_SEGMENTS_TIMING_COMMAND]: {
-      fullName: formatBlackSegmentsTimingButtonText({ withSuffix: false }),
-      exec: () => toggleBlackSegmentsTiming(),
+    [BLACK_SEGMENTS_TIMING_SETTING.command]: {
+      fullName: BLACK_SEGMENTS_TIMING_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(BLACK_SEGMENTS_TIMING_SETTING, blackSegmentsButtons),
     },
   };
-
-  const commandButtons = {};
-  const boardModificationButtons = {};
-  const obfuscationButtons = {};
-  const blackSegmentsButtons = {};
-
-  function formatCommand(commandName) {
-    return `${COMMAND_PREFIX}${commandName}`;
-  }
 
   const COMMANDS_WITH_PREFIX = Object.fromEntries(
     Object
@@ -1498,7 +1656,7 @@
   }
 
   function updateDrawings(command) {
-    if (customBoardEnabled && canvasScene) {
+    if (state.customBoardEnabled && canvasScene) {
       update3DDrawings(command);
       return;
     }
@@ -1634,7 +1792,7 @@
 
   function speakString(str, options = {}) {
     const utt = new SpeechSynthesisUtterance(str);
-    utt.rate = SPEAK_RATES[currentSpeakRateIndex];
+    utt.rate = SPEAK_RATE_OPTIONS[state.speakRateIndex].value;
     Object.assign(utt, options)
     window.speechSynthesis.speak(utt);
     return utt;
@@ -1756,7 +1914,7 @@
     const container = document.createElement('div');
     container.classList.add('board-mod-buttons-container');
     container.style.marginLeft = '8px';
-    container.style.display = customBoardEnabled ? 'block' : 'none';
+    container.style.display = state.customBoardEnabled ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
   }
@@ -1841,7 +1999,7 @@
     const container = document.createElement('div');
     container.classList.add('obfuscations-buttons-container');
     container.style.marginLeft = '16px';
-    container.style.display = obfuscationsEnabled ? 'block' : 'none';
+    container.style.display = state.obfuscationsEnabled ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
   }
@@ -1854,7 +2012,7 @@
         container.appendChild(button);
 
         // Create nested container for black segments timing button
-        if (commandName === BLACK_SEGMENTS_COMMAND) {
+        if (commandName === BLACK_SEGMENTS_MODE_SETTING.command) {
           const nestedContainer = createBlackSegmentsButtonContainer(container);
           createBlackSegmentsButtons(nestedContainer);
         }
@@ -1887,7 +2045,7 @@
     const container = document.createElement('div');
     container.classList.add('black-segments-buttons-container');
     container.style.marginLeft = '24px';
-    container.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
+    container.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
   }
@@ -1926,22 +2084,6 @@
     speakMessages(msgs);
   }
 
-  function changeSpeakRate() {
-    window.speechSynthesis.cancel();
-
-    currentSpeakRateIndex = (currentSpeakRateIndex + 1) % SPEAK_RATES.length;
-
-    const button = commandButtons[formatCommand(SPEAK_RATE_COMMAND)];
-    button.innerText = formatSpeakRateButtonText({ withSuffix: true });
-
-    const suffix = currentSpeakRateIndex === SPEAK_RATES.length - 1 ? ' max' : '';
-
-    saveSettings();
-
-    setTimeout(() => {
-      speakString('Rate ' + SPEAK_RATES[currentSpeakRateIndex] + suffix);
-    }, 0);
-  }
 
   let parallaxObserver = null;
   let resizeObserver = null;
@@ -1989,12 +2131,12 @@
   }
 
   function healthCheck() {
-    if (!customBoardEnabled) return;
+    if (!state.customBoardEnabled) return;
 
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) return;
 
-    const needsCustomBoard = currentParallaxIndex > 0 || currentPieceStyleIndex > 0;
+    const needsCustomBoard = state.parallaxIndex > 0 || state.pieceStyleIndex > 0;
     if (!needsCustomBoard) return;
 
     if (!canvasElement || !canvasElement.isConnected) {
@@ -2046,7 +2188,7 @@
             cleanupBoardObservers();
             cleanup3DCanvas();
 
-            if (customBoardEnabled) {
+            if (state.customBoardEnabled) {
               setTimeout(() => {
                 applyLoadedSettings();
               }, 50);
@@ -2066,7 +2208,7 @@
 
   function handleContainerResize() {
     resize3DCanvas();
-    if (dividersEnabled) {
+    if (state.dividersEnabled) {
       drawDividers();
     }
   }
@@ -2106,8 +2248,8 @@
       return;
     }
 
-    const angle = PARALLAX_ANGLES[currentParallaxIndex];
-    const needsCustomBoard = angle > 0 || currentPieceStyleIndex > 0;
+    const angle = PARALLAX_OPTIONS[state.parallaxIndex].value;
+    const needsCustomBoard = angle > 0 || state.pieceStyleIndex > 0;
 
     if (!needsCustomBoard) {
       showOriginalBoard(board);
@@ -2117,12 +2259,9 @@
 
       cleanupBoardObservers();
 
-      if (currentHoverModeIndex > 0) {
-        currentHoverModeIndex = 0;
-        const button = boardModificationButtons[HOVER_MODE_COMMAND];
-        if (button) {
-          button.innerText = formatHoverModeButtonText({ withSuffix: false });
-        }
+      if (state.hoverModeIndex > 0) {
+        state.hoverModeIndex = 0;
+        updateSettingButtonLabel(HOVER_MODE_SETTING, boardModificationButtons);
         stopHoverMode();
       }
     } else {
@@ -2180,30 +2319,6 @@
     resizeObserver.observe(container);
   }
 
-  function toggleParallax() {
-    if (!customBoardEnabled) return;
-
-    currentParallaxIndex = (currentParallaxIndex + 1) % PARALLAX_ANGLES.length;
-
-    const button = boardModificationButtons[PARALLAX_COMMAND];
-    if (button) {
-      button.innerText = formatParallaxButtonText({ withSuffix: false });
-    }
-
-    if (canvasCamera) {
-      update3DCameraAngle();
-      render3DCanvas();
-    } else {
-      applyParallaxTransform();
-    }
-
-    if (dividersEnabled) {
-      drawDividers();
-    }
-
-    saveSettings();
-  }
-
   function startHoverMode() {
     start3DAnimation();
   }
@@ -2215,29 +2330,11 @@
   }
 
   function toggleHoverMode() {
-    if (!customBoardEnabled) return;
+    if (!state.customBoardEnabled) return;
 
-    currentHoverModeIndex = (currentHoverModeIndex + 1) % HOVER_MODES.length;
-
-    const button = boardModificationButtons[HOVER_MODE_COMMAND];
-    if (button) {
-      button.innerText = formatHoverModeButtonText({ withSuffix: false });
-    }
-
-    if (currentHoverModeIndex > 0) {
-      if (currentParallaxIndex === 0) {
-        currentParallaxIndex = 3;
-        const parallaxButton = boardModificationButtons[PARALLAX_COMMAND];
-        if (parallaxButton) {
-          parallaxButton.innerText = formatParallaxButtonText({ withSuffix: false });
-        }
-        applyParallaxTransform();
-      }
-      startHoverMode();
-    } else {
-      stopHoverMode();
-    }
-
+    state.hoverModeIndex = (state.hoverModeIndex + 1) % HOVER_MODE_OPTIONS.length;
+    updateSettingButtonLabel(HOVER_MODE_SETTING, boardModificationButtons);
+    HOVER_MODE_SETTING.apply();
     saveSettings();
   }
 
@@ -2263,7 +2360,7 @@
   }
 
   function drawDividers() {
-    if (customBoardEnabled && canvasScene) {
+    if (state.customBoardEnabled && canvasScene) {
       draw3DDividers();
       return;
     }
@@ -2279,7 +2376,7 @@
     const boardSize = board.offsetWidth;
     const midPoint = boardSize / 2;
 
-    const angle = PARALLAX_ANGLES[currentParallaxIndex];
+    const angle = PARALLAX_OPTIONS[state.parallaxIndex].value;
     const baseWidth = 4.5;
     const angleRadians = angle * Math.PI / 180;
     const horizontalWidth = angle === 0 ? baseWidth : baseWidth / Math.cos(angleRadians);
@@ -2313,42 +2410,11 @@
   }
 
   function toggleDividers() {
-    if (!customBoardEnabled) return;
+    if (!state.customBoardEnabled) return;
 
-    dividersEnabled = !dividersEnabled;
-
-    const button = boardModificationButtons[DIVIDERS_COMMAND];
-    if (button) {
-      button.innerText = formatDividersButtonText({ withSuffix: false });
-    }
-
-    if (dividersEnabled) {
-      drawDividers();
-    } else {
-      clearDividers();
-    }
-
-    saveSettings();
-  }
-
-  function togglePieceStyle() {
-    if (!customBoardEnabled) return;
-
-    currentPieceStyleIndex = (currentPieceStyleIndex + 1) % PIECE_STYLES.length;
-
-    const button = obfuscationButtons[PIECE_STYLE_COMMAND];
-    if (button) {
-      button.innerText = formatPieceStyleButtonText({ withSuffix: false });
-    }
-
-    if (canvasScene) {
-      clear3DPieces();
-      update3DPieces();
-      render3DCanvas();
-    } else {
-      applyParallaxTransform();
-    }
-
+    state.dividersEnabled = !state.dividersEnabled;
+    updateSettingButtonLabel(DIVIDERS_SETTING, boardModificationButtons);
+    DIVIDERS_SETTING.apply();
     saveSettings();
   }
 
@@ -2356,7 +2422,7 @@
     const container = document.querySelector('cg-container');
     if (!container) return;
 
-    const blurAmount = obfuscationsEnabled ? BLUR_LEVELS[currentBlurIndex] : 0;
+    const blurAmount = state.obfuscationsEnabled ? BLUR_OPTIONS[state.blurIndex].value : 0;
     if (blurAmount === 0) {
       container.style.filter = '';
     } else {
@@ -2364,41 +2430,9 @@
     }
   }
 
-  function toggleBlur() {
-    if (!customBoardEnabled) return;
-
-    currentBlurIndex = (currentBlurIndex + 1) % BLUR_LEVELS.length;
-
-    const button = obfuscationButtons[BLUR_COMMAND];
-    if (button) {
-      button.innerText = formatBlurButtonText({ withSuffix: false });
-    }
-
-    applyBlur();
-    saveSettings();
-  }
-
   function getBlackedOutQuadrants() {
-    if (currentBlackSegmentsModeIndex === 0) return [];
-
-    // Quadrants: 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
-    // For the player's perspective: quadrants are relative to board orientation
-    const numBlackedOut = currentBlackSegmentsModeIndex; // 1, 2, or 3 quadrants
-
-    if (numBlackedOut === 1) {
-      // Single quadrant based on counter mod 4
-      return [blackSegmentsCounter % 4];
-    } else if (numBlackedOut === 2) {
-      // Two opposite quadrants (diagonal): either (0,3) or (1,2)
-      const pattern = blackSegmentsCounter % 2;
-      return pattern === 0 ? [0, 3] : [1, 2];
-    } else if (numBlackedOut === 3) {
-      // Three quadrants - one visible, rotates
-      const visible = blackSegmentsCounter % 4;
-      return [0, 1, 2, 3].filter(q => q !== visible);
-    }
-
-    return [];
+    const option = BLACK_SEGMENTS_MODE_OPTIONS[state.blackSegmentsModeIndex];
+    return option.getQuadrants(blackSegmentsCounter);
   }
 
   function isPositionInBlackedOutQuadrant(screenCol, screenRow) {
@@ -2420,7 +2454,7 @@
   function startBlackSegmentsInterval() {
     if (blackSegmentsIntervalId) return;
 
-    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex];
+    const timing = BLACK_SEGMENTS_TIMING_OPTIONS[state.blackSegmentsTimingIndex].value;
     if (timing === null) return;
 
     blackSegmentsIntervalId = setInterval(() => {
@@ -2438,7 +2472,7 @@
 
   function restartBlackSegmentsInterval() {
     stopBlackSegmentsInterval();
-    if (currentBlackSegmentsModeIndex > 0 && obfuscationsEnabled && customBoardEnabled) {
+    if (state.blackSegmentsModeIndex > 0 && state.obfuscationsEnabled && state.customBoardEnabled) {
       startBlackSegmentsInterval();
     }
   }
@@ -2466,121 +2500,32 @@
   }
 
   function toggleBlackSegmentsMode() {
-    if (!customBoardEnabled) return;
+    if (!state.customBoardEnabled) return;
 
-    currentBlackSegmentsModeIndex = (currentBlackSegmentsModeIndex + 1) % BLACK_SEGMENTS_MODES.length;
-
-    const button = obfuscationButtons[BLACK_SEGMENTS_COMMAND];
-    if (button) {
-      button.innerText = formatBlackSegmentsButtonText({ withSuffix: false });
-    }
-
-    const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
-    if (blackSegmentsContainer) {
-      blackSegmentsContainer.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
-    }
-
-    // Manage interval
-    if (currentBlackSegmentsModeIndex > 0) {
-      restartBlackSegmentsInterval();
-    } else {
-      stopBlackSegmentsInterval();
-    }
-
-    updateBlackSegments();
-    saveSettings();
-  }
-
-  function toggleBlackSegmentsTiming() {
-    if (!customBoardEnabled) return;
-
-    currentBlackSegmentsTimingIndex = (currentBlackSegmentsTimingIndex + 1) % BLACK_SEGMENTS_TIMINGS.length;
-
-    const button = blackSegmentsButtons[BLACK_SEGMENTS_TIMING_COMMAND];
-    if (button) {
-      button.innerText = formatBlackSegmentsTimingButtonText({ withSuffix: false });
-    }
-
-    restartBlackSegmentsInterval();
+    state.blackSegmentsModeIndex = (state.blackSegmentsModeIndex + 1) % BLACK_SEGMENTS_MODE_OPTIONS.length;
+    updateSettingButtonLabel(BLACK_SEGMENTS_MODE_SETTING, obfuscationButtons);
+    BLACK_SEGMENTS_MODE_SETTING.apply();
     saveSettings();
   }
 
   function toggleObfuscations() {
-    if (!customBoardEnabled) return;
+    if (!state.customBoardEnabled) return;
 
-    obfuscationsEnabled = !obfuscationsEnabled;
-
-    const button = boardModificationButtons[OBFUSCATIONS_COMMAND];
-    if (button) {
-      button.innerText = formatObfuscationsButtonText({ withSuffix: false });
-    }
-
-    const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
-    if (obfuscationsContainer) {
-      obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
-    }
-
-    // Manage black segments interval
-    if (obfuscationsEnabled && currentBlackSegmentsModeIndex > 0) {
-      restartBlackSegmentsInterval();
-    } else {
-      stopBlackSegmentsInterval();
-    }
-
-    if (canvasScene) {
-      updateBlackSegments();
-    } else {
-      applyParallaxTransform();
-    }
-    applyBlur();
-
+    state.obfuscationsEnabled = !state.obfuscationsEnabled;
+    updateSettingButtonLabel(OBFUSCATIONS_SETTING, boardModificationButtons);
+    OBFUSCATIONS_SETTING.apply();
     saveSettings();
   }
 
   function toggleCustomBoard() {
-    customBoardEnabled = !customBoardEnabled;
+    state.customBoardEnabled = !state.customBoardEnabled;
 
-    const button = commandButtons[formatCommand(CUSTOM_BOARD_COMMAND)];
-    button.innerText = formatCustomBoardButtonText({ withSuffix: true });
-
-    if (customBoardEnabled) {
-      setupBoardReplacementObserver();
-      startHealthCheck();
-      applyLoadedSettings();
-    } else {
-      cleanupBoardObservers();
-
-      if (boardReplacementObserver) {
-        boardReplacementObserver.disconnect();
-        boardReplacementObserver = null;
-      }
-
-      stopHealthCheck();
-      stopHoverMode();
-      stopBlackSegmentsInterval();
-      removeCustomBoardElement();
-      cleanup3DCanvas();
-      clearDividers();
-
-      const container = document.querySelector('cg-container');
-      if (container) {
-        container.style.filter = '';
-      }
-
-      const board = document.querySelector('cg-board');
-      if (board) {
-        board.style.visibility = 'visible';
-        board.style.opacity = '';
-        board.style.transform = '';
-        board.style.transformStyle = '';
-      }
-
-      const svg = document.querySelector('cg-container svg.userscript-drawings');
-      if (svg) {
-        svg.remove();
-      }
+    const button = commandButtons[formatCommand(CUSTOM_BOARD_SETTING.command)];
+    if (button) {
+      button.innerText = CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: true });
     }
 
+    CUSTOM_BOARD_SETTING.apply();
     saveSettings();
   }
 
@@ -2701,7 +2646,7 @@
 
     updateButtonLabels();
 
-    if (customBoardEnabled) {
+    if (state.customBoardEnabled) {
       setupBoardReplacementObserver();
       startHealthCheck();
     }
