@@ -64,7 +64,7 @@
   let currentPieceStyleIndex = 0;
 
   const BLACK_SEGMENTS_MODES = ['None', '1/4', '1/2', '3/4'];
-  const BLACK_SEGMENTS_TIMINGS = [10, 30];
+  const BLACK_SEGMENTS_TIMINGS = [10, 30, 60, null];
   const BLACK_SEGMENTS_COMMAND = 'bs';
   const BLACK_SEGMENTS_TIMING_COMMAND = 'bst';
   let currentBlackSegmentsModeIndex = 0;
@@ -463,8 +463,9 @@
         const squareGeom = new THREE.PlaneGeometry(1, 1);
         const isLight = (row + col) % 2 === 0;
 
-        // Check if this square is in a blacked out quadrant
-        const isBlackedOut = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row, isFlipped);
+        const screenCol = isFlipped ? col : 7 - col;
+        const screenRow = isFlipped ? row : 7 - row;
+        const isBlackedOut = obfuscationsEnabled && isPositionInBlackedOutQuadrant(screenCol, screenRow);
         let material;
         if (isBlackedOut) {
           material = blackMaterial;
@@ -575,7 +576,7 @@
     for (const mesh of piecesMeshes) {
       const col = mesh.userData.col;
       const row = mesh.userData.row;
-      const inBlackedOutQuadrant = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row, isFlipped);
+      const inBlackedOutQuadrant = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row);
       mesh.visible = !blindfoldActive && !inBlackedOutQuadrant;
     }
   }
@@ -1079,7 +1080,8 @@
   function formatBlackSegmentsTimingButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_TIMING_COMMAND)})` : '';
     const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex];
-    return `Rotate every ${timing}s ${suffix}`;
+    const label = timing === null ? 'Don\'t rotate' : `Rotate every ${timing}s`;
+    return `${label} ${suffix}`;
   }
 
   function formatObfuscationsButtonText({ withSuffix }) {
@@ -2399,23 +2401,12 @@
     return [];
   }
 
-  function isPositionInBlackedOutQuadrant(col, row, isFlipped) {
+  function isPositionInBlackedOutQuadrant(screenCol, screenRow) {
     const blackedOut = getBlackedOutQuadrants();
     if (blackedOut.length === 0) return false;
 
-    // Convert to quadrant (col 0-7, row 0-7)
-    // Quadrants: 0=top-left (a-d, 5-8), 1=top-right (e-h, 5-8)
-    //            2=bottom-left (a-d, 1-4), 3=bottom-right (e-h, 1-4)
-    // For white's perspective, rows 1-4 are bottom, rows 5-8 are top
-    // For black's perspective, it's flipped
-
-    let isLeft = col < 4;
-    let isTop = row >= 4; // rows 5-8 (index 4-7) are top for white
-
-    if (isFlipped) {
-      isLeft = !isLeft;
-      isTop = !isTop;
-    }
+    const isLeft = screenCol < 4;
+    const isTop = screenRow < 4;
 
     let quadrant;
     if (isTop && isLeft) quadrant = 0;
@@ -2429,11 +2420,13 @@
   function startBlackSegmentsInterval() {
     if (blackSegmentsIntervalId) return;
 
-    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex] * 1000;
+    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex];
+    if (timing === null) return;
+
     blackSegmentsIntervalId = setInterval(() => {
       blackSegmentsCounter++;
       updateBlackSegments();
-    }, timing);
+    }, timing * 1000);
   }
 
   function stopBlackSegmentsInterval() {
