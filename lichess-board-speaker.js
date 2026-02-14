@@ -63,6 +63,15 @@
   const PIECE_STYLE_COMMAND = 'ps';
   let currentPieceStyleIndex = 0;
 
+  const BLACK_SEGMENTS_MODES = ['None', '1/4', '1/2', '3/4'];
+  const BLACK_SEGMENTS_TIMINGS = [10, 30];
+  const BLACK_SEGMENTS_COMMAND = 'bs';
+  const BLACK_SEGMENTS_TIMING_COMMAND = 'bst';
+  let currentBlackSegmentsModeIndex = 0;
+  let currentBlackSegmentsTimingIndex = 0;
+  let blackSegmentsCounter = 0;
+  let blackSegmentsIntervalId = null;
+
   let threeJsLoaded = false;
   let canvasRenderer = null;
   let canvasScene = null;
@@ -444,14 +453,26 @@
     const geometry = new THREE.PlaneGeometry(8, 8);
     const darkMaterial = new THREE.MeshBasicMaterial({ color: 0x769656 });
     const lightMaterial = new THREE.MeshBasicMaterial({ color: 0xeeeed2 });
+    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
 
     const boardGroup = new THREE.Group();
+    const isFlipped = !isPlayerWhite();
 
     for (let row = 0; row < 8; row++) {
       for (let col = 0; col < 8; col++) {
         const squareGeom = new THREE.PlaneGeometry(1, 1);
         const isLight = (row + col) % 2 === 0;
-        const square = new THREE.Mesh(squareGeom, isLight ? lightMaterial : darkMaterial);
+
+        // Check if this square is in a blacked out quadrant
+        const isBlackedOut = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row, isFlipped);
+        let material;
+        if (isBlackedOut) {
+          material = blackMaterial;
+        } else {
+          material = isLight ? lightMaterial : darkMaterial;
+        }
+
+        const square = new THREE.Mesh(squareGeom, material);
         square.position.set(col - 3.5, 0, row - 3.5);
         square.rotation.x = -Math.PI / 2;
         boardGroup.add(square);
@@ -528,6 +549,12 @@
         mesh.position.z = pos3D.z;
       }
 
+      // Store board position for visibility checks
+      const col = Math.floor(pixels.x / (boardSize / 8));
+      const row = Math.floor(pixels.y / (boardSize / 8));
+      mesh.userData.col = col;
+      mesh.userData.row = row;
+
       if (pieceStyle === 'icons') {
         mesh.rotation.z = isFlipped ? 0 : Math.PI;
       }
@@ -546,7 +573,10 @@
 
     const blindfoldActive = isBlindfoldMode();
     for (const mesh of piecesMeshes) {
-      mesh.visible = !blindfoldActive;
+      const col = mesh.userData.col;
+      const row = mesh.userData.row;
+      const inBlackedOutQuadrant = obfuscationsEnabled && isPositionInBlackedOutQuadrant(col, row, isFlipped);
+      mesh.visible = !blindfoldActive && !inBlackedOutQuadrant;
     }
   }
 
@@ -859,6 +889,8 @@
       blurIndex: currentBlurIndex,
       customBoardEnabled: customBoardEnabled,
       obfuscationsEnabled: obfuscationsEnabled,
+      blackSegmentsModeIndex: currentBlackSegmentsModeIndex,
+      blackSegmentsTimingIndex: currentBlackSegmentsTimingIndex,
     };
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
     console.debug('[lichess-board-speaker] settings saved', settings);
@@ -898,6 +930,12 @@
       }
       if (settings.obfuscationsEnabled !== undefined) {
         obfuscationsEnabled = settings.obfuscationsEnabled;
+      }
+      if (settings.blackSegmentsModeIndex !== undefined) {
+        currentBlackSegmentsModeIndex = settings.blackSegmentsModeIndex;
+      }
+      if (settings.blackSegmentsTimingIndex !== undefined) {
+        currentBlackSegmentsTimingIndex = settings.blackSegmentsTimingIndex;
       }
 
       console.debug('[lichess-board-speaker] settings loaded', settings);
@@ -946,6 +984,16 @@
     if (obfuscationsButton) {
       obfuscationsButton.innerText = formatObfuscationsButtonText({ withSuffix: false });
     }
+
+    const blackSegmentsButton = obfuscationButtons[BLACK_SEGMENTS_COMMAND];
+    if (blackSegmentsButton) {
+      blackSegmentsButton.innerText = formatBlackSegmentsButtonText({ withSuffix: false });
+    }
+
+    const blackSegmentsTimingButton = blackSegmentsButtons[BLACK_SEGMENTS_TIMING_COMMAND];
+    if (blackSegmentsTimingButton) {
+      blackSegmentsTimingButton.innerText = formatBlackSegmentsTimingButtonText({ withSuffix: false });
+    }
   }
 
   function applyLoadedSettings() {
@@ -957,6 +1005,16 @@
     const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
     if (obfuscationsContainer) {
       obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
+    }
+
+    const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
+    if (blackSegmentsContainer) {
+      blackSegmentsContainer.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
+    }
+
+    // Start black segments interval if mode is active
+    if (currentBlackSegmentsModeIndex > 0 && obfuscationsEnabled && customBoardEnabled) {
+      startBlackSegmentsInterval();
     }
 
     if (!customBoardEnabled) {
@@ -1010,6 +1068,18 @@
   function formatBlurButtonText({ withSuffix }) {
     const suffix = withSuffix ? ` (${formatCommand(BLUR_COMMAND)})` : '';
     return `Blur (${BLUR_LEVELS[currentBlurIndex]}px) ${suffix}`;
+  }
+
+  function formatBlackSegmentsButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_COMMAND)})` : '';
+    const mode = BLACK_SEGMENTS_MODES[currentBlackSegmentsModeIndex];
+    return `Black segments (${mode}) ${suffix}`;
+  }
+
+  function formatBlackSegmentsTimingButtonText({ withSuffix }) {
+    const suffix = withSuffix ? ` (${formatCommand(BLACK_SEGMENTS_TIMING_COMMAND)})` : '';
+    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex];
+    return `Rotate every ${timing}s ${suffix}`;
   }
 
   function formatObfuscationsButtonText({ withSuffix }) {
@@ -1110,11 +1180,24 @@
       fullName: formatBlurButtonText({ withSuffix: false }),
       exec: () => toggleBlur(),
     },
+    [BLACK_SEGMENTS_COMMAND]: {
+      fullName: formatBlackSegmentsButtonText({ withSuffix: false }),
+      exec: () => toggleBlackSegmentsMode(),
+      hasNested: true,
+    },
+  };
+
+  const BLACK_SEGMENTS_COMMANDS = {
+    [BLACK_SEGMENTS_TIMING_COMMAND]: {
+      fullName: formatBlackSegmentsTimingButtonText({ withSuffix: false }),
+      exec: () => toggleBlackSegmentsTiming(),
+    },
   };
 
   const commandButtons = {};
   const boardModificationButtons = {};
   const obfuscationButtons = {};
+  const blackSegmentsButtons = {};
 
   function formatCommand(commandName) {
     return `${COMMAND_PREFIX}${commandName}`;
@@ -1690,8 +1773,16 @@
   function createObfuscationButtons(container) {
     Object
       .keys(OBFUSCATION_COMMANDS)
-      .map(createObfuscationButton)
-      .map(button => container.appendChild(button));
+      .forEach(commandName => {
+        const button = createObfuscationButton(commandName);
+        container.appendChild(button);
+
+        // Create nested container for black segments timing button
+        if (commandName === BLACK_SEGMENTS_COMMAND) {
+          const nestedContainer = createBlackSegmentsButtonContainer(container);
+          createBlackSegmentsButtons(nestedContainer);
+        }
+      });
   }
 
   function createObfuscationButton(commandName) {
@@ -1712,6 +1803,43 @@
     });
 
     obfuscationButtons[commandName] = button;
+    return button;
+  }
+
+  function createBlackSegmentsButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.classList.add('black-segments-buttons-container');
+    container.style.marginLeft = '24px';
+    container.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
+  function createBlackSegmentsButtons(container) {
+    Object
+      .keys(BLACK_SEGMENTS_COMMANDS)
+      .map(createBlackSegmentsButton)
+      .map(button => container.appendChild(button));
+  }
+
+  function createBlackSegmentsButton(commandName) {
+    const command = BLACK_SEGMENTS_COMMANDS[commandName];
+    const { fullName, exec } = command;
+
+    const button = document.createElement('button');
+    button.innerText = fullName;
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.padding = '2px';
+    button.style.margin = '8px';
+    button.style.textAlign = 'left';
+
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] black segments button clicked', { fullName });
+      exec();
+    });
+
+    blackSegmentsButtons[commandName] = button;
     return button;
   }
 
@@ -2172,6 +2300,142 @@
     saveSettings();
   }
 
+  function getBlackedOutQuadrants() {
+    if (currentBlackSegmentsModeIndex === 0) return [];
+
+    // Quadrants: 0=top-left, 1=top-right, 2=bottom-left, 3=bottom-right
+    // For the player's perspective: quadrants are relative to board orientation
+    const numBlackedOut = currentBlackSegmentsModeIndex; // 1, 2, or 3 quadrants
+
+    if (numBlackedOut === 1) {
+      // Single quadrant based on counter mod 4
+      return [blackSegmentsCounter % 4];
+    } else if (numBlackedOut === 2) {
+      // Two opposite quadrants (diagonal): either (0,3) or (1,2)
+      const pattern = blackSegmentsCounter % 2;
+      return pattern === 0 ? [0, 3] : [1, 2];
+    } else if (numBlackedOut === 3) {
+      // Three quadrants - one visible, rotates
+      const visible = blackSegmentsCounter % 4;
+      return [0, 1, 2, 3].filter(q => q !== visible);
+    }
+
+    return [];
+  }
+
+  function isPositionInBlackedOutQuadrant(col, row, isFlipped) {
+    const blackedOut = getBlackedOutQuadrants();
+    if (blackedOut.length === 0) return false;
+
+    // Convert to quadrant (col 0-7, row 0-7)
+    // Quadrants: 0=top-left (a-d, 5-8), 1=top-right (e-h, 5-8)
+    //            2=bottom-left (a-d, 1-4), 3=bottom-right (e-h, 1-4)
+    // For white's perspective, rows 1-4 are bottom, rows 5-8 are top
+    // For black's perspective, it's flipped
+
+    let isLeft = col < 4;
+    let isTop = row >= 4; // rows 5-8 (index 4-7) are top for white
+
+    if (isFlipped) {
+      isLeft = !isLeft;
+      isTop = !isTop;
+    }
+
+    let quadrant;
+    if (isTop && isLeft) quadrant = 0;
+    else if (isTop && !isLeft) quadrant = 1;
+    else if (!isTop && isLeft) quadrant = 2;
+    else quadrant = 3;
+
+    return blackedOut.includes(quadrant);
+  }
+
+  function startBlackSegmentsInterval() {
+    if (blackSegmentsIntervalId) return;
+
+    const timing = BLACK_SEGMENTS_TIMINGS[currentBlackSegmentsTimingIndex] * 1000;
+    blackSegmentsIntervalId = setInterval(() => {
+      blackSegmentsCounter++;
+      updateBlackSegments();
+    }, timing);
+  }
+
+  function stopBlackSegmentsInterval() {
+    if (blackSegmentsIntervalId) {
+      clearInterval(blackSegmentsIntervalId);
+      blackSegmentsIntervalId = null;
+    }
+  }
+
+  function restartBlackSegmentsInterval() {
+    stopBlackSegmentsInterval();
+    if (currentBlackSegmentsModeIndex > 0 && obfuscationsEnabled && customBoardEnabled) {
+      startBlackSegmentsInterval();
+    }
+  }
+
+  function updateBlackSegments() {
+    if (!canvasScene) return;
+
+    // Update board plane
+    const existingBoard = canvasScene.getObjectByName('boardPlane');
+    if (existingBoard) {
+      canvasScene.remove(existingBoard);
+      existingBoard.traverse((child) => {
+        if (child.geometry) child.geometry.dispose();
+        if (child.material) child.material.dispose();
+      });
+    }
+
+    const boardPlane = createBoardPlane();
+    boardPlane.name = 'boardPlane';
+    canvasScene.add(boardPlane);
+
+    // Update piece visibility
+    update3DPieces();
+    render3DCanvas();
+  }
+
+  function toggleBlackSegmentsMode() {
+    if (!customBoardEnabled) return;
+
+    currentBlackSegmentsModeIndex = (currentBlackSegmentsModeIndex + 1) % BLACK_SEGMENTS_MODES.length;
+
+    const button = obfuscationButtons[BLACK_SEGMENTS_COMMAND];
+    if (button) {
+      button.innerText = formatBlackSegmentsButtonText({ withSuffix: false });
+    }
+
+    const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
+    if (blackSegmentsContainer) {
+      blackSegmentsContainer.style.display = currentBlackSegmentsModeIndex > 0 ? 'block' : 'none';
+    }
+
+    // Manage interval
+    if (currentBlackSegmentsModeIndex > 0) {
+      restartBlackSegmentsInterval();
+    } else {
+      stopBlackSegmentsInterval();
+    }
+
+    updateBlackSegments();
+    saveSettings();
+  }
+
+  function toggleBlackSegmentsTiming() {
+    if (!customBoardEnabled) return;
+
+    currentBlackSegmentsTimingIndex = (currentBlackSegmentsTimingIndex + 1) % BLACK_SEGMENTS_TIMINGS.length;
+
+    const button = blackSegmentsButtons[BLACK_SEGMENTS_TIMING_COMMAND];
+    if (button) {
+      button.innerText = formatBlackSegmentsTimingButtonText({ withSuffix: false });
+    }
+
+    restartBlackSegmentsInterval();
+    saveSettings();
+  }
+
   function toggleObfuscations() {
     if (!customBoardEnabled) return;
 
@@ -2187,9 +2451,15 @@
       obfuscationsContainer.style.display = obfuscationsEnabled ? 'block' : 'none';
     }
 
+    // Manage black segments interval
+    if (obfuscationsEnabled && currentBlackSegmentsModeIndex > 0) {
+      restartBlackSegmentsInterval();
+    } else {
+      stopBlackSegmentsInterval();
+    }
+
     if (canvasScene) {
-      update3DPieces();
-      render3DCanvas();
+      updateBlackSegments();
     } else {
       applyParallaxTransform();
     }
@@ -2218,6 +2488,7 @@
 
       stopHealthCheck();
       stopHoverMode();
+      stopBlackSegmentsInterval();
       removeCustomBoardElement();
       cleanup3DCanvas();
       clearDividers();
