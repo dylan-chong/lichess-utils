@@ -1905,8 +1905,7 @@
 
   function createButtonContainer(keyboardMoveElement) {
     const container = document.createElement('div');
-    container.style.marginLeft = '8px';
-    container.style.marginR = '8px';
+    container.style.marginRight = '16px';
     container.style.minWidth = '280px';
 
     keyboardMoveElement.style.width = '100%';
