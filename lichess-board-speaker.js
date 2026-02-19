@@ -1005,7 +1005,7 @@
   }
 
   const SPEAK_RATE_SETTING = {
-    name: 'Speak rate',
+    name: '🔊 rate',
     command: 'sr',
     stateKey: 'speakRateIndex',
     options: SPEAK_RATE_OPTIONS,
@@ -1331,7 +1331,7 @@
       exec: () => cycleSetting(SPEAK_RATE_SETTING, commandButtons, { buttonKey: formatCommand(SPEAK_RATE_SETTING.command), withSuffix: true }),
     },
     ss: {
-      fullName: 'Stop speaking',
+      fullName: '🔊 Stop',
       exec: () => window.speechSynthesis.cancel()
     },
 
@@ -1951,6 +1951,7 @@
   const COMMAND_BUTTON_GROUPS = [
     ['pwk', 'pwq', 'pbk', 'pbq'],
     ['pa', 'pww', 'pbb'],
+    ['psr', 'pss'],
   ];
 
   function getCommandButtonGroup(commandName) {
@@ -1971,7 +1972,7 @@
     }
 
     const label = document.createElement('label');
-    label.innerText = `${setting.name} (${formatCommand(setting.command)})`;
+    label.innerText = setting.name;
     label.style.whiteSpace = 'nowrap';
 
     const select = document.createElement('select');
