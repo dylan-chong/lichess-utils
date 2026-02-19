@@ -83,6 +83,7 @@
     { label: 'checker', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0xe8e8e8, 0x1a1a1a), rotateForFlip: false },
     { label: 'checker-grey', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0x505050, 0x505050), rotateForFlip: false },
     { label: '3d', createMesh: create3DPieceMesh, rotateForFlip: false },
+    { label: 'blindfold', createMesh: () => null, rotateForFlip: false },
   ];
 
   const BLACK_SEGMENTS_MODE_OPTIONS = [
