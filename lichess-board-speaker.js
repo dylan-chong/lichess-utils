@@ -94,6 +94,7 @@
       const visible = counter % 4;
       return [0, 1, 2, 3].filter(q => q !== visible);
     }},
+    { label: '4/4', getQuadrants: () => [0, 1, 2, 3] },
   ];
 
   const BLACK_SEGMENTS_TIMING_OPTIONS = [
