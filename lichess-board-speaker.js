@@ -48,6 +48,7 @@
     obfuscationsEnabled: false,
     customBoardEnabled: false,
     hoverModeIndex: 0,
+    piecesListVisible: false,
   };
 
   const SPEAK_RATE_OPTIONS = [
@@ -977,6 +978,8 @@
       startBlackSegmentsInterval();
     }
 
+    PIECES_LIST_SETTING.apply();
+
     if (!state.customBoardEnabled) {
       return;
     }
@@ -1201,6 +1204,48 @@
     },
   };
 
+  const PIECES_LIST_SETTING = {
+    command: 'l',
+    stateKey: 'piecesListVisible',
+    options: [{ label: 'OFF' }, { label: 'ON' }],
+    formatLabel: ({ withSuffix }) => {
+      const suffix = withSuffix ? ` (${formatCommand(PIECES_LIST_SETTING.command)})` : '';
+      const status = state.piecesListVisible ? 'ON' : 'OFF';
+      return `List pieces (${status})${suffix}`;
+    },
+    apply: () => {
+      const buttonKey = formatCommand(PIECES_LIST_SETTING.command);
+      const button = commandButtons[buttonKey];
+      if (!button) return;
+
+      let textBox = button.parentElement.querySelector('.pieces-list-box');
+      if (!textBox) {
+        textBox = document.createElement('div');
+        textBox.className = 'pieces-list-box';
+        textBox.style.width = '100%';
+        textBox.style.margin = '4px 8px 8px 16px';
+        textBox.style.padding = '8px';
+        textBox.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+        textBox.style.borderRadius = '4px';
+        textBox.style.fontSize = '12px';
+        textBox.style.lineHeight = '1.4';
+        textBox.style.color = 'inherit';
+        textBox.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+        button.insertAdjacentElement('afterend', textBox);
+      }
+
+      textBox.style.display = state.piecesListVisible ? 'block' : 'none';
+
+      if (state.piecesListVisible) {
+        renderPiecesList(textBox);
+        setupPiecesListObserver(textBox);
+      } else if (piecesListObserver) {
+        piecesListObserver.disconnect();
+        piecesListObserver = null;
+      }
+    },
+  };
+
   const BLACK_SEGMENTS_MODE_SETTING = {
     name: 'Black segments',
     command: 'bs',
@@ -1242,6 +1287,7 @@
 
   const SETTINGS_WITH_COMMAND_BUTTONS = [
     { setting: SPEAK_RATE_SETTING, withSuffix: true },
+    { setting: PIECES_LIST_SETTING, withSuffix: true },
     { setting: CUSTOM_BOARD_SETTING, withSuffix: true },
   ];
 
@@ -1335,10 +1381,10 @@
       exec: () => window.speechSynthesis.cancel()
     },
 
-    l: {
-      fullName: 'List pieces',
+    [PIECES_LIST_SETTING.command]: {
+      fullName: PIECES_LIST_SETTING.formatLabel({ withSuffix: false }),
       tooltip: 'List pieces (shows who you are and whose turn it is)',
-      exec: displayPiecesList
+      exec: () => togglePiecesList(),
     },
 
     "-annotate": {
@@ -2193,6 +2239,7 @@
   let resizeObserver = null;
   let boardReplacementObserver = null;
   let blindfoldObserver = null;
+  let piecesListObserver = null;
   let healthCheckInterval = null;
 
   function removeCustomBoardElement() {
@@ -2633,20 +2680,73 @@
     saveSettings();
   }
 
-  function displayPiecesList() {
+  function renderPiecesList(textBox) {
     const playerIsWhite = isPlayerWhite();
     const pieces = getPiecePositions(playerIsWhite);
     const piecesGrouped = groupPiecesByColourAndType(pieces);
 
     const playerColour = playerIsWhite ? 'white' : 'black';
-    const header = `You: ${playerColour}`;
 
-    const piecesText =
-      generateDisplayTextFromGroups(piecesGrouped)
-        .filter(msg => msg !== SILENT_PAUSE)
-        .join('\n');
+    textBox.innerHTML = '';
 
-    alert(`${header}\n\n${piecesText}`);
+    const headerEl = document.createElement('div');
+    headerEl.textContent = `You: ${playerColour}`;
+    headerEl.style.marginBottom = '6px';
+    textBox.appendChild(headerEl);
+
+    Object.entries(piecesGrouped).forEach(([colour, piecesByType]) => {
+      const colourHeader = document.createElement('div');
+      colourHeader.textContent = `${colour.toUpperCase()}:`;
+      colourHeader.style.fontWeight = 'bold';
+      colourHeader.style.marginTop = '4px';
+      textBox.appendChild(colourHeader);
+
+      const table = document.createElement('table');
+      table.style.borderCollapse = 'collapse';
+
+      Object.entries(piecesByType).forEach(([type, typePieces]) => {
+        const row = table.insertRow();
+        const typeCell = row.insertCell();
+        typeCell.textContent = type;
+        typeCell.style.paddingRight = '8px';
+        typeCell.style.whiteSpace = 'nowrap';
+        typeCell.style.verticalAlign = 'top';
+        typeCell.style.opacity = '0.7';
+        const posCell = row.insertCell();
+        posCell.textContent = typePieces.length === 0
+          ? '-'
+          : typePieces.map(generateDisplayablePosition).join(' ');
+      });
+
+      textBox.appendChild(table);
+    });
+  }
+
+  function setupPiecesListObserver(textBox) {
+    if (piecesListObserver) {
+      piecesListObserver.disconnect();
+      piecesListObserver = null;
+    }
+
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) return;
+
+    piecesListObserver = new MutationObserver(() => {
+      renderPiecesList(textBox);
+    });
+
+    piecesListObserver.observe(board, {
+      childList: true,
+      attributes: true,
+      subtree: true,
+    });
+  }
+
+  function togglePiecesList() {
+    state.piecesListVisible = !state.piecesListVisible;
+    updateSettingButtonLabel(PIECES_LIST_SETTING, commandButtons, { buttonKey: formatCommand(PIECES_LIST_SETTING.command), withSuffix: true });
+    PIECES_LIST_SETTING.apply();
+    saveSettings();
   }
 
   function createCommandButton(commandName, { inline } = { inline: false }) {
