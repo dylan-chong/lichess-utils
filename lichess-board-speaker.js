@@ -314,7 +314,7 @@
 
   function createCheckerPieceMesh(isWhite, whiteColor, blackColor) {
     const color = isWhite ? whiteColor : blackColor;
-    const material = new THREE.MeshStandardMaterial({ color, roughness: 0.4, metalness: 0.1 });
+    const material = new THREE.MeshBasicMaterial({ color });
     const geometry = createCheckerGeometry();
     const mesh = new THREE.Mesh(geometry, material);
     mesh.position.y = 0.075;
