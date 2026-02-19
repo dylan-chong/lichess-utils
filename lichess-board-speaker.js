@@ -362,7 +362,9 @@
   }
 
   function getCurrentPieceStyleOption() {
-    return state.obfuscationsEnabled ? PIECE_STYLE_OPTIONS[state.pieceStyleIndex] : PIECE_STYLE_OPTIONS[0];
+    if (state.obfuscationsEnabled) return PIECE_STYLE_OPTIONS[state.pieceStyleIndex];
+    const selected = PIECE_STYLE_OPTIONS[state.pieceStyleIndex];
+    return selected.label === '3d' ? selected : PIECE_STYLE_OPTIONS[0];
   }
 
   function createPieceMesh(pieceType, isWhite) {
@@ -1129,6 +1131,7 @@
         stopBlackSegmentsInterval();
       }
       if (canvasScene) {
+        clear3DPieces();
         updateBlackSegments();
       } else {
         applyParallaxTransform();
