@@ -108,8 +108,9 @@
   ];
 
   const HOVER_MODE_OPTIONS = [
-    { label: 'off' },
-    { label: 'on' },
+    { label: 'off', scale: 0 },
+    { label: 'small', scale: 1 },
+    { label: 'large', scale: 1.5 },
   ];
 
   let blackSegmentsCounter = 0;
@@ -767,8 +768,9 @@
 
       if (state.hoverModeIndex > 0 && hoverStartTime !== null) {
         const elapsed = timestamp - hoverStartTime;
+        const hoverScale = HOVER_MODE_OPTIONS[state.hoverModeIndex].scale;
         const baseAngle = PARALLAX_OPTIONS[state.parallaxIndex].value;
-        const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE;
+        const oscillationX = Math.sin(elapsed / HOVER_OSCILLATION_PERIOD_MS) * HOVER_OSCILLATION_ANGLE * hoverScale;
         const angleX = baseAngle + oscillationX;
         const angleRad = angleX * Math.PI / 180;
 
@@ -781,11 +783,9 @@
 
         canvasCamera.position.set(0, y, z * zDirection);
 
-        if (state.hoverModeIndex === 1) {
-          const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE;
-          const oscillationZRad = oscillationZ * Math.PI / 180;
-          canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1;
-        }
+        const oscillationZ = Math.sin(elapsed / HOVER_OSCILLATION_Y_PERIOD_MS) * HOVER_OSCILLATION_Y_ANGLE * hoverScale;
+        const oscillationZRad = oscillationZ * Math.PI / 180;
+        canvasCamera.position.x = Math.sin(oscillationZRad) * distance * 0.1 * hoverScale;
 
         canvasCamera.up.set(0, 0, -1 * zDirection);
         canvasCamera.lookAt(0, 0, 0);
