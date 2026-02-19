@@ -1337,12 +1337,6 @@
   const blackSegmentsButtons = {};
 
   const COMMANDS = {
-    a: {
-      fullName: '🔊 all pieces',
-      tooltip: 'Speak all pieces',
-      exec: () => generateFullMessagesAndSpeak(() => true)
-    },
-
     wk: {
       fullName: "🔊 ♔ side",
       tooltip: "Speak white's king-side",
@@ -1364,6 +1358,11 @@
       exec: () => generateFullMessagesAndSpeak(({ col, row }) => col <= 4 && row >= 5)
     },
 
+    a: {
+      fullName: '🔊 all pieces',
+      tooltip: 'Speak all pieces',
+      exec: () => generateFullMessagesAndSpeak(() => true)
+    },
     ww: {
       fullName: "🔊 w's pieces",
       tooltip: "Speak white's pieces",
@@ -2146,14 +2145,17 @@
   }
 
   function createObfuscationButtons(container) {
+    const row = createButtonGroupRow();
+    container.appendChild(row);
+
     Object
       .keys(OBFUSCATION_COMMANDS)
       .forEach(commandName => {
         const command = OBFUSCATION_COMMANDS[commandName];
         if (command.setting) {
-          container.appendChild(createSettingDropdown(command.setting, obfuscationButtons));
+          row.appendChild(createSettingDropdown(command.setting, obfuscationButtons, { inline: true }));
         } else {
-          container.appendChild(createObfuscationButton(commandName));
+          row.appendChild(createObfuscationButton(commandName));
         }
 
         if (command.hasNested) {
