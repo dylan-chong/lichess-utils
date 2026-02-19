@@ -83,9 +83,9 @@
 
   const PIECE_STYLE_OPTIONS = [
     { label: 'icons', createMesh: (pieceType, isWhite) => createIconPieceMesh(pieceType, isWhite), rotateForFlip: true },
+    { label: '3d', createMesh: create3DPieceMesh, rotateForFlip: false },
     { label: 'checker', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0xe8e8e8, 0x1a1a1a), rotateForFlip: false },
     { label: 'checker-grey', createMesh: (pieceType, isWhite) => createCheckerPieceMesh(isWhite, 0x505050, 0x505050), rotateForFlip: false },
-    { label: '3d', createMesh: create3DPieceMesh, rotateForFlip: false },
     { label: 'blindfold', createMesh: () => null, rotateForFlip: false },
   ];
 
@@ -934,9 +934,12 @@
 
   function updateButtonLabels() {
     for (const { setting, withSuffix } of SETTINGS_WITH_COMMAND_BUTTONS) {
-      const button = commandButtons[formatCommand(setting.command)];
-      if (button) {
-        button.innerText = setting.formatLabel({ withSuffix });
+      const element = commandButtons[formatCommand(setting.command)];
+      if (!element) continue;
+      if (element.tagName === 'SELECT') {
+        element.selectedIndex = state[setting.stateKey];
+      } else {
+        element.innerText = setting.formatLabel({ withSuffix });
       }
     }
 
@@ -1002,6 +1005,7 @@
   }
 
   const SPEAK_RATE_SETTING = {
+    name: 'Speak rate',
     command: 'sr',
     stateKey: 'speakRateIndex',
     options: SPEAK_RATE_OPTIONS,
@@ -1019,6 +1023,7 @@
   };
 
   const PARALLAX_SETTING = {
+    name: 'Parallax',
     command: 'px',
     stateKey: 'parallaxIndex',
     options: PARALLAX_OPTIONS,
@@ -1059,6 +1064,7 @@
   };
 
   const PIECE_STYLE_SETTING = {
+    name: 'Piece style',
     command: 'ps',
     stateKey: 'pieceStyleIndex',
     options: PIECE_STYLE_OPTIONS,
@@ -1079,6 +1085,7 @@
   };
 
   const HOVER_MODE_SETTING = {
+    name: 'Hover',
     command: 'hv',
     stateKey: 'hoverModeIndex',
     options: HOVER_MODE_OPTIONS,
@@ -1102,6 +1109,7 @@
   };
 
   const BLUR_SETTING = {
+    name: 'Blur',
     command: 'blur',
     stateKey: 'blurIndex',
     options: BLUR_OPTIONS,
@@ -1194,6 +1202,7 @@
   };
 
   const BLACK_SEGMENTS_MODE_SETTING = {
+    name: 'Black segments',
     command: 'bs',
     stateKey: 'blackSegmentsModeIndex',
     options: BLACK_SEGMENTS_MODE_OPTIONS,
@@ -1217,6 +1226,7 @@
   };
 
   const BLACK_SEGMENTS_TIMING_SETTING = {
+    name: 'Timing',
     command: 'bst',
     stateKey: 'blackSegmentsTimingIndex',
     options: BLACK_SEGMENTS_TIMING_OPTIONS,
@@ -1254,9 +1264,12 @@
 
   function updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix } = {}) {
     const key = buttonKey || setting.command;
-    const button = buttonMap[key];
-    if (button) {
-      button.innerText = setting.formatLabel({ withSuffix: withSuffix || false });
+    const element = buttonMap[key];
+    if (!element) return;
+    if (element.tagName === 'SELECT') {
+      element.selectedIndex = state[setting.stateKey];
+    } else {
+      element.innerText = setting.formatLabel({ withSuffix: withSuffix || false });
     }
   }
 
@@ -1313,6 +1326,7 @@
     },
 
     [SPEAK_RATE_SETTING.command]: {
+      setting: SPEAK_RATE_SETTING,
       fullName: SPEAK_RATE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(SPEAK_RATE_SETTING, commandButtons, { buttonKey: formatCommand(SPEAK_RATE_SETTING.command), withSuffix: true }),
     },
@@ -1340,6 +1354,7 @@
 
   const BOARD_MODIFICATION_COMMANDS = {
     [PARALLAX_SETTING.command]: {
+      setting: PARALLAX_SETTING,
       fullName: PARALLAX_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(PARALLAX_SETTING, boardModificationButtons),
     },
@@ -1348,6 +1363,7 @@
       exec: () => toggleDividers(),
     },
     [HOVER_MODE_SETTING.command]: {
+      setting: HOVER_MODE_SETTING,
       fullName: HOVER_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleHoverMode(),
     },
@@ -1363,14 +1379,17 @@
 
   const OBFUSCATION_COMMANDS = {
     [PIECE_STYLE_SETTING.command]: {
+      setting: PIECE_STYLE_SETTING,
       fullName: PIECE_STYLE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(PIECE_STYLE_SETTING, obfuscationButtons),
     },
     [BLUR_SETTING.command]: {
+      setting: BLUR_SETTING,
       fullName: BLUR_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(BLUR_SETTING, obfuscationButtons),
     },
     [BLACK_SEGMENTS_MODE_SETTING.command]: {
+      setting: BLACK_SEGMENTS_MODE_SETTING,
       fullName: BLACK_SEGMENTS_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleBlackSegmentsMode(),
       hasNested: true,
@@ -1379,6 +1398,7 @@
 
   const BLACK_SEGMENTS_COMMANDS = {
     [BLACK_SEGMENTS_TIMING_SETTING.command]: {
+      setting: BLACK_SEGMENTS_TIMING_SETTING,
       fullName: BLACK_SEGMENTS_TIMING_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(BLACK_SEGMENTS_TIMING_SETTING, blackSegmentsButtons),
     },
@@ -1937,6 +1957,54 @@
     return COMMAND_BUTTON_GROUPS.find(group => group.includes(commandName));
   }
 
+  function createSettingDropdown(setting, buttonMap, { inline, mapKey } = { inline: false }) {
+    const wrapper = document.createElement('div');
+    wrapper.style.display = 'flex';
+    wrapper.style.alignItems = 'center';
+    wrapper.style.gap = '4px';
+
+    if (inline) {
+      wrapper.style.flex = '1 1 0';
+    } else {
+      wrapper.style.width = '100%';
+      wrapper.style.margin = '8px';
+    }
+
+    const label = document.createElement('label');
+    label.innerText = `${setting.name} (${formatCommand(setting.command)})`;
+    label.style.whiteSpace = 'nowrap';
+
+    const select = document.createElement('select');
+    select.style.padding = '2px';
+    select.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    select.style.borderRadius = '4px';
+    select.style.background = 'transparent';
+    select.style.color = 'inherit';
+    select.style.colorScheme = 'dark';
+    select.title = `${setting.name} (${formatCommand(setting.command)})`;
+
+    setting.options.forEach((option) => {
+      const opt = document.createElement('option');
+      opt.text = option.label;
+      select.appendChild(opt);
+    });
+
+    select.selectedIndex = state[setting.stateKey];
+
+    select.addEventListener('change', () => {
+      if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
+      state[setting.stateKey] = select.selectedIndex;
+      setting.apply();
+      saveSettings();
+    });
+
+    wrapper.appendChild(label);
+    wrapper.appendChild(select);
+
+    buttonMap[mapKey || setting.command] = select;
+    return wrapper;
+  }
+
   function createButtonGroupRow() {
     const row = document.createElement('div');
     row.style.display = 'flex';
@@ -1945,6 +2013,14 @@
     row.style.gap = '4px';
     row.style.margin = '8px';
     return row;
+  }
+
+  function createCommandElement(commandName, { inline } = { inline: false }) {
+    const command = COMMANDS_WITH_PREFIX[commandName];
+    if (command.setting) {
+      return createSettingDropdown(command.setting, commandButtons, { inline, mapKey: commandName });
+    }
+    return createCommandButton(commandName, { inline });
   }
 
   function createButtons(container) {
@@ -1956,8 +2032,7 @@
         const group = getCommandButtonGroup(commandName);
 
         if (!group) {
-          const button = createCommandButton(commandName, { inline: false });
-          container.appendChild(button);
+          container.appendChild(createCommandElement(commandName, { inline: false }));
           return;
         }
 
@@ -1967,8 +2042,7 @@
 
         const row = createButtonGroupRow();
         group.forEach(name => {
-          const button = createCommandButton(name, { inline: true });
-          row.appendChild(button);
+          row.appendChild(createCommandElement(name, { inline: true }));
         });
         container.appendChild(row);
       });
@@ -1976,6 +2050,14 @@
 
   function getBoardModButtonGroup(commandName) {
     return BOARD_MOD_BUTTON_GROUPS.find(group => group.includes(commandName));
+  }
+
+  function createBoardModElement(commandName, { inline } = { inline: false }) {
+    const command = BOARD_MODIFICATION_COMMANDS[commandName];
+    if (command.setting) {
+      return createSettingDropdown(command.setting, boardModificationButtons, { inline });
+    }
+    return createBoardModButton(commandName, { inline });
   }
 
   function createBoardModButtons(container) {
@@ -1987,8 +2069,7 @@
         const group = getBoardModButtonGroup(commandName);
 
         if (!group) {
-          const button = createBoardModButton(commandName, { inline: false });
-          container.appendChild(button);
+          container.appendChild(createBoardModElement(commandName, { inline: false }));
           return;
         }
 
@@ -1998,8 +2079,7 @@
 
         const row = createButtonGroupRow();
         group.forEach(name => {
-          const button = createBoardModButton(name, { inline: true });
-          row.appendChild(button);
+          row.appendChild(createBoardModElement(name, { inline: true }));
         });
         container.appendChild(row);
       });
@@ -2018,11 +2098,14 @@
     Object
       .keys(OBFUSCATION_COMMANDS)
       .forEach(commandName => {
-        const button = createObfuscationButton(commandName);
-        container.appendChild(button);
+        const command = OBFUSCATION_COMMANDS[commandName];
+        if (command.setting) {
+          container.appendChild(createSettingDropdown(command.setting, obfuscationButtons));
+        } else {
+          container.appendChild(createObfuscationButton(commandName));
+        }
 
-        // Create nested container for black segments timing button
-        if (commandName === BLACK_SEGMENTS_MODE_SETTING.command) {
+        if (command.hasNested) {
           const nestedContainer = createBlackSegmentsButtonContainer(container);
           createBlackSegmentsButtons(nestedContainer);
         }
@@ -2065,8 +2148,14 @@
   function createBlackSegmentsButtons(container) {
     Object
       .keys(BLACK_SEGMENTS_COMMANDS)
-      .map(createBlackSegmentsButton)
-      .map(button => container.appendChild(button));
+      .forEach(commandName => {
+        const command = BLACK_SEGMENTS_COMMANDS[commandName];
+        if (command.setting) {
+          container.appendChild(createSettingDropdown(command.setting, blackSegmentsButtons));
+        } else {
+          container.appendChild(createBlackSegmentsButton(commandName));
+        }
+      });
   }
 
   function createBlackSegmentsButton(commandName) {
