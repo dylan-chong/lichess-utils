@@ -2732,6 +2732,8 @@
     if (!board) return;
 
     piecesListObserver = new MutationObserver(() => {
+      const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+      if (board && board.querySelector('piece.anim')) return;
       renderPiecesList(textBox);
     });
 
