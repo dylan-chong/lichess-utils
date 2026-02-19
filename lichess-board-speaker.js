@@ -89,7 +89,7 @@
   const BLACK_SEGMENTS_MODE_OPTIONS = [
     { label: 'None', getQuadrants: () => [] },
     { label: '1/4', getQuadrants: (counter) => [counter % 4] },
-    { label: '1/2', getQuadrants: (counter) => counter % 2 === 0 ? [0, 3] : [1, 2] },
+    { label: '1/2', getQuadrants: (counter) => [[0, 1], [2, 3], [0, 2], [1, 3]][counter % 4] },
     { label: '3/4', getQuadrants: (counter) => {
       const visible = counter % 4;
       return [0, 1, 2, 3].filter(q => q !== visible);
