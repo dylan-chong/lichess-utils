@@ -110,7 +110,8 @@
   const HOVER_MODE_OPTIONS = [
     { label: 'off', scale: 0 },
     { label: 'small', scale: 1 },
-    { label: 'large', scale: 1.5 },
+    { label: 'large', scale: 2 },
+    { label: 'super', scale: 3 },
   ];
 
   let blackSegmentsCounter = 0;
