@@ -1906,6 +1906,7 @@
   function createButtonContainer(keyboardMoveElement) {
     const container = document.createElement('div');
     container.style.marginLeft = '8px';
+    container.style.marginR = '8px';
     container.style.minWidth = '280px';
 
     keyboardMoveElement.style.width = '100%';
@@ -1937,6 +1938,7 @@
     const row = document.createElement('div');
     row.style.display = 'flex';
     row.style.flexWrap = 'wrap';
+    row.style.width = '100%';
     row.style.gap = '4px';
     row.style.margin = '8px';
     return row;
@@ -2569,7 +2571,7 @@
 
     if (inline) {
       button.style.display = 'inline-block';
-      button.style.flex = '1 1 auto';
+      button.style.flex = '1 1 0';
     } else {
       button.style.display = 'block';
       button.style.width = '100%';
@@ -2599,7 +2601,7 @@
     if (inline) {
       button.innerText = fullName;
       button.style.display = 'inline-block';
-      button.style.flex = '1 1 auto';
+      button.style.flex = '1 1 0';
     } else {
       button.innerText = fullName;
       button.style.display = 'block';
