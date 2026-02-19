@@ -1,10 +1,13 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
+// @version     1.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
 // @inject-into    content
+// @updateURL   https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
+// @downloadURL https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
 // ==/UserScript==
 
 // Example board from lichess puzzle page
@@ -1222,7 +1225,8 @@
       if (!textBox) {
         textBox = document.createElement('div');
         textBox.className = 'pieces-list-box';
-        textBox.style.width = '100%';
+        textBox.style.boxSizing = 'border-box';
+        textBox.style.width = 'calc(100% - 16px)';
         textBox.style.margin = '4px 8px 8px 16px';
         textBox.style.padding = '8px';
         textBox.style.border = '1px solid rgba(255, 255, 255, 0.3)';

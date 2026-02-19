@@ -15,9 +15,10 @@ Mobile friendly (browser only of course)
 
 ### Installation
 
-- install the tampermonkey browser extension (chrome, firefox) or userscripts (safari)
-- add [the script code](https://raw.githubusercontent.com/dylan-chong/lichess-utils/refs/heads/main/lichess-board-speaker.js) to the browser extension
-- on lichess.org
+1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension (Chrome, Firefox) or Userscripts (Safari)
+2. [Click here to install the script](https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js) — Tampermonkey will prompt you to install it. For Safari, copy the script to your Userscripts directory instead.
+3. The script auto-updates when a new version is pushed to this repo
+4. On lichess.org:
     - enable keyboard move input
     - you'll probably want to enable move narration
     - go to a puzzle
