@@ -2013,6 +2013,10 @@
     wrapper.style.alignItems = 'center';
     wrapper.style.gap = '4px';
 
+    wrapper.style.border = '1px solid rgba(255, 255, 255, 0.15)';
+    wrapper.style.borderRadius = '4px';
+    wrapper.style.padding = '2px 4px';
+
     if (inline) {
       wrapper.style.flex = '1 1 0';
     } else {
