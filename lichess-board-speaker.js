@@ -2035,6 +2035,8 @@
     button.style.width = '100%';
     button.style.padding = '2px';
     button.style.margin = '8px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
     button.style.textAlign = 'left';
 
     button.addEventListener('click', () => {
@@ -2073,6 +2075,8 @@
     button.style.width = '100%';
     button.style.padding = '2px';
     button.style.margin = '8px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
     button.style.textAlign = 'left';
 
     button.addEventListener('click', () => {
@@ -2557,6 +2561,8 @@
     const button = document.createElement('button');
     button.title = `${tooltip || fullName} (${commandName})`;
     button.style.padding = '2px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
     button.style.textAlign = 'left';
 
     button.innerText = `${fullName} (${commandName})`;
@@ -2586,6 +2592,8 @@
     const button = document.createElement('button');
     button.title = fullName;
     button.style.padding = '2px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
     button.style.textAlign = 'left';
 
     if (inline) {
