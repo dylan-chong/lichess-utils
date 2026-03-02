@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     1.0
+// @version     2.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1130,7 +1130,7 @@
   };
 
   const OBFUSCATIONS_SETTING = {
-    command: 'obf',
+    command: 'ob',
     stateKey: 'obfuscationsEnabled',
     options: [{ label: 'OFF' }, { label: 'ON' }],
     formatLabel: ({ withSuffix }) => {
