@@ -594,8 +594,8 @@
       }
 
       // Store board position for visibility checks
-      const col = Math.floor(pixels.x / (boardSize / 8));
-      const row = Math.floor(pixels.y / (boardSize / 8));
+      const col = Math.round(pixels.x / (boardSize / 8));
+      const row = Math.round(pixels.y / (boardSize / 8));
       mesh.userData.col = col;
       mesh.userData.row = row;
 
