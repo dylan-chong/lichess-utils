@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.0
+// @version     2.1
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1767,8 +1767,8 @@
     const match = transform.match(/translate\(([\d.]+)px(?:,\s*([\d.]+)px)?\)/);
     if (!match) return null;
 
-    let col = Math.floor(parseFloat(match[1]) / squareSize);
-    let row = Math.floor(parseFloat(match[2] || 0) / squareSize);
+    let col = Math.round(parseFloat(match[1]) / squareSize);
+    let row = Math.round(parseFloat(match[2] || 0) / squareSize);
 
     if (playerIsWhite) {
       row = 7 - row;
