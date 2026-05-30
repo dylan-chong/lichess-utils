@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.1
+// @version     2.2
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2368,7 +2368,9 @@
   }
 
   function handleContainerResize() {
-    resize3DCanvas();
+    if (canvasScene) {
+      resize3DCanvas();
+    }
     if (state.dividersEnabled) {
       drawDividers();
     }
@@ -2435,6 +2437,24 @@
     }
   }
 
+  function setupResizeObserver() {
+    if (resizeObserver) {
+      return;
+    }
+
+    const container = document.querySelector('cg-container');
+    if (!container) {
+      console.debug('[lichess-board-speaker] setupResizeObserver: container not found');
+      return;
+    }
+
+    resizeObserver = new ResizeObserver(() => {
+      handleContainerResize();
+    });
+
+    resizeObserver.observe(container);
+  }
+
   function setupParallaxMoveObserver() {
     if (parallaxObserver) {
       parallaxObserver.disconnect();
@@ -2463,21 +2483,7 @@
       subtree: true
     });
 
-    if (resizeObserver) {
-      resizeObserver.disconnect();
-    }
-
-    const container = document.querySelector('cg-container');
-    if (!container) {
-      console.debug('[lichess-board-speaker] setupParallaxMoveObserver: container not found');
-      return;
-    }
-
-    resizeObserver = new ResizeObserver(() => {
-      handleContainerResize();
-    });
-
-    resizeObserver.observe(container);
+    setupResizeObserver();
   }
 
   function startHoverMode() {
@@ -2521,6 +2527,8 @@
   }
 
   function drawDividers() {
+    setupResizeObserver();
+
     if (state.customBoardEnabled && canvasScene) {
       draw3DDividers();
       return;
