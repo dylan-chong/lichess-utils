@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.3
+// @version     2.4
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -299,6 +299,29 @@
     return `https://lichess1.org/assets/piece/cburnett/${colorChar}${pieceChar}.svg`;
   }
 
+  function loadSVGAsTexture(url, callback) {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+
+    img.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = 256;
+      canvas.height = 256;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, 256, 256);
+
+      const texture = new THREE.Texture(canvas);
+      texture.needsUpdate = true;
+      callback(texture);
+    };
+
+    img.onerror = (error) => {
+      console.error('[lichess-board-speaker] Failed to load piece icon:', url, error);
+    };
+
+    img.src = url;
+  }
+
   function createIconPieceMesh(pieceType, isWhite) {
     const geometry = new THREE.PlaneGeometry(1.4, 1.4);
     const material = new THREE.MeshBasicMaterial({
@@ -311,8 +334,7 @@
     mesh.rotation.x = -Math.PI / 2;
     mesh.position.y = 0.01;
 
-    const loader = new THREE.TextureLoader();
-    loader.load(getPieceIconUrl(pieceType, isWhite), (texture) => {
+    loadSVGAsTexture(getPieceIconUrl(pieceType, isWhite), (texture) => {
       material.map = texture;
       material.needsUpdate = true;
       render3DCanvas();
