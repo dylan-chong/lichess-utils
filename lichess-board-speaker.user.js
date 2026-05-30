@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.2
+// @version     2.3
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1038,12 +1038,12 @@
       const suffix = withSuffix ? ` (${formatCommand(PARALLAX_SETTING.command)})` : '';
       return `Parallax (req kb) (${option.value}°)${suffix}`;
     },
-    apply: () => {
+    apply: async () => {
       if (canvasCamera) {
         update3DCameraAngle();
         render3DCanvas();
       } else {
-        applyParallaxTransform();
+        await applyParallaxTransform();
       }
       if (state.dividersEnabled) {
         drawDividers();
@@ -2404,7 +2404,7 @@
     board.style.opacity = '';
   }
 
-  function applyParallaxTransform() {
+  async function applyParallaxTransform() {
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) {
       console.debug('[lichess-board-speaker] applyParallaxTransform: board not found');
@@ -2432,7 +2432,7 @@
       hideBoardPieces(board);
       removeCustomBoardElement();
 
-      init3DMode();
+      await init3DMode();
       setupParallaxMoveObserver();
     }
   }
@@ -2529,7 +2529,7 @@
   function drawDividers() {
     setupResizeObserver();
 
-    if (state.customBoardEnabled && canvasScene) {
+    if (state.customBoardEnabled && canvasScene && canvasRenderer && canvasCamera) {
       draw3DDividers();
       return;
     }
