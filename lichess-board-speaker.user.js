@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.6
+// @version     2.7
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -53,8 +53,8 @@
     hoverModeIndex: 0,
     piecesListVisible: false,
     flashModeEnabled: false,
-    flashDurationIndex: 2,
-    flashIntervalIndex: 1,
+    flashDurationIndex: 4,
+    flashIntervalIndex: 3,
   };
 
   const SPEAK_RATE_OPTIONS = [
@@ -120,6 +120,7 @@
     { label: '300ms', value: 300 },
     { label: '500ms', value: 500 },
     { label: '1000ms', value: 1000 },
+    { label: '2000ms', value: 2000 },
   ];
 
   const FLASH_INTERVAL_OPTIONS = [
@@ -1387,7 +1388,7 @@
     },
     apply: () => {
       if (state.flashModeEnabled) {
-        restartFlashMode();
+        triggerFlash();
       }
     },
   };
@@ -1404,7 +1405,8 @@
     },
     apply: () => {
       if (state.flashModeEnabled) {
-        restartFlashMode();
+        stopFlashMode();
+        startFlashMode();
       }
     },
   };
@@ -3015,6 +3017,11 @@
     }, flashDuration);
   }
 
+  function triggerFlash() {
+    if (!state.flashModeEnabled) return;
+    onBoardChange();
+  }
+
   function startFlashModeInterval() {
     if (flashModeIntervalId) {
       clearInterval(flashModeIntervalId);
@@ -3071,9 +3078,6 @@
       return;
     }
 
-    lastBoardChangeTime = Date.now();
-    showBoard();
-
     flashModeObserver = new MutationObserver(() => {
       onBoardChange();
     });
@@ -3085,6 +3089,9 @@
     });
 
     startFlashModeInterval();
+
+    // Trigger initial flash
+    triggerFlash();
   }
 
   function toggleFlashMode() {
