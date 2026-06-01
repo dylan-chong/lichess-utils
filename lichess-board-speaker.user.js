@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.8
+// @version     2.9
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -993,6 +993,10 @@
       }
     }
 
+    for (const { setting } of SETTINGS_WITH_CUSTOM_BOARD_BUTTONS) {
+      updateSettingButtonLabel(setting, customBoardButtons);
+    }
+
     for (const { setting } of SETTINGS_WITH_BOARD_MOD_BUTTONS) {
       updateSettingButtonLabel(setting, boardModificationButtons);
     }
@@ -1011,6 +1015,11 @@
   }
 
   function applyLoadedSettings() {
+    const customBoardContainer = document.querySelector('.custom-board-buttons-container');
+    if (customBoardContainer) {
+      customBoardContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
+    }
+
     const boardModContainer = document.querySelector('.board-mod-buttons-container');
     if (boardModContainer) {
       boardModContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
@@ -1231,10 +1240,16 @@
       return `Custom board (${status})${suffix}`;
     },
     apply: () => {
+      const customBoardContainer = document.querySelector('.custom-board-buttons-container');
+      if (customBoardContainer) {
+        customBoardContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
+      }
+
       const boardModContainer = document.querySelector('.board-mod-buttons-container');
       if (boardModContainer) {
         boardModContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
       }
+
       if (state.customBoardEnabled) {
         setupBoardReplacementObserver();
         startHealthCheck();
@@ -1422,6 +1437,9 @@
     { setting: PARALLAX_SETTING },
     { setting: DIVIDERS_SETTING },
     { setting: HOVER_MODE_SETTING },
+  ];
+
+  const SETTINGS_WITH_CUSTOM_BOARD_BUTTONS = [
     { setting: OBFUSCATIONS_SETTING },
   ];
 
@@ -1460,6 +1478,7 @@
   }
 
   const commandButtons = {};
+  const customBoardButtons = {};
   const boardModificationButtons = {};
   const obfuscationButtons = {};
   const blackSegmentsButtons = {};
@@ -1548,6 +1567,14 @@
     },
   };
 
+  const CUSTOM_BOARD_COMMANDS = {
+    [OBFUSCATIONS_SETTING.command]: {
+      fullName: OBFUSCATIONS_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => toggleObfuscations(),
+      hasNested: true,
+    },
+  };
+
   const BOARD_MODIFICATION_COMMANDS = {
     [PARALLAX_SETTING.command]: {
       setting: PARALLAX_SETTING,
@@ -1562,10 +1589,6 @@
       setting: HOVER_MODE_SETTING,
       fullName: HOVER_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleHoverMode(),
-    },
-    [OBFUSCATIONS_SETTING.command]: {
-      fullName: OBFUSCATIONS_SETTING.formatLabel({ withSuffix: false }),
-      exec: () => toggleObfuscations(),
     },
   };
 
@@ -2135,6 +2158,15 @@
     return container;
   }
 
+  function createCustomBoardButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.classList.add('custom-board-buttons-container');
+    container.style.marginLeft = '16px';
+    container.style.display = state.customBoardEnabled ? 'block' : 'none';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
   function createBoardModButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.classList.add('board-mod-buttons-container');
@@ -2256,6 +2288,59 @@
       });
   }
 
+  function createCustomBoardElement(commandName, { inline } = { inline: false }) {
+    const command = CUSTOM_BOARD_COMMANDS[commandName];
+    if (command.setting) {
+      return createSettingDropdown(command.setting, customBoardButtons, { inline });
+    }
+    return createCustomBoardButton(commandName, { inline });
+  }
+
+  function createCustomBoardButtons(container) {
+    Object
+      .keys(CUSTOM_BOARD_COMMANDS)
+      .forEach(commandName => {
+        const command = CUSTOM_BOARD_COMMANDS[commandName];
+        container.appendChild(createCustomBoardElement(commandName, { inline: false }));
+
+        if (command.hasNested) {
+          const obfuscationsContainer = createObfuscationsButtonContainer(container);
+          createObfuscationButtons(obfuscationsContainer);
+        }
+      });
+  }
+
+  function createCustomBoardButton(commandName, { inline } = { inline: false }) {
+    const command = CUSTOM_BOARD_COMMANDS[commandName];
+    const { fullName, exec } = command;
+
+    const button = document.createElement('button');
+    button.title = fullName;
+    button.style.padding = '2px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
+    button.style.textAlign = 'left';
+
+    if (inline) {
+      button.innerText = fullName;
+      button.style.display = 'inline-block';
+      button.style.flex = '1 1 0';
+    } else {
+      button.innerText = fullName;
+      button.style.display = 'block';
+      button.style.width = '100%';
+      button.style.margin = '8px';
+    }
+
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] custom board button clicked', { fullName });
+      exec();
+    });
+
+    customBoardButtons[commandName] = button;
+    return button;
+  }
+
   function getBoardModButtonGroup(commandName) {
     return BOARD_MOD_BUTTON_GROUPS.find(group => group.includes(commandName));
   }
@@ -2296,7 +2381,7 @@
   function createObfuscationsButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.classList.add('obfuscations-buttons-container');
-    container.style.marginLeft = '16px';
+    container.style.marginLeft = '24px';
     container.style.display = state.obfuscationsEnabled ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
@@ -2312,8 +2397,6 @@
         const command = OBFUSCATION_COMMANDS[commandName];
         if (command.setting) {
           row.appendChild(createSettingDropdown(command.setting, obfuscationButtons, { inline: true }));
-        } else {
-          row.appendChild(createObfuscationButton(commandName));
         }
 
         if (command.hasNested) {
@@ -2323,34 +2406,11 @@
       });
   }
 
-  function createObfuscationButton(commandName) {
-    const command = OBFUSCATION_COMMANDS[commandName];
-    const { fullName, exec } = command;
-
-    const button = document.createElement('button');
-    button.innerText = fullName;
-    button.title = fullName;
-    button.style.display = 'block';
-    button.style.width = '100%';
-    button.style.padding = '2px';
-    button.style.margin = '8px';
-    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
-    button.style.borderRadius = '4px';
-    button.style.textAlign = 'left';
-
-    button.addEventListener('click', () => {
-      console.debug('[lichess-board-speaker] obfuscation button clicked', { fullName });
-      exec();
-    });
-
-    obfuscationButtons[commandName] = button;
-    return button;
-  }
 
   function createBlackSegmentsButtonContainer(parentContainer) {
     const container = document.createElement('div');
     container.classList.add('black-segments-buttons-container');
-    container.style.marginLeft = '24px';
+    container.style.marginLeft = '32px';
     container.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
     parentContainer.appendChild(container);
     return container;
@@ -3198,11 +3258,11 @@
     const buttonContainer = createButtonContainer(keyboardMoveElement);
     createButtons(buttonContainer);
 
-    const boardModContainer = createBoardModButtonContainer(buttonContainer);
-    createBoardModButtons(boardModContainer);
+    const customBoardContainer = createCustomBoardButtonContainer(buttonContainer);
+    createCustomBoardButtons(customBoardContainer);
 
-    const obfuscationsContainer = createObfuscationsButtonContainer(boardModContainer);
-    createObfuscationButtons(obfuscationsContainer);
+    const boardModContainer = createBoardModButtonContainer(customBoardContainer);
+    createBoardModButtons(boardModContainer);
 
     const underboard = document.querySelector('.analyse__underboard');
     if (underboard) {
