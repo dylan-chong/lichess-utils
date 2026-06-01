@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.15
+// @version     2.16
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -982,12 +982,16 @@
 
   function updateButtonLabels() {
     for (const { setting, withSuffix } of SETTINGS_WITH_COMMAND_BUTTONS) {
-      const element = commandButtons[formatCommand(setting.command)];
+      const commandName = formatCommand(setting.command);
+      const command = COMMANDS_WITH_PREFIX[commandName];
+      const element = commandButtons[commandName];
       if (!element) continue;
       if (element.tagName === 'SELECT') {
         element.selectedIndex = state[setting.stateKey];
-      } else {
-        element.innerText = setting.formatLabel({ withSuffix });
+      } else if (element.tagName === 'BUTTON') {
+        // For toggle buttons, use settingForLabel if available
+        const settingObj = command?.settingForLabel || setting;
+        element.innerText = settingObj.formatLabel({ withSuffix });
       }
     }
 
@@ -1543,19 +1547,19 @@
     },
 
     [DIVIDERS_SETTING.command]: {
-      setting: DIVIDERS_SETTING,
+      settingForLabel: DIVIDERS_SETTING,
       fullName: DIVIDERS_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleDividers(),
     },
 
     [CUSTOM_BOARD_SETTING.command]: {
-      setting: CUSTOM_BOARD_SETTING,
+      settingForLabel: CUSTOM_BOARD_SETTING,
       fullName: CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleCustomBoard(),
     },
 
     [FLASH_MODE_SETTING.command]: {
-      setting: FLASH_MODE_SETTING,
+      settingForLabel: FLASH_MODE_SETTING,
       fullName: FLASH_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleFlashMode(),
     },
