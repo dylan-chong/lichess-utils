@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.9
+// @version     2.10
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2522,7 +2522,8 @@
       parallaxObserver.disconnect();
       parallaxObserver = null;
     }
-    if (resizeObserver) {
+    // Only cleanup resize observer if dividers are not enabled
+    if (resizeObserver && !state.dividersEnabled) {
       resizeObserver.disconnect();
       resizeObserver = null;
     }
