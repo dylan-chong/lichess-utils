@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.0.2
+// @version     3.1.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -123,6 +123,7 @@
 
   const FLASH_INTERVAL_OPTIONS = [
     { label: '1s', value: 1 },
+    { label: '3s', value: 3 },
     { label: '5s', value: 5 },
     { label: '10s', value: 10 },
     { label: '30s', value: 30 },
