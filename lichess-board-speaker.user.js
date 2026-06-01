@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.7
+// @version     2.8
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -3015,6 +3015,9 @@
     flashModeTimeoutId = setTimeout(() => {
       hideBoard();
     }, flashDuration);
+
+    // Reset the "flash every" interval
+    startFlashModeInterval();
   }
 
   function triggerFlash() {
@@ -3030,10 +3033,7 @@
     const flashInterval = FLASH_INTERVAL_OPTIONS[state.flashIntervalIndex].value * 1000;
 
     flashModeIntervalId = setInterval(() => {
-      const timeSinceLastChange = Date.now() - lastBoardChangeTime;
-      if (timeSinceLastChange >= flashInterval) {
-        onBoardChange();
-      }
+      onBoardChange();
     }, flashInterval);
   }
 
