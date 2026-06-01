@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.3
+// @version     3.2.4
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1345,8 +1345,15 @@
     setupBoardReplacementObserver();
     startHealthCheck();
 
-    // Always initialize Three.js when custom board is enabled
-    applyParallaxTransform();
+    // Initialize Three.js if not already initialized
+    if (!canvasScene || !canvasRenderer || !canvasCamera) {
+      applyParallaxTransform();
+    } else {
+      // Canvas already exists, just update pieces and camera
+      update3DCameraAngle();
+      update3DPieces();
+      render3DCanvas();
+    }
 
     // Apply hover mode
     if (state.hoverModeIndex > 0) {
