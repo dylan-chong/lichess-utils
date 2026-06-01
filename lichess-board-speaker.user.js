@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.1.0
+// @version     3.1.1
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2735,7 +2735,9 @@
       exec();
     });
 
-    customBoardButtons[commandName] = button;
+    // Store with 'p' prefix to match updateAllButtonLabels lookup
+    const keyWithPrefix = commandName.startsWith('p') ? commandName : `p${commandName}`;
+    customBoardButtons[keyWithPrefix] = button;
     return button;
   }
 
@@ -3603,7 +3605,9 @@
       exec();
     });
 
-    boardModificationButtons[commandName] = button;
+    // Store with 'p' prefix to match updateAllButtonLabels lookup
+    const keyWithPrefix = commandName.startsWith('p') ? commandName : `p${commandName}`;
+    boardModificationButtons[keyWithPrefix] = button;
     return button;
   }
 
