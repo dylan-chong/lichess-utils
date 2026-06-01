@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.1.1
+// @version     3.2.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1317,10 +1317,8 @@
     setupBoardReplacementObserver();
     startHealthCheck();
 
-    // Apply parallax/3D effects
-    if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
-      applyParallaxTransform();
-    }
+    // Always initialize Three.js when custom board is enabled
+    applyParallaxTransform();
 
     // Apply hover mode
     if (state.hoverModeIndex > 0) {
