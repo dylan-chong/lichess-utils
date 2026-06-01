@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.4
+// @version     2.6
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -52,6 +52,9 @@
     customBoardEnabled: false,
     hoverModeIndex: 0,
     piecesListVisible: false,
+    flashModeEnabled: false,
+    flashDurationIndex: 2,
+    flashIntervalIndex: 1,
   };
 
   const SPEAK_RATE_OPTIONS = [
@@ -111,6 +114,22 @@
     { label: "Don't rotate", value: null },
   ];
 
+  const FLASH_DURATION_OPTIONS = [
+    { label: '30ms', value: 30 },
+    { label: '100ms', value: 100 },
+    { label: '300ms', value: 300 },
+    { label: '500ms', value: 500 },
+    { label: '1000ms', value: 1000 },
+  ];
+
+  const FLASH_INTERVAL_OPTIONS = [
+    { label: '1s', value: 1 },
+    { label: '5s', value: 5 },
+    { label: '10s', value: 10 },
+    { label: '30s', value: 30 },
+    { label: '60s', value: 60 },
+  ];
+
   const HOVER_MODE_OPTIONS = [
     { label: 'off', scale: 0 },
     { label: 'small', scale: 1 },
@@ -120,6 +139,10 @@
 
   let blackSegmentsCounter = 0;
   let blackSegmentsIntervalId = null;
+
+  let flashModeTimeoutId = null;
+  let flashModeIntervalId = null;
+  let lastBoardChangeTime = 0;
 
   let threeJsLoaded = false;
   let canvasRenderer = null;
@@ -980,6 +1003,10 @@
     for (const { setting } of SETTINGS_WITH_BLACK_SEGMENTS_BUTTONS) {
       updateSettingButtonLabel(setting, blackSegmentsButtons);
     }
+
+    for (const { setting } of SETTINGS_WITH_FLASH_MODE_BUTTONS) {
+      updateSettingButtonLabel(setting, flashModeButtons);
+    }
   }
 
   function applyLoadedSettings() {
@@ -998,9 +1025,19 @@
       blackSegmentsContainer.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
     }
 
+    const flashModeContainer = document.querySelector('.flash-mode-buttons-container');
+    if (flashModeContainer) {
+      flashModeContainer.style.display = state.flashModeEnabled ? 'block' : 'none';
+    }
+
     // Start black segments interval if mode is active
     if (state.blackSegmentsModeIndex > 0 && state.obfuscationsEnabled && state.customBoardEnabled) {
       startBlackSegmentsInterval();
+    }
+
+    // Start flash mode if enabled
+    if (state.flashModeEnabled) {
+      startFlashMode();
     }
 
     PIECES_LIST_SETTING.apply();
@@ -1011,6 +1048,9 @@
 
     if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
       applyParallaxTransform();
+    } else if (state.dividersEnabled) {
+      // If we're not using 3D mode but have dividers enabled, set up the resize observer
+      setupResizeObserver();
     }
 
     if (state.dividersEnabled) {
@@ -1207,6 +1247,7 @@
         stopHealthCheck();
         stopHoverMode();
         stopBlackSegmentsInterval();
+        stopFlashMode();
         removeCustomBoardElement();
         cleanup3DCanvas();
         clearDividers();
@@ -1311,10 +1352,68 @@
     },
   };
 
+  const FLASH_MODE_SETTING = {
+    command: 'fm',
+    stateKey: 'flashModeEnabled',
+    options: [{ label: 'OFF' }, { label: 'ON' }],
+    formatLabel: ({ withSuffix }) => {
+      const suffix = withSuffix ? ` (${formatCommand(FLASH_MODE_SETTING.command)})` : '';
+      const status = state.flashModeEnabled ? 'ON' : 'OFF';
+      return `Flash mode (${status})${suffix}`;
+    },
+    apply: () => {
+      const flashModeContainer = document.querySelector('.flash-mode-buttons-container');
+      if (flashModeContainer) {
+        flashModeContainer.style.display = state.flashModeEnabled ? 'block' : 'none';
+      }
+      if (state.flashModeEnabled) {
+        startFlashMode();
+      } else {
+        stopFlashMode();
+        showBoard();
+      }
+    },
+  };
+
+  const FLASH_DURATION_SETTING = {
+    name: 'Flash duration',
+    command: 'fd',
+    stateKey: 'flashDurationIndex',
+    options: FLASH_DURATION_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = FLASH_DURATION_OPTIONS[state.flashDurationIndex];
+      const suffix = withSuffix ? ` (${formatCommand(FLASH_DURATION_SETTING.command)})` : '';
+      return `Flash duration (${option.label})${suffix}`;
+    },
+    apply: () => {
+      if (state.flashModeEnabled) {
+        restartFlashMode();
+      }
+    },
+  };
+
+  const FLASH_INTERVAL_SETTING = {
+    name: 'Flash every',
+    command: 'fi',
+    stateKey: 'flashIntervalIndex',
+    options: FLASH_INTERVAL_OPTIONS,
+    formatLabel: ({ withSuffix }) => {
+      const option = FLASH_INTERVAL_OPTIONS[state.flashIntervalIndex];
+      const suffix = withSuffix ? ` (${formatCommand(FLASH_INTERVAL_SETTING.command)})` : '';
+      return `Flash every (${option.label})${suffix}`;
+    },
+    apply: () => {
+      if (state.flashModeEnabled) {
+        restartFlashMode();
+      }
+    },
+  };
+
   const SETTINGS_WITH_COMMAND_BUTTONS = [
     { setting: SPEAK_RATE_SETTING, withSuffix: true },
     { setting: PIECES_LIST_SETTING, withSuffix: true },
     { setting: CUSTOM_BOARD_SETTING, withSuffix: true },
+    { setting: FLASH_MODE_SETTING, withSuffix: true },
   ];
 
   const SETTINGS_WITH_BOARD_MOD_BUTTONS = [
@@ -1332,6 +1431,11 @@
 
   const SETTINGS_WITH_BLACK_SEGMENTS_BUTTONS = [
     { setting: BLACK_SEGMENTS_TIMING_SETTING },
+  ];
+
+  const SETTINGS_WITH_FLASH_MODE_BUTTONS = [
+    { setting: FLASH_DURATION_SETTING },
+    { setting: FLASH_INTERVAL_SETTING },
   ];
 
   function updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix } = {}) {
@@ -1357,6 +1461,7 @@
   const boardModificationButtons = {};
   const obfuscationButtons = {};
   const blackSegmentsButtons = {};
+  const flashModeButtons = {};
 
   const COMMANDS = {
     wk: {
@@ -1420,6 +1525,24 @@
     [CUSTOM_BOARD_SETTING.command]: {
       fullName: CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleCustomBoard(),
+    },
+
+    [FLASH_MODE_SETTING.command]: {
+      fullName: FLASH_MODE_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => toggleFlashMode(),
+    },
+  };
+
+  const FLASH_MODE_COMMANDS = {
+    [FLASH_DURATION_SETTING.command]: {
+      setting: FLASH_DURATION_SETTING,
+      fullName: FLASH_DURATION_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(FLASH_DURATION_SETTING, flashModeButtons),
+    },
+    [FLASH_INTERVAL_SETTING.command]: {
+      setting: FLASH_INTERVAL_SETTING,
+      fullName: FLASH_INTERVAL_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => cycleSetting(FLASH_INTERVAL_SETTING, flashModeButtons),
     },
   };
 
@@ -2109,6 +2232,13 @@
 
         if (!group) {
           container.appendChild(createCommandElement(commandName, { inline: false }));
+
+          // Add nested flash mode buttons after flash mode toggle
+          if (commandName === formatCommand(FLASH_MODE_SETTING.command)) {
+            const flashModeContainer = createFlashModeButtonContainer(container);
+            createFlashModeButtons(flashModeContainer);
+          }
+
           return;
         }
 
@@ -2258,6 +2388,52 @@
     });
 
     blackSegmentsButtons[commandName] = button;
+    return button;
+  }
+
+  function createFlashModeButtonContainer(parentContainer) {
+    const container = document.createElement('div');
+    container.classList.add('flash-mode-buttons-container');
+    container.style.marginLeft = '16px';
+    container.style.display = state.flashModeEnabled ? 'block' : 'none';
+    parentContainer.appendChild(container);
+    return container;
+  }
+
+  function createFlashModeButtons(container) {
+    Object
+      .keys(FLASH_MODE_COMMANDS)
+      .forEach(commandName => {
+        const command = FLASH_MODE_COMMANDS[commandName];
+        if (command.setting) {
+          container.appendChild(createSettingDropdown(command.setting, flashModeButtons));
+        } else {
+          container.appendChild(createFlashModeButton(commandName));
+        }
+      });
+  }
+
+  function createFlashModeButton(commandName) {
+    const command = FLASH_MODE_COMMANDS[commandName];
+    const { fullName, exec } = command;
+
+    const button = document.createElement('button');
+    button.innerText = fullName;
+    button.title = fullName;
+    button.style.display = 'block';
+    button.style.width = '100%';
+    button.style.padding = '2px';
+    button.style.margin = '8px';
+    button.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+    button.style.borderRadius = '4px';
+    button.style.textAlign = 'left';
+
+    button.addEventListener('click', () => {
+      console.debug('[lichess-board-speaker] flash mode button clicked', { fullName });
+      exec();
+    });
+
+    flashModeButtons[commandName] = button;
     return button;
   }
 
@@ -2788,6 +2964,138 @@
     state.piecesListVisible = !state.piecesListVisible;
     updateSettingButtonLabel(PIECES_LIST_SETTING, commandButtons, { buttonKey: formatCommand(PIECES_LIST_SETTING.command), withSuffix: true });
     PIECES_LIST_SETTING.apply();
+    saveSettings();
+  }
+
+  function hideBoard() {
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    let blackOverlay = container.querySelector('.userscript-flash-overlay');
+    if (!blackOverlay) {
+      blackOverlay = document.createElement('div');
+      blackOverlay.className = 'userscript-flash-overlay';
+      blackOverlay.style.position = 'absolute';
+      blackOverlay.style.top = '0';
+      blackOverlay.style.left = '0';
+      blackOverlay.style.width = '100%';
+      blackOverlay.style.height = '100%';
+      blackOverlay.style.backgroundColor = 'black';
+      blackOverlay.style.zIndex = '1000';
+      blackOverlay.style.pointerEvents = 'none';
+      container.appendChild(blackOverlay);
+    }
+    blackOverlay.style.display = 'block';
+  }
+
+  function showBoard() {
+    const container = document.querySelector('cg-container');
+    if (!container) return;
+
+    const blackOverlay = container.querySelector('.userscript-flash-overlay');
+    if (blackOverlay) {
+      blackOverlay.style.display = 'none';
+    }
+  }
+
+  function onBoardChange() {
+    if (!state.flashModeEnabled) return;
+
+    lastBoardChangeTime = Date.now();
+
+    showBoard();
+
+    if (flashModeTimeoutId) {
+      clearTimeout(flashModeTimeoutId);
+    }
+
+    const flashDuration = FLASH_DURATION_OPTIONS[state.flashDurationIndex].value;
+    flashModeTimeoutId = setTimeout(() => {
+      hideBoard();
+    }, flashDuration);
+  }
+
+  function startFlashModeInterval() {
+    if (flashModeIntervalId) {
+      clearInterval(flashModeIntervalId);
+    }
+
+    const flashInterval = FLASH_INTERVAL_OPTIONS[state.flashIntervalIndex].value * 1000;
+
+    flashModeIntervalId = setInterval(() => {
+      const timeSinceLastChange = Date.now() - lastBoardChangeTime;
+      if (timeSinceLastChange >= flashInterval) {
+        onBoardChange();
+      }
+    }, flashInterval);
+  }
+
+  function stopFlashMode() {
+    if (flashModeTimeoutId) {
+      clearTimeout(flashModeTimeoutId);
+      flashModeTimeoutId = null;
+    }
+    if (flashModeIntervalId) {
+      clearInterval(flashModeIntervalId);
+      flashModeIntervalId = null;
+    }
+    if (flashModeObserver) {
+      flashModeObserver.disconnect();
+      flashModeObserver = null;
+    }
+
+    const container = document.querySelector('cg-container');
+    if (container) {
+      const blackOverlay = container.querySelector('.userscript-flash-overlay');
+      if (blackOverlay) {
+        blackOverlay.remove();
+      }
+    }
+  }
+
+  function restartFlashMode() {
+    stopFlashMode();
+    if (state.flashModeEnabled) {
+      startFlashMode();
+    }
+  }
+
+  let flashModeObserver = null;
+
+  function startFlashMode() {
+    stopFlashMode();
+
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    if (!board) {
+      console.debug('[lichess-board-speaker] startFlashMode: board not found');
+      return;
+    }
+
+    lastBoardChangeTime = Date.now();
+    showBoard();
+
+    flashModeObserver = new MutationObserver(() => {
+      onBoardChange();
+    });
+
+    flashModeObserver.observe(board, {
+      childList: true,
+      attributes: true,
+      subtree: true
+    });
+
+    startFlashModeInterval();
+  }
+
+  function toggleFlashMode() {
+    state.flashModeEnabled = !state.flashModeEnabled;
+
+    const button = commandButtons[formatCommand(FLASH_MODE_SETTING.command)];
+    if (button) {
+      button.innerText = FLASH_MODE_SETTING.formatLabel({ withSuffix: true });
+    }
+
+    FLASH_MODE_SETTING.apply();
     saveSettings();
   }
 
