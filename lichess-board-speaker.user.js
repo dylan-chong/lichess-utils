@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.5
+// @version     3.3.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1395,102 +1395,6 @@
     }
   }
 
-  function updateButtonLabels() {
-    for (const { setting, withSuffix } of SETTINGS_WITH_COMMAND_BUTTONS) {
-      const commandName = formatCommand(setting.command);
-      const command = COMMANDS_WITH_PREFIX[commandName];
-      const element = commandButtons[commandName];
-      if (!element) continue;
-      if (element.tagName === 'SELECT') {
-        element.selectedIndex = state[setting.stateKey];
-      } else if (element.tagName === 'BUTTON') {
-        // For toggle buttons, use settingForLabel if available
-        const settingObj = command?.settingForLabel || setting;
-        element.innerText = settingObj.formatLabel({ withSuffix });
-      }
-    }
-
-    for (const { setting } of SETTINGS_WITH_CUSTOM_BOARD_BUTTONS) {
-      updateSettingButtonLabel(setting, customBoardButtons);
-    }
-
-    for (const { setting } of SETTINGS_WITH_BOARD_MOD_BUTTONS) {
-      updateSettingButtonLabel(setting, boardModificationButtons);
-    }
-
-    for (const { setting } of SETTINGS_WITH_OBFUSCATION_BUTTONS) {
-      updateSettingButtonLabel(setting, obfuscationButtons);
-    }
-
-    for (const { setting } of SETTINGS_WITH_BLACK_SEGMENTS_BUTTONS) {
-      updateSettingButtonLabel(setting, blackSegmentsButtons);
-    }
-
-    for (const { setting } of SETTINGS_WITH_FLASH_MODE_BUTTONS) {
-      updateSettingButtonLabel(setting, flashModeButtons);
-    }
-  }
-
-  function applyLoadedSettings() {
-    const customBoardContainer = document.querySelector('.custom-board-buttons-container');
-    if (customBoardContainer) {
-      customBoardContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
-    }
-
-    const boardModContainer = document.querySelector('.board-mod-buttons-container');
-    if (boardModContainer) {
-      boardModContainer.style.display = state.customBoardEnabled ? 'block' : 'none';
-    }
-
-    const obfuscationsContainer = document.querySelector('.obfuscations-buttons-container');
-    if (obfuscationsContainer) {
-      obfuscationsContainer.style.display = state.obfuscationsEnabled ? 'block' : 'none';
-    }
-
-    const blackSegmentsContainer = document.querySelector('.black-segments-buttons-container');
-    if (blackSegmentsContainer) {
-      blackSegmentsContainer.style.display = state.blackSegmentsModeIndex > 0 ? 'block' : 'none';
-    }
-
-    const flashModeContainer = document.querySelector('.flash-mode-buttons-container');
-    if (flashModeContainer) {
-      flashModeContainer.style.display = state.flashModeEnabled ? 'block' : 'none';
-    }
-
-    // Start black segments interval if mode is active
-    if (state.blackSegmentsModeIndex > 0 && state.obfuscationsEnabled && state.customBoardEnabled) {
-      startBlackSegmentsInterval();
-    }
-
-    // Start flash mode if enabled
-    if (state.flashModeEnabled) {
-      startFlashMode();
-    }
-
-    PIECES_LIST_SETTING.apply();
-
-    // Apply dividers regardless of custom board state
-    if (state.dividersEnabled) {
-      drawDividers();
-    }
-
-    if (!state.customBoardEnabled) {
-      return;
-    }
-
-    if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
-      applyParallaxTransform();
-    }
-
-    if (state.hoverModeIndex > 0) {
-      startHoverMode();
-    }
-
-    if (state.blurIndex > 0) {
-      applyBlur();
-    }
-  }
-
   const COMMAND_PREFIX = 'p';
 
   function formatCommand(commandName) {
@@ -1668,7 +1572,7 @@
       if (state.customBoardEnabled) {
         setupBoardReplacementObserver();
         startHealthCheck();
-        applyLoadedSettings();
+        onSettingChanged();
       } else {
         cleanupBoardObservers();
         if (boardReplacementObserver) {
@@ -1875,17 +1779,6 @@
     { setting: FLASH_DURATION_SETTING },
     { setting: FLASH_INTERVAL_SETTING },
   ];
-
-  function updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix } = {}) {
-    const key = buttonKey || setting.command;
-    const element = buttonMap[key];
-    if (!element) return;
-    if (element.tagName === 'SELECT') {
-      element.selectedIndex = state[setting.stateKey];
-    } else {
-      element.innerText = setting.formatLabel({ withSuffix: withSuffix || false });
-    }
-  }
 
   function cycleSetting(setting, buttonMap, { buttonKey, withSuffix } = {}) {
     if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
