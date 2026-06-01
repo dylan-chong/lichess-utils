@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.0
+// @version     3.2.1
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2956,14 +2956,12 @@
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
     if (!board) return;
 
-    const needsCustomBoard = state.parallaxIndex > 0 || state.pieceStyleIndex > 0;
-    if (!needsCustomBoard) return;
-
+    // Custom board always needs Three.js canvas
     if (!canvasElement || !canvasElement.isConnected) {
       console.debug('[lichess-board-speaker] health check: canvas disconnected, recreating');
       cleanupBoardObservers();
       cleanup3DCanvas();
-      applyLoadedSettings();
+      onSettingChanged(); // Re-initialize everything
       return;
     }
 
@@ -3070,30 +3068,13 @@
       return;
     }
 
-    const angle = PARALLAX_OPTIONS[state.parallaxIndex].value;
-    const needsCustomBoard = angle > 0 || state.pieceStyleIndex > 0;
+    // Custom board always uses Three.js
+    hideOriginalBoard(board);
+    hideBoardPieces(board);
+    removeCustomBoardElement();
 
-    if (!needsCustomBoard) {
-      showOriginalBoard(board);
-      showBoardPieces(board);
-      removeCustomBoardElement();
-      cleanup3DCanvas();
-
-      cleanupBoardObservers();
-
-      if (state.hoverModeIndex > 0) {
-        state.hoverModeIndex = 0;
-        updateSettingButtonLabel(HOVER_MODE_SETTING, boardModificationButtons);
-        stopHoverMode();
-      }
-    } else {
-      hideOriginalBoard(board);
-      hideBoardPieces(board);
-      removeCustomBoardElement();
-
-      await init3DMode();
-      setupParallaxMoveObserver();
-    }
+    await init3DMode();
+    setupParallaxMoveObserver();
   }
 
   function setupResizeObserver() {
