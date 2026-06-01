@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.10
+// @version     2.11
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -3139,14 +3139,30 @@
       return;
     }
 
-    flashModeObserver = new MutationObserver(() => {
-      onBoardChange();
+    flashModeObserver = new MutationObserver((mutations) => {
+      // Check if there are real piece changes (not just animations)
+      const hasRealChange = mutations.some(mutation => {
+        // Child list changes (piece added/removed)
+        if (mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
+          return true;
+        }
+        // Attribute changes on pieces (position changes)
+        if (mutation.type === 'attributes' && mutation.target.tagName === 'PIECE') {
+          return mutation.attributeName === 'style' || mutation.attributeName === 'class';
+        }
+        return false;
+      });
+
+      if (hasRealChange) {
+        onBoardChange();
+      }
     });
 
     flashModeObserver.observe(board, {
       childList: true,
       attributes: true,
-      subtree: true
+      subtree: true,
+      attributeFilter: ['style', 'class']
     });
 
     startFlashModeInterval();
