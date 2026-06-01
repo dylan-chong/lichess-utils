@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.2
+// @version     3.2.3
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1374,12 +1374,12 @@
         startBlackSegmentsInterval();
         updateBlackSegments();
       }
+    }
 
-      // Reapply 3D pieces if needed
-      if (canvasScene) {
-        clear3DPieces();
-        updateBlackSegments();
-      }
+    // Update 3D pieces (needed for piece style and black segments)
+    if (canvasScene) {
+      update3DPieces();
+      render3DCanvas();
     }
 
     // Draw dividers if enabled
