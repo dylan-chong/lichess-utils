@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.11
+// @version     2.12
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1429,13 +1429,13 @@
   const SETTINGS_WITH_COMMAND_BUTTONS = [
     { setting: SPEAK_RATE_SETTING, withSuffix: true },
     { setting: PIECES_LIST_SETTING, withSuffix: true },
+    { setting: DIVIDERS_SETTING, withSuffix: true },
     { setting: CUSTOM_BOARD_SETTING, withSuffix: true },
     { setting: FLASH_MODE_SETTING, withSuffix: true },
   ];
 
   const SETTINGS_WITH_BOARD_MOD_BUTTONS = [
     { setting: PARALLAX_SETTING },
-    { setting: DIVIDERS_SETTING },
     { setting: HOVER_MODE_SETTING },
   ];
 
@@ -1543,6 +1543,11 @@
       exec: setExampleAnnotation
     },
 
+    [DIVIDERS_SETTING.command]: {
+      fullName: DIVIDERS_SETTING.formatLabel({ withSuffix: false }),
+      exec: () => toggleDividers(),
+    },
+
     [CUSTOM_BOARD_SETTING.command]: {
       fullName: CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleCustomBoard(),
@@ -1580,10 +1585,6 @@
       setting: PARALLAX_SETTING,
       fullName: PARALLAX_SETTING.formatLabel({ withSuffix: false }),
       exec: () => cycleSetting(PARALLAX_SETTING, boardModificationButtons),
-    },
-    [DIVIDERS_SETTING.command]: {
-      fullName: DIVIDERS_SETTING.formatLabel({ withSuffix: false }),
-      exec: () => toggleDividers(),
     },
     [HOVER_MODE_SETTING.command]: {
       setting: HOVER_MODE_SETTING,
@@ -2258,6 +2259,7 @@
 
   function createButtons(container) {
     const processedGroups = new Set();
+    let customBoardContainer = null;
 
     Object
       .keys(COMMANDS_WITH_PREFIX)
@@ -2266,6 +2268,12 @@
 
         if (!group) {
           container.appendChild(createCommandElement(commandName, { inline: false }));
+
+          // Add nested custom board buttons after custom board toggle
+          if (commandName === formatCommand(CUSTOM_BOARD_SETTING.command)) {
+            customBoardContainer = createCustomBoardButtonContainer(container);
+            createCustomBoardButtons(customBoardContainer);
+          }
 
           // Add nested flash mode buttons after flash mode toggle
           if (commandName === formatCommand(FLASH_MODE_SETTING.command)) {
@@ -2286,6 +2294,12 @@
         });
         container.appendChild(row);
       });
+
+    // Add board mod buttons to custom board container if it was created
+    if (customBoardContainer) {
+      const boardModContainer = createBoardModButtonContainer(customBoardContainer);
+      createBoardModButtons(boardModContainer);
+    }
   }
 
   function createCustomBoardElement(commandName, { inline } = { inline: false }) {
@@ -2840,10 +2854,11 @@
   }
 
   function toggleDividers() {
-    if (!state.customBoardEnabled) return;
-
     state.dividersEnabled = !state.dividersEnabled;
-    updateSettingButtonLabel(DIVIDERS_SETTING, boardModificationButtons);
+    const button = commandButtons[formatCommand(DIVIDERS_SETTING.command)];
+    if (button) {
+      button.innerText = DIVIDERS_SETTING.formatLabel({ withSuffix: true });
+    }
     DIVIDERS_SETTING.apply();
     saveSettings();
   }
@@ -3274,12 +3289,6 @@
     const keyboardMoveElement = moveInput.closest('.keyboard-move');
     const buttonContainer = createButtonContainer(keyboardMoveElement);
     createButtons(buttonContainer);
-
-    const customBoardContainer = createCustomBoardButtonContainer(buttonContainer);
-    createCustomBoardButtons(customBoardContainer);
-
-    const boardModContainer = createBoardModButtonContainer(customBoardContainer);
-    createBoardModButtons(boardModContainer);
 
     const underboard = document.querySelector('.analyse__underboard');
     if (underboard) {
