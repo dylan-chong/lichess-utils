@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.14
+// @version     2.15
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1543,16 +1543,19 @@
     },
 
     [DIVIDERS_SETTING.command]: {
+      setting: DIVIDERS_SETTING,
       fullName: DIVIDERS_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleDividers(),
     },
 
     [CUSTOM_BOARD_SETTING.command]: {
+      setting: CUSTOM_BOARD_SETTING,
       fullName: CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleCustomBoard(),
     },
 
     [FLASH_MODE_SETTING.command]: {
+      setting: FLASH_MODE_SETTING,
       fullName: FLASH_MODE_SETTING.formatLabel({ withSuffix: false }),
       exec: () => toggleFlashMode(),
     },
