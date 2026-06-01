@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.13
+// @version     2.14
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1050,19 +1050,17 @@
 
     PIECES_LIST_SETTING.apply();
 
+    // Apply dividers regardless of custom board state
+    if (state.dividersEnabled) {
+      drawDividers();
+    }
+
     if (!state.customBoardEnabled) {
       return;
     }
 
     if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
       applyParallaxTransform();
-    } else if (state.dividersEnabled) {
-      // If we're not using 3D mode but have dividers enabled, set up the resize observer
-      setupResizeObserver();
-    }
-
-    if (state.dividersEnabled) {
-      drawDividers();
     }
 
     if (state.hoverModeIndex > 0) {
@@ -1261,10 +1259,9 @@
         stopHealthCheck();
         stopHoverMode();
         stopBlackSegmentsInterval();
-        stopFlashMode();
+        // Don't stop flash mode or clear dividers - they work independently
         removeCustomBoardElement();
         cleanup3DCanvas();
-        clearDividers();
         const container = document.querySelector('cg-container');
         if (container) {
           container.style.filter = '';
@@ -1279,6 +1276,10 @@
         const svg = document.querySelector('cg-container svg.userscript-drawings');
         if (svg) {
           svg.remove();
+        }
+        // Re-apply dividers if they were enabled (they got cleared by the svg.remove above if they were 2D)
+        if (state.dividersEnabled) {
+          drawDividers();
         }
       }
     },
