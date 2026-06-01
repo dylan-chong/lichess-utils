@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.12
+// @version     2.13
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -53,7 +53,7 @@
     hoverModeIndex: 0,
     piecesListVisible: false,
     flashModeEnabled: false,
-    flashDurationIndex: 4,
+    flashDurationIndex: 2,
     flashIntervalIndex: 3,
   };
 
@@ -115,8 +115,6 @@
   ];
 
   const FLASH_DURATION_OPTIONS = [
-    { label: '30ms', value: 30 },
-    { label: '100ms', value: 100 },
     { label: '300ms', value: 300 },
     { label: '500ms', value: 500 },
     { label: '1000ms', value: 1000 },
