@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     2.16
+// @version     3.0.0
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -135,6 +135,130 @@
     { label: 'large', scale: 2 },
     { label: 'super', scale: 3 },
   ];
+
+  // ============================================================================
+  // SETTINGS METADATA - Centralized configuration for all settings
+  // ============================================================================
+
+  const SETTINGS = {
+    speakRate: {
+      stateKey: 'speakRateIndex',
+      type: 'dropdown',
+      options: SPEAK_RATE_OPTIONS,
+      command: 'sr',
+      label: () => `Speak rate (${SPEAK_RATE_OPTIONS[state.speakRateIndex].label})`,
+      buttonMap: 'commandButtons',
+    },
+    piecesList: {
+      stateKey: 'piecesListVisible',
+      type: 'toggle',
+      command: 'l',
+      label: () => `List pieces (${state.piecesListVisible ? 'ON' : 'OFF'})`,
+      buttonMap: 'commandButtons',
+    },
+    dividers: {
+      stateKey: 'dividersEnabled',
+      type: 'toggle',
+      command: 'div',
+      label: () => `Dividers (${state.dividersEnabled ? 'ON' : 'OFF'})`,
+      buttonMap: 'commandButtons',
+    },
+    customBoard: {
+      stateKey: 'customBoardEnabled',
+      type: 'toggle',
+      command: 'cb',
+      label: () => `Custom board (${state.customBoardEnabled ? 'ON' : 'OFF'})`,
+      buttonMap: 'commandButtons',
+    },
+    flashMode: {
+      stateKey: 'flashModeEnabled',
+      type: 'toggle',
+      command: 'fm',
+      label: () => `Flash mode (${state.flashModeEnabled ? 'ON' : 'OFF'})`,
+      buttonMap: 'commandButtons',
+    },
+    obfuscations: {
+      stateKey: 'obfuscationsEnabled',
+      type: 'toggle',
+      command: 'ob',
+      label: () => `Obfuscations (${state.obfuscationsEnabled ? 'ON' : 'OFF'})`,
+      buttonMap: 'customBoardButtons',
+    },
+    parallax: {
+      stateKey: 'parallaxIndex',
+      type: 'dropdown',
+      options: PARALLAX_OPTIONS,
+      command: 'px',
+      label: () => `Parallax (${PARALLAX_OPTIONS[state.parallaxIndex].label})`,
+      buttonMap: 'boardModificationButtons',
+    },
+    hover: {
+      stateKey: 'hoverModeIndex',
+      type: 'dropdown',
+      options: HOVER_MODE_OPTIONS,
+      command: 'hv',
+      label: () => `Hover mode (${HOVER_MODE_OPTIONS[state.hoverModeIndex].label})`,
+      buttonMap: 'boardModificationButtons',
+    },
+    pieceStyle: {
+      stateKey: 'pieceStyleIndex',
+      type: 'dropdown',
+      options: PIECE_STYLE_OPTIONS,
+      command: 'ps',
+      label: () => `Piece style (${PIECE_STYLE_OPTIONS[state.pieceStyleIndex].label})`,
+      buttonMap: 'obfuscationButtons',
+    },
+    blur: {
+      stateKey: 'blurIndex',
+      type: 'dropdown',
+      options: BLUR_OPTIONS,
+      command: 'blur',
+      label: () => `Blur (${BLUR_OPTIONS[state.blurIndex].label})`,
+      buttonMap: 'obfuscationButtons',
+    },
+    blackSegmentsMode: {
+      stateKey: 'blackSegmentsModeIndex',
+      type: 'dropdown',
+      options: BLACK_SEGMENTS_MODE_OPTIONS,
+      command: 'bs',
+      label: () => `Black segments (${BLACK_SEGMENTS_MODE_OPTIONS[state.blackSegmentsModeIndex].label})`,
+      buttonMap: 'obfuscationButtons',
+    },
+    blackSegmentsTiming: {
+      stateKey: 'blackSegmentsTimingIndex',
+      type: 'dropdown',
+      options: BLACK_SEGMENTS_TIMING_OPTIONS,
+      command: 'bst',
+      label: () => `${BLACK_SEGMENTS_TIMING_OPTIONS[state.blackSegmentsTimingIndex].label}`,
+      buttonMap: 'blackSegmentsButtons',
+    },
+    flashDuration: {
+      stateKey: 'flashDurationIndex',
+      type: 'dropdown',
+      options: FLASH_DURATION_OPTIONS,
+      command: 'fd',
+      label: () => `Flash duration (${FLASH_DURATION_OPTIONS[state.flashDurationIndex].label})`,
+      buttonMap: 'flashModeButtons',
+    },
+    flashInterval: {
+      stateKey: 'flashIntervalIndex',
+      type: 'dropdown',
+      options: FLASH_INTERVAL_OPTIONS,
+      command: 'fi',
+      label: () => `Flash every (${FLASH_INTERVAL_OPTIONS[state.flashIntervalIndex].label})`,
+      buttonMap: 'flashModeButtons',
+    },
+  };
+
+  // UI container visibility hierarchy
+  const UI_HIERARCHY = {
+    '.custom-board-buttons-container': () => state.customBoardEnabled,
+    '.board-mod-buttons-container': () => state.customBoardEnabled,
+    '.obfuscations-buttons-container': () => state.obfuscationsEnabled,
+    '.black-segments-buttons-container': () => state.blackSegmentsModeIndex > 0,
+    '.flash-mode-buttons-container': () => state.flashModeEnabled,
+    '.pieces-list-box': () => state.piecesListVisible,
+  };
 
   let blackSegmentsCounter = 0;
   let blackSegmentsIntervalId = null;
@@ -980,6 +1104,257 @@
     }
   }
 
+  // ============================================================================
+  // CORE STATE MANAGEMENT - New centralized architecture
+  // ============================================================================
+
+  /**
+   * Central entry point for ALL setting changes.
+   * Reapplies everything for robustness and simplicity.
+   */
+  function onSettingChanged(settingKey, newValue) {
+    if (settingKey !== undefined && newValue !== undefined) {
+      state[settingKey] = newValue;
+      saveSettings();
+    }
+
+    updateUI();
+    applyAllEffects();
+
+    console.debug('[lichess-board-speaker] setting changed:', settingKey, newValue);
+  }
+
+  /**
+   * Updates ALL UI elements (button labels and container visibility).
+   * Pure UI updates, no side effects.
+   */
+  function updateUI() {
+    // Update all button labels
+    updateAllButtonLabels();
+
+    // Update container visibility
+    updateContainerVisibility();
+  }
+
+  function updateAllButtonLabels() {
+    // Get all button maps
+    const buttonMaps = {
+      commandButtons,
+      customBoardButtons,
+      boardModificationButtons,
+      obfuscationButtons,
+      blackSegmentsButtons,
+      flashModeButtons,
+    };
+
+    // Update each setting's button label
+    for (const [settingName, setting] of Object.entries(SETTINGS)) {
+      const buttonMap = buttonMaps[setting.buttonMap];
+      if (!buttonMap) continue;
+
+      const commandName = `p${setting.command}`;
+      const button = buttonMap[commandName];
+      if (!button) continue;
+
+      if (button.tagName === 'SELECT') {
+        button.selectedIndex = state[setting.stateKey];
+      } else if (button.tagName === 'BUTTON') {
+        button.innerText = `${setting.label()} (${commandName})`;
+      }
+    }
+  }
+
+  function updateContainerVisibility() {
+    for (const [selector, isVisible] of Object.entries(UI_HIERARCHY)) {
+      const container = document.querySelector(selector);
+      if (container) {
+        container.style.display = isVisible() ? 'block' : 'none';
+      }
+    }
+  }
+
+  /**
+   * Applies ALL side effects based on current state.
+   * Idempotent - safe to call multiple times.
+   */
+  function applyAllEffects() {
+    // 1. Stop all intervals and observers
+    stopAllIntervals();
+
+    // 2. Clear visual effects
+    clearAllVisualEffects();
+
+    // 3. Apply effects based on current state
+    applyPiecesListEffect();
+    applyDividersEffect();
+    applyFlashModeEffect();
+    applyCustomBoardEffects();
+  }
+
+  function stopAllIntervals() {
+    // Stop black segments interval
+    if (blackSegmentsIntervalId) {
+      clearInterval(blackSegmentsIntervalId);
+      blackSegmentsIntervalId = null;
+    }
+
+    // Stop flash mode timers
+    if (flashModeTimeoutId) {
+      clearTimeout(flashModeTimeoutId);
+      flashModeTimeoutId = null;
+    }
+    if (flashModeIntervalId) {
+      clearInterval(flashModeIntervalId);
+      flashModeIntervalId = null;
+    }
+    if (flashModeObserver) {
+      flashModeObserver.disconnect();
+      flashModeObserver = null;
+    }
+  }
+
+  function clearAllVisualEffects() {
+    // Clear dividers
+    const svgs = document.querySelectorAll('cg-board svg.userscript-dividers');
+    svgs.forEach(svg => svg.remove());
+    clear3DDividers();
+
+    // Clear flash overlay is handled by flash mode effect
+  }
+
+  function applyPiecesListEffect() {
+    const buttonKey = 'pl';
+    const button = commandButtons[buttonKey];
+    if (!button) return;
+
+    let textBox = button.parentElement.querySelector('.pieces-list-box');
+    if (!textBox && state.piecesListVisible) {
+      // Create textbox if it doesn't exist
+      textBox = document.createElement('div');
+      textBox.className = 'pieces-list-box';
+      textBox.style.boxSizing = 'border-box';
+      textBox.style.width = 'calc(100% - 16px)';
+      textBox.style.margin = '4px 8px 8px 16px';
+      textBox.style.padding = '8px';
+      textBox.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+      textBox.style.borderRadius = '4px';
+      textBox.style.fontSize = '12px';
+      textBox.style.lineHeight = '1.4';
+      textBox.style.color = 'inherit';
+      textBox.style.backgroundColor = 'rgba(0, 0, 0, 0.2)';
+      button.insertAdjacentElement('afterend', textBox);
+    }
+
+    if (state.piecesListVisible && textBox) {
+      renderPiecesList(textBox);
+      setupPiecesListObserver(textBox);
+    } else if (piecesListObserver) {
+      piecesListObserver.disconnect();
+      piecesListObserver = null;
+    }
+  }
+
+  function applyDividersEffect() {
+    if (state.dividersEnabled) {
+      drawDividers();
+    }
+  }
+
+  function applyFlashModeEffect() {
+    if (state.flashModeEnabled) {
+      startFlashMode();
+    } else {
+      const container = document.querySelector('cg-container');
+      if (container) {
+        const blackOverlay = container.querySelector('.userscript-flash-overlay');
+        if (blackOverlay) {
+          blackOverlay.remove();
+        }
+      }
+    }
+  }
+
+  function applyCustomBoardEffects() {
+    if (!state.customBoardEnabled) {
+      // Cleanup custom board
+      cleanupBoardObservers();
+      stopHoverMode();
+      stopBlackSegmentsInterval();
+      removeCustomBoardElement();
+      cleanup3DCanvas();
+
+      const container = document.querySelector('cg-container');
+      if (container) {
+        container.style.filter = '';
+      }
+      const board = document.querySelector('cg-board');
+      if (board) {
+        board.style.visibility = 'visible';
+        board.style.opacity = '';
+        board.style.transform = '';
+        board.style.transformStyle = '';
+      }
+      const svg = document.querySelector('cg-container svg.userscript-drawings');
+      if (svg) {
+        svg.remove();
+      }
+
+      // Re-apply dividers if enabled
+      if (state.dividersEnabled) {
+        drawDividers();
+      }
+      return;
+    }
+
+    // Custom board is enabled - apply all custom board effects
+    setupBoardReplacementObserver();
+    startHealthCheck();
+
+    // Apply parallax/3D effects
+    if (state.parallaxIndex > 0 || state.pieceStyleIndex > 0) {
+      applyParallaxTransform();
+    }
+
+    // Apply hover mode
+    if (state.hoverModeIndex > 0) {
+      // Auto-enable parallax if needed
+      if (state.parallaxIndex === 0) {
+        state.parallaxIndex = 3;
+        updateUI(); // Update UI to reflect auto-enabled parallax
+      }
+      startHoverMode();
+    }
+
+    // Apply obfuscation effects
+    if (state.obfuscationsEnabled) {
+      // Apply blur
+      if (state.blurIndex > 0) {
+        const container = document.querySelector('cg-container');
+        if (container) {
+          const blurAmount = BLUR_OPTIONS[state.blurIndex].value;
+          container.style.filter = `blur(${blurAmount}px)`;
+        }
+      }
+
+      // Apply black segments
+      if (state.blackSegmentsModeIndex > 0) {
+        startBlackSegmentsInterval();
+        updateBlackSegments();
+      }
+
+      // Reapply 3D pieces if needed
+      if (canvasScene) {
+        clear3DPieces();
+        updateBlackSegments();
+      }
+    }
+
+    // Draw dividers if enabled
+    if (state.dividersEnabled) {
+      drawDividers();
+    }
+  }
+
   function updateButtonLabels() {
     for (const { setting, withSuffix } of SETTINGS_WITH_COMMAND_BUTTONS) {
       const commandName = formatCommand(setting.command);
@@ -1474,10 +1849,8 @@
 
   function cycleSetting(setting, buttonMap, { buttonKey, withSuffix } = {}) {
     if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
-    state[setting.stateKey] = (state[setting.stateKey] + 1) % setting.options.length;
-    updateSettingButtonLabel(setting, buttonMap, { buttonKey, withSuffix });
-    setting.apply();
-    saveSettings();
+    const newValue = (state[setting.stateKey] + 1) % setting.options.length;
+    onSettingChanged(setting.stateKey, newValue);
   }
 
   const commandButtons = {};
@@ -2233,9 +2606,7 @@
 
     select.addEventListener('change', () => {
       if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
-      state[setting.stateKey] = select.selectedIndex;
-      setting.apply();
-      saveSettings();
+      onSettingChanged(setting.stateKey, select.selectedIndex);
     });
 
     wrapper.appendChild(label);
@@ -2779,11 +3150,7 @@
 
   function toggleHoverMode() {
     if (!state.customBoardEnabled) return;
-
-    state.hoverModeIndex = (state.hoverModeIndex + 1) % HOVER_MODE_OPTIONS.length;
-    updateSettingButtonLabel(HOVER_MODE_SETTING, boardModificationButtons);
-    HOVER_MODE_SETTING.apply();
-    saveSettings();
+    onSettingChanged('hoverModeIndex', (state.hoverModeIndex + 1) % HOVER_MODE_OPTIONS.length);
   }
 
   function createOrGetDividersSVG() {
@@ -2860,13 +3227,7 @@
   }
 
   function toggleDividers() {
-    state.dividersEnabled = !state.dividersEnabled;
-    const button = commandButtons[formatCommand(DIVIDERS_SETTING.command)];
-    if (button) {
-      button.innerText = DIVIDERS_SETTING.formatLabel({ withSuffix: true });
-    }
-    DIVIDERS_SETTING.apply();
-    saveSettings();
+    onSettingChanged('dividersEnabled', !state.dividersEnabled);
   }
 
   function applyBlur() {
@@ -2952,32 +3313,16 @@
 
   function toggleBlackSegmentsMode() {
     if (!state.customBoardEnabled) return;
-
-    state.blackSegmentsModeIndex = (state.blackSegmentsModeIndex + 1) % BLACK_SEGMENTS_MODE_OPTIONS.length;
-    updateSettingButtonLabel(BLACK_SEGMENTS_MODE_SETTING, obfuscationButtons);
-    BLACK_SEGMENTS_MODE_SETTING.apply();
-    saveSettings();
+    onSettingChanged('blackSegmentsModeIndex', (state.blackSegmentsModeIndex + 1) % BLACK_SEGMENTS_MODE_OPTIONS.length);
   }
 
   function toggleObfuscations() {
     if (!state.customBoardEnabled) return;
-
-    state.obfuscationsEnabled = !state.obfuscationsEnabled;
-    updateSettingButtonLabel(OBFUSCATIONS_SETTING, boardModificationButtons);
-    OBFUSCATIONS_SETTING.apply();
-    saveSettings();
+    onSettingChanged('obfuscationsEnabled', !state.obfuscationsEnabled);
   }
 
   function toggleCustomBoard() {
-    state.customBoardEnabled = !state.customBoardEnabled;
-
-    const button = commandButtons[formatCommand(CUSTOM_BOARD_SETTING.command)];
-    if (button) {
-      button.innerText = CUSTOM_BOARD_SETTING.formatLabel({ withSuffix: true });
-    }
-
-    CUSTOM_BOARD_SETTING.apply();
-    saveSettings();
+    onSettingChanged('customBoardEnabled', !state.customBoardEnabled);
   }
 
   function renderPiecesList(textBox) {
@@ -3045,10 +3390,7 @@
   }
 
   function togglePiecesList() {
-    state.piecesListVisible = !state.piecesListVisible;
-    updateSettingButtonLabel(PIECES_LIST_SETTING, commandButtons, { buttonKey: formatCommand(PIECES_LIST_SETTING.command), withSuffix: true });
-    PIECES_LIST_SETTING.apply();
-    saveSettings();
+    onSettingChanged('piecesListVisible', !state.piecesListVisible);
   }
 
   function hideBoard() {
@@ -3193,15 +3535,7 @@
   }
 
   function toggleFlashMode() {
-    state.flashModeEnabled = !state.flashModeEnabled;
-
-    const button = commandButtons[formatCommand(FLASH_MODE_SETTING.command)];
-    if (button) {
-      button.innerText = FLASH_MODE_SETTING.formatLabel({ withSuffix: true });
-    }
-
-    FLASH_MODE_SETTING.apply();
-    saveSettings();
+    onSettingChanged('flashModeEnabled', !state.flashModeEnabled);
   }
 
   function createCommandButton(commandName, { inline } = { inline: false }) {
@@ -3301,14 +3635,8 @@
       buttonContainer.appendChild(underboard);
     }
 
-    updateButtonLabels();
-
-    if (state.customBoardEnabled) {
-      setupBoardReplacementObserver();
-      startHealthCheck();
-    }
-
-    applyLoadedSettings();
+    // Initialize UI and apply all effects based on loaded state
+    onSettingChanged();
   }
 
   function onDocumentReady(handler) {
