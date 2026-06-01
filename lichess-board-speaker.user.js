@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.0.1
+// @version     3.0.2
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
 // @inject-into    content
-// @updateURL   https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
-// @downloadURL https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
+// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
+// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
 // ==/UserScript==
 
 // Example board from lichess puzzle page
