@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.4
+// @version     3.2.5
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1219,11 +1219,11 @@
     // 2. Clear visual effects
     clearAllVisualEffects();
 
-    // 3. Apply effects based on current state
+    // 3. Apply effects based on current state (order matters!)
     applyPiecesListEffect();
-    applyDividersEffect();
     applyFlashModeEffect();
-    applyCustomBoardEffects();
+    applyCustomBoardEffects(); // Must come before dividers (creates 3D canvas)
+    applyDividersEffect();      // Needs canvas to exist for 3D dividers
   }
 
   function stopAllIntervals() {
@@ -3043,7 +3043,7 @@
 
             if (state.customBoardEnabled) {
               setTimeout(() => {
-                applyLoadedSettings();
+                onSettingChanged();
               }, 50);
             }
 
