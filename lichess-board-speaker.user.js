@@ -1150,11 +1150,17 @@
     // Update each setting's button label
     for (const [settingName, setting] of Object.entries(SETTINGS)) {
       const buttonMap = buttonMaps[setting.buttonMap];
-      if (!buttonMap) continue;
+      if (!buttonMap) {
+        console.debug('[lichess-board-speaker] Button map not found for:', settingName, setting.buttonMap);
+        continue;
+      }
 
       const commandName = `p${setting.command}`;
       const button = buttonMap[commandName];
-      if (!button) continue;
+      if (!button) {
+        console.debug('[lichess-board-speaker] Button not found:', commandName, 'in', setting.buttonMap);
+        continue;
+      }
 
       if (button.tagName === 'SELECT') {
         button.selectedIndex = state[setting.stateKey];
@@ -1973,7 +1979,7 @@
   };
 
   const BOARD_MOD_BUTTON_GROUPS = [
-    [PARALLAX_SETTING.command, DIVIDERS_SETTING.command, HOVER_MODE_SETTING.command],
+    [PARALLAX_SETTING.command, HOVER_MODE_SETTING.command],
   ];
 
   const OBFUSCATION_COMMANDS = {
