@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.2.1
+// @version     3.2.2
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -9,6 +9,34 @@
 // @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
 // @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
 // ==/UserScript==
+
+/*
+ * ARCHITECTURE
+ *
+ * Centralized State Management (v3.0+):
+ * - All setting changes flow through onSettingChanged(key, value)
+ * - onSettingChanged → saves state → updateUI() → applyAllEffects()
+ * - Idempotent: applyAllEffects() reapplies EVERYTHING, not just what changed
+ * - No scattered .apply() methods - single source of truth
+ *
+ * Key Components:
+ * - SETTINGS: Metadata for all 14 settings (commands, labels, types, button maps)
+ * - UI_HIERARCHY: Centralized container visibility rules
+ * - updateUI(): Updates ALL button labels and container visibility
+ * - applyAllEffects(): Applies ALL side effects (dividers, flash mode, 3D, intervals)
+ *
+ * Features:
+ * - Speech: Read board positions aloud with configurable rate
+ * - Custom Board: Always renders with Three.js (parallax, hover, 3D pieces)
+ * - Obfuscations: Blur, piece style changes, black segments
+ * - Flash Mode: Memory training - board flashes briefly after moves
+ * - Dividers: Visual board quadrant separators (2D or 3D)
+ * - Pieces List: Live display of piece positions
+ *
+ * State Persistence:
+ * - Settings saved to localStorage on every change
+ * - Loaded on page init, then onSettingChanged() applies everything
+ */
 
 // Example board from lichess puzzle page
 // <cg-container style="width: 156px; height: 156px;">
