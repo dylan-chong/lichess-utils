@@ -25,6 +25,12 @@
  * - updateUI(): Updates ALL button labels and container visibility
  * - applyAllEffects(): Applies ALL side effects (dividers, flash mode, 3D, intervals)
  *
+ * Board Synchronization (v3.4+):
+ * - boardPoll(): Runs every 1s, calls onBoardChange() or handleBoardReplacement()
+ * - onBoardChange(): Updates 3D pieces, pieces list, and triggers flash mode
+ * - handleBoardReplacement(): Re-initializes when board element is replaced
+ * - MutationObservers: Complement polling for immediate updates during moves
+ *
  * Features:
  * - Speech: Read board positions aloud with configurable rate
  * - Custom Board: Always renders with Three.js (parallax, hover, 3D pieces)
@@ -2883,38 +2889,12 @@
     });
   }
 
-  function boardPoll() {
+  function onBoardChange() {
     const board = document.querySelector('cg-board:not(.userscript-custom-board)');
-
-    // Check if board was replaced
-    if (board !== lastBoardElement) {
-      if (board && lastBoardElement) {
-        console.debug('[lichess-board-speaker] board replaced detected by poll, re-initializing');
-        cleanupBoardObservers();
-        cleanup3DCanvas();
-
-        if (state.customBoardEnabled) {
-          setTimeout(() => {
-            onSettingChanged();
-          }, 50);
-        }
-        if (piecesListObserver) {
-          piecesListObserver.disconnect();
-          piecesListObserver = null;
-        }
-        if (state.piecesListVisible) {
-          const textBox = document.querySelector('.pieces-list-box');
-          if (textBox) {
-            renderPiecesList(textBox);
-            setupPiecesListObserver(textBox);
-          }
-        }
-      }
-      lastBoardElement = board;
-    }
+    if (!board) return;
 
     // Update 3D board if enabled
-    if (state.customBoardEnabled && board && canvasScene) {
+    if (state.customBoardEnabled && canvasScene) {
       update3DPieces();
       if (state.hoverModeIndex === 0) {
         render3DCanvas();
@@ -2922,12 +2902,70 @@
     }
 
     // Update pieces list if enabled
-    if (state.piecesListVisible && board) {
+    if (state.piecesListVisible) {
       const textBox = document.querySelector('.pieces-list-box');
       if (textBox) {
         renderPiecesList(textBox);
       }
     }
+
+    // Flash mode handling
+    if (state.flashModeEnabled) {
+      lastBoardChangeTime = Date.now();
+
+      showBoard();
+
+      if (flashModeTimeoutId) {
+        clearTimeout(flashModeTimeoutId);
+      }
+
+      const flashDuration = FLASH_DURATION_OPTIONS[state.flashDurationIndex].value;
+      flashModeTimeoutId = setTimeout(() => {
+        hideBoard();
+      }, flashDuration);
+
+      // Reset the "flash every" interval
+      startFlashModeInterval();
+    }
+  }
+
+  function handleBoardReplacement() {
+    console.debug('[lichess-board-speaker] board replaced detected by poll, re-initializing');
+    cleanupBoardObservers();
+    cleanup3DCanvas();
+
+    if (state.customBoardEnabled) {
+      setTimeout(() => {
+        onSettingChanged();
+      }, 50);
+    }
+    if (piecesListObserver) {
+      piecesListObserver.disconnect();
+      piecesListObserver = null;
+    }
+    if (state.piecesListVisible) {
+      const textBox = document.querySelector('.pieces-list-box');
+      if (textBox) {
+        renderPiecesList(textBox);
+        setupPiecesListObserver(textBox);
+      }
+    }
+  }
+
+  function boardPoll() {
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+
+    // Check if board was replaced
+    if (board !== lastBoardElement) {
+      if (board && lastBoardElement) {
+        handleBoardReplacement();
+      }
+      lastBoardElement = board;
+      return;
+    }
+
+    // Regular update - reuse onBoardChange
+    onBoardChange();
   }
 
   function startBoardPolling() {
@@ -3407,26 +3445,6 @@
     if (blackOverlay) {
       blackOverlay.style.display = 'none';
     }
-  }
-
-  function onBoardChange() {
-    if (!state.flashModeEnabled) return;
-
-    lastBoardChangeTime = Date.now();
-
-    showBoard();
-
-    if (flashModeTimeoutId) {
-      clearTimeout(flashModeTimeoutId);
-    }
-
-    const flashDuration = FLASH_DURATION_OPTIONS[state.flashDurationIndex].value;
-    flashModeTimeoutId = setTimeout(() => {
-      hideBoard();
-    }, flashDuration);
-
-    // Reset the "flash every" interval
-    startFlashModeInterval();
   }
 
   function triggerFlash() {
