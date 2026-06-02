@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.4.1
+// @version     3.4.2
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2840,6 +2840,8 @@
   let blindfoldObserver = null;
   let piecesListObserver = null;
   let healthCheckInterval = null;
+  let boardPollInterval = null;
+  let lastBoardElement = null;
 
   function removeCustomBoardElement() {
     const allCustomBoards = document.querySelectorAll('cg-board.userscript-custom-board');
@@ -2879,6 +2881,70 @@
       attributes: true,
       attributeFilter: ['class'],
     });
+  }
+
+  function boardPoll() {
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+
+    // Check if board was replaced
+    if (board !== lastBoardElement) {
+      if (board && lastBoardElement) {
+        console.debug('[lichess-board-speaker] board replaced detected by poll, re-initializing');
+        cleanupBoardObservers();
+        cleanup3DCanvas();
+
+        if (state.customBoardEnabled) {
+          setTimeout(() => {
+            onSettingChanged();
+          }, 50);
+        }
+        if (piecesListObserver) {
+          piecesListObserver.disconnect();
+          piecesListObserver = null;
+        }
+        if (state.piecesListVisible) {
+          const textBox = document.querySelector('.pieces-list-box');
+          if (textBox) {
+            renderPiecesList(textBox);
+            setupPiecesListObserver(textBox);
+          }
+        }
+      }
+      lastBoardElement = board;
+    }
+
+    // Update 3D board if enabled
+    if (state.customBoardEnabled && board && canvasScene) {
+      update3DPieces();
+      if (state.hoverModeIndex === 0) {
+        render3DCanvas();
+      }
+    }
+
+    // Update pieces list if enabled
+    if (state.piecesListVisible && board) {
+      const textBox = document.querySelector('.pieces-list-box');
+      if (textBox) {
+        renderPiecesList(textBox);
+      }
+    }
+  }
+
+  function startBoardPolling() {
+    if (boardPollInterval) return;
+    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
+    lastBoardElement = board;
+    boardPollInterval = setInterval(boardPoll, 1000);
+    console.debug('[lichess-board-speaker] board polling started');
+  }
+
+  function stopBoardPolling() {
+    if (boardPollInterval) {
+      clearInterval(boardPollInterval);
+      boardPollInterval = null;
+      lastBoardElement = null;
+      console.debug('[lichess-board-speaker] board polling stopped');
+    }
   }
 
   function healthCheck() {
@@ -3555,6 +3621,9 @@
     if (underboard) {
       buttonContainer.appendChild(underboard);
     }
+
+    // Start board polling (always running)
+    startBoardPolling();
 
     // Initialize UI and apply all effects based on loaded state
     onSettingChanged();
