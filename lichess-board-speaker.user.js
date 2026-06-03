@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.4.6
+// @version     3.4.7
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -1790,7 +1790,11 @@
   ];
 
   function cycleSetting(setting, buttonMap, { buttonKey, withSuffix } = {}) {
-    if (!state.customBoardEnabled && setting !== SPEAK_RATE_SETTING) return;
+    // Allow speak rate and flash mode settings even when custom board is disabled
+    const isAlwaysAllowed = setting === SPEAK_RATE_SETTING ||
+                           setting === FLASH_DURATION_SETTING ||
+                           setting === FLASH_INTERVAL_SETTING;
+    if (!state.customBoardEnabled && !isAlwaysAllowed) return;
     const newValue = (state[setting.stateKey] + 1) % setting.options.length;
     onSettingChanged(setting.stateKey, newValue);
   }
