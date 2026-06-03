@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import swc from 'unplugin-swc'
-import { simonePlugin } from 'simone'
+import { simonePlugin } from 'simone/vitest'
 
 export default defineConfig({
   plugins: [

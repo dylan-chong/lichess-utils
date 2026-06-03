@@ -44,8 +44,10 @@ export function saveSettings(): void {
   storage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
-// Auto-save effect (set up once)
-effect(() => {
-  Object.values(settings).forEach((s) => s.value)
-  saveSettings()
-})
+// Auto-save effect (should be called once during app initialization)
+export function setupAutoSave(): void {
+  effect(() => {
+    Object.values(settings).forEach((s) => s.value)
+    saveSettings()
+  })
+}

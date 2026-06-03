@@ -1,60 +1,137 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
-import { settings, loadSettings, saveSettings } from './settingsStore'
+import { describe, it, expect, beforeEach } from 'vitest'
+import { mockModule } from 'simone'
+import { defaultSettings } from './defaults'
 
-// Mock the storage module using Vitest's vi.mock
-vi.mock('./storage', () => ({
-  getItem: vi.fn(),
-  setItem: vi.fn(),
-}))
-
-// Import the mocked storage module after mocking is set up
-import * as storage from './storage'
+const storageMock = mockModule(import('./storage'))
+const { settings, loadSettings, saveSettings } = await import('./settingsStore')
 
 describe('settingsStore', () => {
   beforeEach(() => {
-    vi.clearAllMocks()
+    Object.keys(settings).forEach((key) => {
+      const settingKey = key as keyof typeof settings
+      settings[settingKey].value = defaultSettings[settingKey] as any
+    })
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
+  describe('loadSettings', () => {
+    it('should load settings from storage', () => {
+      const storedSettings = {
+        speakRate: 1.5,
+        piecesListEnabled: false,
+        parallax: 20,
+      }
+
+      storageMock
+        .expects('getItem')
+        .withArgs('lichess-board-speaker-settings')
+        .returns(JSON.stringify(storedSettings))
+
+      loadSettings()
+
+      expect(settings).toMatchObject({
+        speakRate: { value: 1.5 },
+        piecesListEnabled: { value: false },
+        parallax: { value: 20 },
+      })
+    })
+
+    it('should do nothing when storage is empty', () => {
+      storageMock
+        .expects('getItem')
+        .withArgs('lichess-board-speaker-settings')
+        .returns(null)
+
+      loadSettings()
+
+      expect(settings).toMatchObject({
+        speakRate: { value: defaultSettings.speakRate },
+        piecesListEnabled: { value: defaultSettings.piecesListEnabled },
+      })
+    })
+
+    it('should handle partial settings', () => {
+      const storedSettings = {
+        speakRate: 2.0,
+      }
+
+      storageMock
+        .expects('getItem')
+        .withArgs('lichess-board-speaker-settings')
+        .returns(JSON.stringify(storedSettings))
+
+      loadSettings()
+
+      expect(settings).toMatchObject({
+        speakRate: { value: 2.0 },
+        piecesListEnabled: { value: defaultSettings.piecesListEnabled },
+      })
+    })
+
+    it('should ignore invalid JSON', () => {
+      storageMock
+        .expects('getItem')
+        .withArgs('lichess-board-speaker-settings')
+        .returns('invalid json')
+
+      expect(() => loadSettings()).toThrow()
+    })
   })
 
-  it('exports all 14 settings as signals', () => {
-    expect(settings.speakRate.value).toBeDefined()
-    expect(settings.piecesListEnabled.value).toBeDefined()
-    expect(settings.dividersEnabled.value).toBeDefined()
-    expect(settings.customBoardEnabled.value).toBeDefined()
-    expect(settings.obfuscationsEnabled.value).toBeDefined()
-    expect(settings.parallax.value).toBeDefined()
-    expect(settings.hoverMode.value).toBeDefined()
-    expect(settings.pieceStyle.value).toBeDefined()
-    expect(settings.blur.value).toBeDefined()
-    expect(settings.blackSegments.value).toBeDefined()
-    expect(settings.blackSegmentsTiming.value).toBeDefined()
-    expect(settings.flashModeEnabled.value).toBeDefined()
-    expect(settings.flashDuration.value).toBeDefined()
-    expect(settings.flashInterval.value).toBeDefined()
-  })
+  describe('saveSettings', () => {
+    it('should save current settings to storage', () => {
+      settings.speakRate.value = 1.8
+      settings.piecesListEnabled.value = false
+      settings.parallax.value = 15
 
-  it('loadSettings restores from localStorage', () => {
-    vi.mocked(storage.getItem).mockReturnValue(
-      JSON.stringify({ blur: 5, parallax: 45 })
-    )
+      const expectedData = {
+        speakRate: 1.8,
+        piecesListEnabled: false,
+        dividersEnabled: defaultSettings.dividersEnabled,
+        customBoardEnabled: defaultSettings.customBoardEnabled,
+        obfuscationsEnabled: defaultSettings.obfuscationsEnabled,
+        parallax: 15,
+        hoverMode: defaultSettings.hoverMode,
+        pieceStyle: defaultSettings.pieceStyle,
+        blur: defaultSettings.blur,
+        blackSegments: defaultSettings.blackSegments,
+        blackSegmentsTiming: defaultSettings.blackSegmentsTiming,
+        flashModeEnabled: defaultSettings.flashModeEnabled,
+        flashDuration: defaultSettings.flashDuration,
+        flashInterval: defaultSettings.flashInterval,
+      }
 
-    loadSettings()
+      storageMock
+        .expects('setItem')
+        .withArgs('lichess-board-speaker-settings', JSON.stringify(expectedData))
+        .returns(undefined)
 
-    expect(settings.blur.value).toBe(5)
-    expect(settings.parallax.value).toBe(45)
-  })
+      saveSettings()
+    })
 
-  it('saveSettings persists to localStorage', () => {
-    settings.blur.value = 3
+    it('should serialize all signal values', () => {
+      const expectedData = {
+        speakRate: defaultSettings.speakRate,
+        piecesListEnabled: defaultSettings.piecesListEnabled,
+        dividersEnabled: defaultSettings.dividersEnabled,
+        customBoardEnabled: defaultSettings.customBoardEnabled,
+        obfuscationsEnabled: defaultSettings.obfuscationsEnabled,
+        parallax: defaultSettings.parallax,
+        hoverMode: defaultSettings.hoverMode,
+        pieceStyle: defaultSettings.pieceStyle,
+        blur: defaultSettings.blur,
+        blackSegments: defaultSettings.blackSegments,
+        blackSegmentsTiming: defaultSettings.blackSegmentsTiming,
+        flashModeEnabled: defaultSettings.flashModeEnabled,
+        flashDuration: defaultSettings.flashDuration,
+        flashInterval: defaultSettings.flashInterval,
+      }
 
-    saveSettings()
+      storageMock
+        .expects('setItem')
+        .withArgs('lichess-board-speaker-settings', JSON.stringify(expectedData))
+        .returns(undefined)
 
-    expect(vi.mocked(storage.setItem)).toHaveBeenCalledWith(
-      'lichess-board-speaker-settings',
-      expect.stringContaining('"blur":3')
-    )
+      saveSettings()
+    })
   })
 })

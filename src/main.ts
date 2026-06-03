@@ -1,2 +1,5 @@
-// Main entry point - to be implemented
-export {}
+import { setupAutoSave, loadSettings } from './settings/settingsStore'
+
+// Initialize settings
+loadSettings()
+setupAutoSave()
