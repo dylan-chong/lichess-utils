@@ -1,0 +1,13 @@
+#!/usr/bin/env sh
+
+# Lint and format staged files
+npx lint-staged
+
+# Type check
+npm run type-check
+
+# Run tests
+npm test
+
+# Build (ensure it compiles)
+npm run build
