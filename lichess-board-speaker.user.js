@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.4.3
+// @version     3.4.4
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -852,7 +852,7 @@
 
   function render3DCanvas() {
     if (!canvasRenderer || !canvasScene || !canvasCamera) {
-      console.error('[lichess-board-speaker] render3DCanvas: missing renderer, scene, or camera', { canvasRenderer, canvasScene, canvasCamera });
+      console.debug('[lichess-board-speaker] render3DCanvas: skipping render, canvas not initialized yet');
       return;
     }
     canvasRenderer.render(canvasScene, canvasCamera);
