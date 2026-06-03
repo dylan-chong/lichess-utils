@@ -1,12 +1,22 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest'
 import { settings, loadSettings, saveSettings } from './settingsStore'
+
+// Mock the storage module using Vitest's vi.mock
+vi.mock('./storage', () => ({
+  getItem: vi.fn(),
+  setItem: vi.fn(),
+}))
+
+// Import the mocked storage module after mocking is set up
+import * as storage from './storage'
 
 describe('settingsStore', () => {
   beforeEach(() => {
-    vi.stubGlobal('localStorage', {
-      getItem: vi.fn(),
-      setItem: vi.fn(),
-    })
+    vi.clearAllMocks()
+  })
+
+  afterEach(() => {
+    vi.restoreAllMocks()
   })
 
   it('exports all 14 settings as signals', () => {
@@ -27,7 +37,7 @@ describe('settingsStore', () => {
   })
 
   it('loadSettings restores from localStorage', () => {
-    vi.mocked(localStorage.getItem).mockReturnValue(
+    vi.mocked(storage.getItem).mockReturnValue(
       JSON.stringify({ blur: 5, parallax: 45 })
     )
 
@@ -42,7 +52,7 @@ describe('settingsStore', () => {
 
     saveSettings()
 
-    expect(localStorage.setItem).toHaveBeenCalledWith(
+    expect(vi.mocked(storage.setItem)).toHaveBeenCalledWith(
       'lichess-board-speaker-settings',
       expect.stringContaining('"blur":3')
     )

@@ -1,6 +1,7 @@
 import { signal, effect } from '@preact/signals-core'
 import { defaultSettings } from './defaults'
 import type { Settings } from './types'
+import * as storage from './storage'
 
 const STORAGE_KEY = 'lichess-board-speaker-settings'
 
@@ -22,7 +23,7 @@ export const settings = {
 }
 
 export function loadSettings(): void {
-  const stored = localStorage.getItem(STORAGE_KEY)
+  const stored = storage.getItem(STORAGE_KEY)
   if (!stored) return
 
   const data = JSON.parse(stored) as Partial<Settings>
@@ -40,7 +41,7 @@ export function saveSettings(): void {
     const settingKey = key as keyof typeof settings
     data[settingKey] = settings[settingKey].value as any
   })
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+  storage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
 // Auto-save effect (set up once)
