@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.4.4
+// @version     3.4.5
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -2913,6 +2913,7 @@
     if (state.flashModeEnabled) {
       lastBoardChangeTime = Date.now();
 
+      console.debug('[lichess-board-speaker] onBoardChange: flash mode active, showing board');
       showBoard();
 
       if (flashModeTimeoutId) {
@@ -2920,6 +2921,7 @@
       }
 
       const flashDuration = FLASH_DURATION_OPTIONS[state.flashDurationIndex].value;
+      console.debug('[lichess-board-speaker] onBoardChange: hiding board in', flashDuration, 'ms');
       flashModeTimeoutId = setTimeout(() => {
         hideBoard();
       }, flashDuration);
@@ -3418,7 +3420,10 @@
 
   function hideBoard() {
     const container = document.querySelector('cg-container');
-    if (!container) return;
+    if (!container) {
+      console.debug('[lichess-board-speaker] hideBoard: container not found');
+      return;
+    }
 
     let blackOverlay = container.querySelector('.userscript-flash-overlay');
     if (!blackOverlay) {
@@ -3435,15 +3440,22 @@
       container.appendChild(blackOverlay);
     }
     blackOverlay.style.display = 'block';
+    console.debug('[lichess-board-speaker] hideBoard: board hidden');
   }
 
   function showBoard() {
     const container = document.querySelector('cg-container');
-    if (!container) return;
+    if (!container) {
+      console.debug('[lichess-board-speaker] showBoard: container not found');
+      return;
+    }
 
     const blackOverlay = container.querySelector('.userscript-flash-overlay');
     if (blackOverlay) {
       blackOverlay.style.display = 'none';
+      console.debug('[lichess-board-speaker] showBoard: board shown');
+    } else {
+      console.debug('[lichess-board-speaker] showBoard: no overlay to hide');
     }
   }
 
@@ -3505,6 +3517,8 @@
       return;
     }
 
+    console.debug('[lichess-board-speaker] startFlashMode: starting flash mode');
+
     flashModeObserver = new MutationObserver((mutations) => {
       // Check if there are real piece changes (not just animations)
       const hasRealChange = mutations.some(mutation => {
@@ -3520,6 +3534,7 @@
       });
 
       if (hasRealChange) {
+        console.debug('[lichess-board-speaker] flashModeObserver: board change detected');
         onBoardChange();
       }
     });
@@ -3533,7 +3548,8 @@
 
     startFlashModeInterval();
 
-    // Trigger initial flash
+    // Show board initially and trigger first flash
+    showBoard();
     triggerFlash();
   }
 
