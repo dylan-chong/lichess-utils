@@ -1,5 +1,6 @@
 import { defineConfig } from 'vitest/config'
 import swc from 'unplugin-swc'
+import { simonePlugin } from 'simone'
 
 export default defineConfig({
   plugins: [
@@ -16,6 +17,7 @@ export default defineConfig({
         },
       },
     }),
+    simonePlugin(),
   ],
   test: {
     environment: 'happy-dom',
