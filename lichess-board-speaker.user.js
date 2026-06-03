@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description This is your new file, start writing code
-// @version     3.4.5
+// @version     3.4.6
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant          none
@@ -3511,41 +3511,9 @@
   function startFlashMode() {
     stopFlashMode();
 
-    const board = document.querySelector('cg-board:not(.userscript-custom-board)');
-    if (!board) {
-      console.debug('[lichess-board-speaker] startFlashMode: board not found');
-      return;
-    }
-
     console.debug('[lichess-board-speaker] startFlashMode: starting flash mode');
 
-    flashModeObserver = new MutationObserver((mutations) => {
-      // Check if there are real piece changes (not just animations)
-      const hasRealChange = mutations.some(mutation => {
-        // Child list changes (piece added/removed)
-        if (mutation.type === 'childList' && (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0)) {
-          return true;
-        }
-        // Attribute changes on pieces (position changes)
-        if (mutation.type === 'attributes' && mutation.target.tagName === 'PIECE') {
-          return mutation.attributeName === 'style' || mutation.attributeName === 'class';
-        }
-        return false;
-      });
-
-      if (hasRealChange) {
-        console.debug('[lichess-board-speaker] flashModeObserver: board change detected');
-        onBoardChange();
-      }
-    });
-
-    flashModeObserver.observe(board, {
-      childList: true,
-      attributes: true,
-      subtree: true,
-      attributeFilter: ['style', 'class']
-    });
-
+    // Start the interval that shows the board periodically
     startFlashModeInterval();
 
     // Show board initially and trigger first flash
