@@ -20,7 +20,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: './src/main.ts',
+      entry: './src/main.tsx',
       name: 'LichessBoardSpeaker',
       formats: ['iife'],
       fileName: () => 'lichess-board-speaker.user.js'
