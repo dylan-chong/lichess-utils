@@ -1,4 +1,5 @@
-import { PlayerColor, type Quadrant, SpeechCommand } from '../../constants'
+import { PlayerColor, type Quadrant } from '../../constants/chess'
+import { SpeechCommand } from '../../constants/commands'
 import { filterQuadrant } from '../../domain/chess/pieceGrouping'
 import {
   generateAllPiecesText,

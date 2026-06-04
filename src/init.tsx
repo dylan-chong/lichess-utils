@@ -11,7 +11,7 @@ import {
   loadSettings,
   setupAutoSave,
 } from './application/settings/settingsStore'
-import { DomSelector } from './constants'
+import { DomSelector } from './constants/dom'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createRoot, destroyRoot } from './presentation/components/root'
 import { createDividers, destroyDividers } from './presentation/non-preact-components/dividers'

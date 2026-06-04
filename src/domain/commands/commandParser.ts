@@ -1,4 +1,4 @@
-import { AnnotationType } from '../../constants'
+import { AnnotationType } from '../../constants/annotations'
 
 export type DrawAnnotation =
   | { type: AnnotationType.CIRCLE; square: string }

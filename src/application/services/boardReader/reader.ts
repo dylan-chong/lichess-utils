@@ -1,4 +1,5 @@
-import { CssClass, DomSelector, type PieceType, PlayerColor } from '../../../constants'
+import { type PieceType, PlayerColor } from '../../../constants/chess'
+import { CssClass, DomSelector } from '../../../constants/dom'
 import { pixelsToSquare } from '../../../domain/chess/coordinates'
 import type { PiecePosition } from '../../../domain/chess/pieceGrouping'
 import { querySelector } from '../../../platform/dom'

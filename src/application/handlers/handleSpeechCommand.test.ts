@@ -1,6 +1,7 @@
 import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
-import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../../constants'
+import { PieceType, PlayerColor, Quadrant } from '../../constants/chess'
+import { SpeechCommand } from '../../constants/commands'
 import { createSettingsStore } from '../settings/settingsStore'
 import { handleSpeechCommand } from './handleSpeechCommand'
 

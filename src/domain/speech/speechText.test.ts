@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PieceType, PlayerColor } from '../../constants'
+import { PieceType, PlayerColor } from '../../constants/chess'
 import type { PiecePosition } from '../chess/pieceGrouping'
 import { generateAllPiecesText, generateColorText, generateQuadrantText } from './speechText'
 

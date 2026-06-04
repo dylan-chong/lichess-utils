@@ -1,4 +1,5 @@
-import { DomSelector, KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants'
+import { KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants/commands'
+import { DomSelector } from '../../constants/dom'
 import { querySelector } from '../../platform/dom'
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
 import type { SettingsStore } from '../settings/settingsStore'

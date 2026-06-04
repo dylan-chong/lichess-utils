@@ -1,4 +1,4 @@
-import { CssClass, CssDisplay, DomSelector } from '../../constants'
+import { CssClass, CssDisplay, DomSelector } from '../../constants/dom'
 import { appendChild, createSvgElement, querySelector } from '../../platform/dom'
 
 export interface DividersState {

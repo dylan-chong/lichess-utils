@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { PieceType, PlayerColor } from '../../../constants'
+import { PieceType, PlayerColor } from '../../../constants/chess'
 import { getPlayerColor, readPiecePositions } from './reader'
 
 describe('getPlayerColor', () => {

@@ -1,5 +1,5 @@
 import type { Signal } from '@preact/signals-core'
-import { DomSelector } from '../../constants'
+import { DomSelector } from '../../constants/dom'
 import { querySelector } from '../../platform/dom'
 import { createMutationObserver, disconnect, observe } from '../../platform/mutationObserver'
 

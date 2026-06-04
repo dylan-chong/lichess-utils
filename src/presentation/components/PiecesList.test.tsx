@@ -2,7 +2,7 @@ import { signal } from '@preact/signals'
 import { render, screen } from '@testing-library/preact'
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { PieceType, PlayerColor } from '../../constants'
+import { PieceType, PlayerColor } from '../../constants/chess'
 import type { PiecePosition } from '../../domain/chess/pieceGrouping'
 import { PiecesList } from './PiecesList'
 

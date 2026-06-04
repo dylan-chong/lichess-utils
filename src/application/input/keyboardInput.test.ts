@@ -1,6 +1,6 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { SpeechCommand } from '../../constants'
+import { SpeechCommand } from '../../constants/commands'
 import { createSettingsStore } from '../settings/settingsStore'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './keyboardInput'
 
