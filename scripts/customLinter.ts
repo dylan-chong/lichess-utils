@@ -16,12 +16,19 @@ const VAGUE_TEST_PATTERNS = [
   /it\s*\(\s*['"`].*\b(should process|processes)\b/i,
 ]
 
+const DISALLOWED_MOCK_PATTERNS = [
+  { pattern: /\bvi\.stub/i, message: 'Use simone mockModule() instead of vi.stub. Wrap global interactions in modules like src/dom/dom.ts' },
+  { pattern: /\bvi\.mock/i, message: 'Use simone mockModule() instead of vi.mock. Wrap global interactions in modules like src/dom/dom.ts' },
+  { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap global interactions in modules like src/dom/dom.ts' },
+]
+
 function lintFile(filePath: string): LintError[] {
   const errors: LintError[] = []
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n')
 
   lines.forEach((line, index) => {
+    // Check for vague test descriptions
     for (const pattern of VAGUE_TEST_PATTERNS) {
       if (pattern.test(line)) {
         errors.push({
@@ -30,6 +37,17 @@ function lintFile(filePath: string): LintError[] {
           message: 'Tests should describe the expected observable behaviour, not implementation details or vague actions',
         })
         break
+      }
+    }
+
+    // Check for disallowed mocking patterns
+    for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
+      if (pattern.test(line)) {
+        errors.push({
+          file: filePath,
+          line: index + 1,
+          message,
+        })
       }
     }
   })
@@ -58,7 +76,7 @@ async function main() {
       console.error()
     }
 
-    console.error(`Found ${totalErrors} vague test description(s)`)
+    console.error(`Found ${totalErrors} lint error(s)`)
     process.exit(1)
   }
 
