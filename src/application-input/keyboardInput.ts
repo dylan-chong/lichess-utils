@@ -1,4 +1,5 @@
 import { handleSpeechCommand } from '../application-handlers/handleSpeechCommand'
+import type { SettingsStore } from '../application-settings/settingsStore'
 import { DomSelector, KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../constants'
 import { querySelector } from '../platform/dom'
 
@@ -6,7 +7,7 @@ interface InputElementWithCleanup extends HTMLInputElement {
   __keyboardCommandCleanup?: () => void
 }
 
-export function setupKeyboardCommands(): void {
+export function setupKeyboardCommands(settings: SettingsStore): void {
   const input = querySelector(DomSelector.KEYBOARD_INPUT) as InputElementWithCleanup | null
   if (!input) return
 
@@ -17,7 +18,7 @@ export function setupKeyboardCommands(): void {
     // Check for speech commands
     const command = KEYBOARD_COMMAND_MAP.get(value as KeyboardCommand)
     if (command) {
-      handleSpeechCommand(command)
+      handleSpeechCommand(command, settings)
       target.value = ''
       return
     }

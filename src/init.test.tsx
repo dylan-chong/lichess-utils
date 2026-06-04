@@ -1,16 +1,17 @@
 import { signal } from '@preact/signals-core'
 import { mockModule } from 'simone'
 import { describe, expect, it } from 'vitest'
+import type { SettingsStore } from './application-settings/settingsStore'
 
 // Mock all dependencies
-const settingsStore = mockModule(import('./settings/settingsStore'))
+const settingsStore = mockModule(import('./application-settings/settingsStore'))
 const boardReader = mockModule(import('./application-services/boardReader'))
 const boardObserver = mockModule(import('./application-observers/observerState'))
 const flashOverlay = mockModule(import('./adapters-overlays/flash'))
 const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
 const onDividers = mockModule(import('./application-effects/onDividers'))
 const keyboardInput = mockModule(import('./application-input/keyboardInput'))
-const root = mockModule(import('./components/root'))
+const root = mockModule(import('./presentation/components/root'))
 const dom = mockModule(import('./platform/dom'))
 
 const { init } = await import('./init')
@@ -28,13 +29,16 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockSettings = {
+      loadSettings: () => {},
+      setupAutoSave: () => {},
+    } as unknown as SettingsStore
 
     boardReader
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
-    settingsStore.expects('loadSettings').withArgs().returns(undefined)
-    settingsStore.expects('setupAutoSave').withArgs().returns(undefined)
+    settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver
@@ -44,13 +48,16 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs().returns(undefined)
+    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
-    root.expects('createRoot').withArgs(mockBoardChanged, mockMountPoint).returns(undefined)
+    root
+      .expects('createRoot')
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .returns(undefined)
 
     const cleanup = await init()
 
@@ -69,13 +76,16 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockSettings = {
+      loadSettings: () => {},
+      setupAutoSave: () => {},
+    } as unknown as SettingsStore
 
     boardReader
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
-    settingsStore.expects('loadSettings').withArgs().returns(undefined)
-    settingsStore.expects('setupAutoSave').withArgs().returns(undefined)
+    settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver
@@ -85,13 +95,16 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs().returns(undefined)
+    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
-    root.expects('createRoot').withArgs(mockBoardChanged, mockMountPoint).returns(undefined)
+    root
+      .expects('createRoot')
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .returns(undefined)
 
     const cleanup = await init()
 
@@ -116,13 +129,16 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockSettings = {
+      loadSettings: () => {},
+      setupAutoSave: () => {},
+    } as unknown as SettingsStore
 
     boardReader
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(document.createElement('div')))
-    settingsStore.expects('loadSettings').withArgs().returns(undefined)
-    settingsStore.expects('setupAutoSave').withArgs().returns(undefined)
+    settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver
@@ -132,13 +148,16 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs().returns(undefined)
+    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(null) // Simulate missing element
     // appendChild should NOT be called when keyboardMove is null
-    root.expects('createRoot').withArgs(mockBoardChanged, mockMountPoint).returns(undefined)
+    root
+      .expects('createRoot')
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .returns(undefined)
 
     const cleanup = await init()
 

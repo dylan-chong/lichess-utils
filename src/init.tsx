@@ -9,18 +9,19 @@ import {
   stopBoardObserver,
 } from './application-observers/observerState'
 import { waitForElement } from './application-services/boardReader'
-import { createRoot, destroyRoot } from './components/root'
+import { createSettingsStore } from './application-settings/settingsStore'
 import { DomSelector } from './constants'
 import { appendChild, createDiv, querySelector } from './platform/dom'
-import { loadSettings, setupAutoSave } from './settings/settingsStore'
+import { createRoot, destroyRoot } from './presentation/components/root'
 
 export async function init() {
   // Wait for lichess to load the board
   await waitForElement(DomSelector.KEYBOARD_MOVE)
 
   // Initialize settings
-  loadSettings()
-  setupAutoSave()
+  const settings = createSettingsStore()
+  settings.loadSettings()
+  settings.setupAutoSave()
 
   // Create shared board change signal
   const boardChanged = signal(0)
@@ -34,10 +35,10 @@ export async function init() {
   startBoardObserver(boardObserverState)
 
   // Set up effects
-  const cleanupDividers = setupDividersEffect(dividersState)
+  const cleanupDividers = setupDividersEffect(dividersState, settings)
 
   // Set up commands
-  setupKeyboardCommands()
+  setupKeyboardCommands(settings)
 
   // Mount Preact UI
   const mountPoint = createDiv()
@@ -45,7 +46,7 @@ export async function init() {
   if (keyboardMove) {
     appendChild(keyboardMove, mountPoint)
   }
-  createRoot(boardChanged, mountPoint)
+  createRoot(boardChanged, mountPoint, settings)
 
   // Return cleanup function
   return () => {

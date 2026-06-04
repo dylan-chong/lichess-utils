@@ -1,5 +1,6 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { createSettingsStore } from '../application-settings/settingsStore'
 import { SpeechCommand } from '../constants'
 
 const handleSpeechCommand = mockModule(import('../application-handlers/handleSpeechCommand'))
@@ -7,8 +8,10 @@ const { setupKeyboardCommands, teardownKeyboardCommands } = await import('./keyb
 
 describe('keyboardInput', () => {
   let input: HTMLInputElement
+  let settings: ReturnType<typeof createSettingsStore>
 
   beforeEach(() => {
+    settings = createSettingsStore()
     document.body.innerHTML = `
       <div class="keyboard-move">
         <input type="text" />
@@ -20,9 +23,12 @@ describe('keyboardInput', () => {
   })
 
   it('executes speech command and clears input when command is entered', () => {
-    setupKeyboardCommands()
+    setupKeyboardCommands(settings)
 
-    handleSpeechCommand.expects('handleSpeechCommand').withArgs(SpeechCommand.WK).returns(undefined)
+    handleSpeechCommand
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.WK, settings)
+      .returns(undefined)
 
     input.value = 'pwk'
     input.dispatchEvent(new Event('input'))
@@ -31,11 +37,11 @@ describe('keyboardInput', () => {
   })
 
   it('executes stop command when pss is entered', () => {
-    setupKeyboardCommands()
+    setupKeyboardCommands(settings)
 
     handleSpeechCommand
       .expects('handleSpeechCommand')
-      .withArgs(SpeechCommand.STOP)
+      .withArgs(SpeechCommand.STOP, settings)
       .returns(undefined)
 
     input.value = 'pss'
@@ -43,7 +49,7 @@ describe('keyboardInput', () => {
   })
 
   it('ignores non-command input', () => {
-    setupKeyboardCommands()
+    setupKeyboardCommands(settings)
 
     input.value = 'e4'
     input.dispatchEvent(new Event('input'))
@@ -52,7 +58,7 @@ describe('keyboardInput', () => {
   })
 
   it('ignores drawing commands (starting with -)', () => {
-    setupKeyboardCommands()
+    setupKeyboardCommands(settings)
 
     input.value = '-e4'
     input.dispatchEvent(new Event('input'))
@@ -62,7 +68,7 @@ describe('keyboardInput', () => {
   })
 
   it('stops listening after teardown', () => {
-    setupKeyboardCommands()
+    setupKeyboardCommands(settings)
     teardownKeyboardCommands()
 
     input.value = 'pwk'
@@ -77,6 +83,6 @@ describe('keyboardInput', () => {
 
   it('returns early without error when input element is missing', () => {
     document.body.innerHTML = '' // No input element
-    expect(() => setupKeyboardCommands()).not.toThrow()
+    expect(() => setupKeyboardCommands(settings)).not.toThrow()
   })
 })

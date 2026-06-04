@@ -2,13 +2,17 @@ import { signal } from '@preact/signals'
 import { render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { defaultSettings } from '../settings/defaults'
-import { settings } from '../settings/settingsStore'
+import { createSettingsStore } from '../../application-settings/settingsStore'
+import { defaultSettings } from '../../constants/settings'
+import { SettingsProvider } from '../contexts/SettingsContext'
 import { ControlPanel } from './ControlPanel'
 
 describe('ControlPanel', () => {
+  let settings: ReturnType<typeof createSettingsStore>
+
   beforeEach(() => {
-    // Reset settings to defaults
+    // Create fresh settings instance for each test
+    settings = createSettingsStore()
     settings.speakRate.value = defaultSettings.speakRate
     settings.piecesListEnabled.value = defaultSettings.piecesListEnabled
     settings.dividersEnabled.value = defaultSettings.dividersEnabled
@@ -18,7 +22,11 @@ describe('ControlPanel', () => {
 
   it('should render all main control buttons', () => {
     const boardChanged = signal(0)
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     expect(screen.getByText('Speak Rate: 0.5')).toBeTruthy()
     expect(screen.getByText('Pieces List: false')).toBeTruthy()
@@ -31,7 +39,11 @@ describe('ControlPanel', () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     const button = screen.getByText('Speak Rate: 0.5')
     await user.click(button)
@@ -44,7 +56,11 @@ describe('ControlPanel', () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     const button = screen.getByText('Pieces List: false')
     await user.click(button)
@@ -57,7 +73,11 @@ describe('ControlPanel', () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     const button = screen.getByText('Dividers: false')
     await user.click(button)
@@ -70,7 +90,11 @@ describe('ControlPanel', () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     const button = screen.getByText('Custom Board: false')
     await user.click(button)
@@ -83,7 +107,11 @@ describe('ControlPanel', () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
-    render(<ControlPanel boardChanged={boardChanged} />)
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
 
     const button = screen.getByText('Flash Mode: false')
     await user.click(button)

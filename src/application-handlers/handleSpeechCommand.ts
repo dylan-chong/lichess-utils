@@ -1,5 +1,6 @@
 import { speak, stopSpeaking } from '../adapters-speech/speechSynthesizer'
 import { readPiecePositions } from '../application-services/boardReader'
+import type { SettingsStore } from '../application-settings/settingsStore'
 import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
 import { filterQuadrant } from '../domain/chess/pieceGrouping'
 import {
@@ -7,9 +8,8 @@ import {
   generateColorText,
   generateQuadrantText,
 } from '../domain/speech/speechText'
-import { settings } from '../settings/settingsStore'
 
-export function handleSpeechCommand(command: string): void {
+export function handleSpeechCommand(command: string, settings: SettingsStore): void {
   if (command === SpeechCommand.STOP) {
     stopSpeaking()
     return

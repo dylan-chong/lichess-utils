@@ -1,7 +1,7 @@
 import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
+import { createSettingsStore } from '../application-settings/settingsStore'
 import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
-import { settings } from '../settings/settingsStore'
 
 const boardReader = mockModule(import('../application-services/boardReader'))
 const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
@@ -10,6 +10,8 @@ const speechText = mockModule(import('../domain/speech/speechText'))
 const { handleSpeechCommand } = await import('./handleSpeechCommand')
 
 describe('handleSpeechCommand', () => {
+  const settings = createSettingsStore()
+
   it('speaks quadrant pieces', () => {
     const pieces = [
       { square: 'e1', color: PlayerColor.WHITE as const, type: PieceType.KING as const },
@@ -23,7 +25,7 @@ describe('handleSpeechCommand', () => {
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
-    handleSpeechCommand(SpeechCommand.WK)
+    handleSpeechCommand(SpeechCommand.WK, settings)
   })
 
   it('speaks all pieces', () => {
@@ -38,7 +40,7 @@ describe('handleSpeechCommand', () => {
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
-    handleSpeechCommand(SpeechCommand.ALL)
+    handleSpeechCommand(SpeechCommand.ALL, settings)
   })
 
   it('speaks white pieces', () => {
@@ -56,7 +58,7 @@ describe('handleSpeechCommand', () => {
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
-    handleSpeechCommand(SpeechCommand.WHITE)
+    handleSpeechCommand(SpeechCommand.WHITE, settings)
   })
 
   it('speaks black pieces', () => {
@@ -74,11 +76,11 @@ describe('handleSpeechCommand', () => {
       .withArgs('e8 black king.', settings.speakRate.value)
       .returns(undefined)
 
-    handleSpeechCommand(SpeechCommand.BLACK)
+    handleSpeechCommand(SpeechCommand.BLACK, settings)
   })
 
   it('stops speaking', () => {
     speechSynthesizer.expects('stopSpeaking').withArgs().returns(undefined)
-    handleSpeechCommand(SpeechCommand.STOP)
+    handleSpeechCommand(SpeechCommand.STOP, settings)
   })
 })

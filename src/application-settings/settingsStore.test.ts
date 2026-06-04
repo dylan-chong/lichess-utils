@@ -1,16 +1,21 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { defaultSettings } from './defaults'
+import { defaultSettings } from '../constants/settings'
 
 const storageMock = mockModule(import('../platform/storage'))
-const { settings, loadSettings, saveSettings, setupAutoSave } = await import('./settingsStore')
+const { createSettingsStore } = await import('./settingsStore')
 
 describe('settingsStore', () => {
+  let settings: ReturnType<typeof createSettingsStore>
+  let loadSettings: () => void
+  let saveSettings: () => void
+  let setupAutoSave: () => void
+
   beforeEach(() => {
-    for (const key of Object.keys(settings)) {
-      const settingKey = key as keyof typeof settings
-      settings[settingKey].value = defaultSettings[settingKey] as any
-    }
+    settings = createSettingsStore()
+    loadSettings = settings.loadSettings
+    saveSettings = settings.saveSettings
+    setupAutoSave = settings.setupAutoSave
   })
 
   describe('loadSettings', () => {

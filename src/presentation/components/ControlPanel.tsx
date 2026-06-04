@@ -1,5 +1,5 @@
 import type { Signal } from '@preact/signals'
-import { settings } from '../settings/settingsStore'
+import { useSettings } from '../contexts/SettingsContext'
 import { ButtonRow } from './ButtonRow'
 import { SettingButton } from './SettingButton'
 
@@ -11,6 +11,8 @@ const SPEAK_RATE_OPTIONS = [0.2, 0.5, 0.7, 1.0, 1.1, 1.2] as const
 const TOGGLE_OPTIONS = [false, true] as const
 
 export function ControlPanel({ boardChanged }: ControlPanelProps) {
+  const settings = useSettings()
+
   // Use boardChanged to ensure component re-renders when board changes
   boardChanged.value
 

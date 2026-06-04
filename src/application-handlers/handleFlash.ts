@@ -1,7 +1,7 @@
 import { type FlashOverlayState, hideFlash, showFlash } from '../adapters-overlays/flash'
-import { settings } from '../settings/settingsStore'
+import type { SettingsStore } from '../application-settings/settingsStore'
 
-export function handleFlash(state: FlashOverlayState): void {
+export function handleFlash(state: FlashOverlayState, settings: SettingsStore): void {
   hideFlash(state)
 
   const durationMs = settings.flashDuration.value * 1000
