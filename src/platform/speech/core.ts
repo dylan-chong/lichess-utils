@@ -20,17 +20,3 @@ export function createUtterance(
 ): SpeechSynthesisUtterance {
   return new UtteranceClass(text)
 }
-
-// Higher-level speech functions (merged from adapters-speech/speechSynthesizer)
-export function speakText(text: string, rate: number): void {
-  const synthesis = getSpeechSynthesis()
-  const UtteranceClass = getSpeechSynthesisUtterance()
-  const utterance = createUtterance(UtteranceClass, text)
-  utterance.rate = rate
-  speak(synthesis, utterance)
-}
-
-export function stopSpeaking(): void {
-  const synthesis = getSpeechSynthesis()
-  cancel(synthesis)
-}

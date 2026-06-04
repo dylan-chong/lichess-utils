@@ -6,7 +6,7 @@ import { createSettingsStore } from '../settings/settingsStore'
 import { handleSpeechCommand } from './handleSpeechCommand'
 
 const boardReader = mockModule(import('../services/boardReader/reader'))
-const speechSynthesizer = mockModule(import('../../platform/speechApi'))
+const speechSynthesizer = mockModule(import('../../platform/speech/index'))
 const pieceGrouping = mockModule(import('../../domain/chess/pieceGrouping'))
 const speechText = mockModule(import('../../domain/speech/speechText'))
 

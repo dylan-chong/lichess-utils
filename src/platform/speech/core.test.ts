@@ -5,11 +5,9 @@ import {
   getSpeechSynthesis,
   getSpeechSynthesisUtterance,
   speak,
-  speakText,
-  stopSpeaking,
-} from './speechApi'
+} from './core'
 
-describe('speechApi', () => {
+describe('speech core', () => {
   beforeEach(() => {
     // Mock the global SpeechSynthesisUtterance for test environment
     global.SpeechSynthesisUtterance = class {
@@ -69,39 +67,5 @@ describe('speechApi', () => {
 
     cancel(mockSynthesis)
     expect(cancelCalled).toBe(true)
-  })
-
-  describe('higher-level functions', () => {
-    it('speakText creates utterance with correct rate and speaks it', () => {
-      const mockSpeak = { called: false, utterance: null as any }
-      const mockSynthesis = {
-        speak: (utt: any) => {
-          mockSpeak.called = true
-          mockSpeak.utterance = utt
-        },
-      } as any
-
-      global.window = { speechSynthesis: mockSynthesis } as any
-
-      speakText('test message', 1.5)
-
-      expect(mockSpeak.called).toBe(true)
-      expect(mockSpeak.utterance.text).toBe('test message')
-      expect(mockSpeak.utterance.rate).toBe(1.5)
-    })
-
-    it('stopSpeaking calls cancel on speech synthesis', () => {
-      let cancelCalled = false
-      const mockSynthesis = {
-        cancel: () => {
-          cancelCalled = true
-        },
-      } as any
-
-      global.window = { speechSynthesis: mockSynthesis } as any
-
-      stopSpeaking()
-      expect(cancelCalled).toBe(true)
-    })
   })
 })

@@ -6,7 +6,7 @@ import {
   generateColorText,
   generateQuadrantText,
 } from '../../domain/speech/speechText'
-import { speakText, stopSpeaking } from '../../platform/speechApi'
+import { speakText, stopSpeaking } from '../../platform/speech'
 import { readPiecePositions } from '../services/boardReader/reader'
 import type { SettingsStore } from '../settings/settingsStore'
 
