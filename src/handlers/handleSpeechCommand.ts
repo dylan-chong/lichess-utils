@@ -2,7 +2,11 @@ import { speak, stopSpeaking } from '../adapters-speech/speechSynthesizer'
 import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
 import { readPiecePositions } from '../dom/boardReader'
 import { filterQuadrant } from '../domain/chess/pieceGrouping'
-import { generateAllPiecesText, generateColorText, generateQuadrantText } from '../pure/speechText'
+import {
+  generateAllPiecesText,
+  generateColorText,
+  generateQuadrantText,
+} from '../domain/speech/speechText'
 import { settings } from '../settings/settingsStore'
 
 export function handleSpeechCommand(command: string): void {

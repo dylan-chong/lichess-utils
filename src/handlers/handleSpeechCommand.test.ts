@@ -6,7 +6,7 @@ import { settings } from '../settings/settingsStore'
 const boardReader = mockModule(import('../dom/boardReader'))
 const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
 const pieceGrouping = mockModule(import('../domain/chess/pieceGrouping'))
-const speechText = mockModule(import('../pure/speechText'))
+const speechText = mockModule(import('../domain/speech/speechText'))
 const { handleSpeechCommand } = await import('./handleSpeechCommand')
 
 describe('handleSpeechCommand', () => {
