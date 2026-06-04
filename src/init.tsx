@@ -7,10 +7,10 @@ import {
   startBoardObserver,
   stopBoardObserver,
 } from './application-observers/observerState'
+import { waitForElement } from './application-services/boardReader'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './commands/keyboardInput'
 import { createRoot, destroyRoot } from './components/root'
 import { DomSelector } from './constants'
-import { waitForElement } from './dom/boardReader'
 import { appendChild, createDiv, querySelector } from './platform/dom'
 import { loadSettings, setupAutoSave } from './settings/settingsStore'
 

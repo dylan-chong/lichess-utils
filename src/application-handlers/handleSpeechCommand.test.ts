@@ -3,7 +3,7 @@ import { describe, it } from 'vitest'
 import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
 import { settings } from '../settings/settingsStore'
 
-const boardReader = mockModule(import('../dom/boardReader'))
+const boardReader = mockModule(import('../application-services/boardReader'))
 const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
 const pieceGrouping = mockModule(import('../domain/chess/pieceGrouping'))
 const speechText = mockModule(import('../domain/speech/speechText'))

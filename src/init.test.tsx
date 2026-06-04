@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 // Mock all dependencies
 const settingsStore = mockModule(import('./settings/settingsStore'))
-const boardReader = mockModule(import('./dom/boardReader'))
+const boardReader = mockModule(import('./application-services/boardReader'))
 const boardObserver = mockModule(import('./application-observers/observerState'))
 const flashOverlay = mockModule(import('./adapters-overlays/flash'))
 const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))

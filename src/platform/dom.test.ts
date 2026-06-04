@@ -6,7 +6,7 @@ import {
   getBoundingClientRect,
   querySelector,
   querySelectorAll,
-} from '../platform/dom'
+} from './dom'
 
 describe('dom', () => {
   beforeEach(() => {

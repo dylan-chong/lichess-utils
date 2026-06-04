@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { PieceType, PlayerColor } from '../constants'
 import type { PiecePosition } from '../domain/chess/pieceGrouping'
 
-const boardReaderMock = mockModule(import('../dom/boardReader'))
+const boardReaderMock = mockModule(import('../application-services/boardReader'))
 const pieceGroupingMock = mockModule(import('../domain/chess/pieceGrouping'))
 
 const { PiecesList } = await import('./PiecesList')
