@@ -1,68 +1,69 @@
+import { PlayerColor, PieceType, Quadrant } from '../constants'
 import { describe, it, expect } from 'vitest'
 import { filterQuadrant, groupByColorAndType } from './pieceGrouping'
 import type { PiecePosition } from './pieceGrouping'
 
 describe('filterQuadrant', () => {
   const pieces: PiecePosition[] = [
-    { square: 'a1', color: 'white', type: 'rook' },
-    { square: 'e1', color: 'white', type: 'king' },
-    { square: 'a8', color: 'black', type: 'rook' },
-    { square: 'e8', color: 'black', type: 'king' },
-    { square: 'c3', color: 'white', type: 'pawn' },
-    { square: 'f6', color: 'black', type: 'knight' },
+    { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+    { square: 'e1', color: PlayerColor.WHITE, type: PieceType.KING },
+    { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
+    { square: 'e8', color: PlayerColor.BLACK, type: PieceType.KING },
+    { square: 'c3', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    { square: 'f6', color: PlayerColor.BLACK, type: PieceType.KNIGHT },
   ]
 
   it('filters white king-side pieces (wk)', () => {
-    const result = filterQuadrant(pieces, 'wk')
+    const result = filterQuadrant(pieces, Quadrant.WHITE_KING)
     expect(result).toEqual([
-      { square: 'e1', color: 'white', type: 'king' },
+      { square: 'e1', color: PlayerColor.WHITE, type: PieceType.KING },
     ])
   })
 
   it('filters white queen-side pieces (wq)', () => {
-    const result = filterQuadrant(pieces, 'wq')
+    const result = filterQuadrant(pieces, Quadrant.WHITE_QUEEN)
     expect(result).toEqual([
-      { square: 'a1', color: 'white', type: 'rook' },
-      { square: 'c3', color: 'white', type: 'pawn' },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'c3', color: PlayerColor.WHITE, type: PieceType.PAWN },
     ])
   })
 
   it('filters black king-side pieces (bk)', () => {
-    const result = filterQuadrant(pieces, 'bk')
+    const result = filterQuadrant(pieces, Quadrant.BLACK_KING)
     expect(result).toEqual([
-      { square: 'e8', color: 'black', type: 'king' },
-      { square: 'f6', color: 'black', type: 'knight' },
+      { square: 'e8', color: PlayerColor.BLACK, type: PieceType.KING },
+      { square: 'f6', color: PlayerColor.BLACK, type: PieceType.KNIGHT },
     ])
   })
 
   it('filters black queen-side pieces (bq)', () => {
-    const result = filterQuadrant(pieces, 'bq')
+    const result = filterQuadrant(pieces, Quadrant.BLACK_QUEEN)
     expect(result).toEqual([
-      { square: 'a8', color: 'black', type: 'rook' },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ])
   })
 
   it('throws for empty square', () => {
     expect(() =>
-      filterQuadrant([{square: '', color: 'white', type: 'pawn'}], 'wk')
+      filterQuadrant([{square: '', color: PlayerColor.WHITE, type: PieceType.PAWN}], Quadrant.WHITE_KING)
     ).toThrow('Invalid square format')
   })
 
   it('throws for single character square', () => {
     expect(() =>
-      filterQuadrant([{square: 'a', color: 'white', type: 'pawn'}], 'wk')
+      filterQuadrant([{square: 'a', color: PlayerColor.WHITE, type: PieceType.PAWN}], Quadrant.WHITE_KING)
     ).toThrow('Invalid square format')
   })
 
   it('throws for invalid file', () => {
     expect(() =>
-      filterQuadrant([{square: 'z5', color: 'white', type: 'pawn'}], 'wk')
+      filterQuadrant([{square: 'z5', color: PlayerColor.WHITE, type: PieceType.PAWN}], Quadrant.WHITE_KING)
     ).toThrow('Invalid file')
   })
 
   it('throws for invalid rank', () => {
     expect(() =>
-      filterQuadrant([{square: 'a9', color: 'white', type: 'pawn'}], 'wk')
+      filterQuadrant([{square: 'a9', color: PlayerColor.WHITE, type: PieceType.PAWN}], Quadrant.WHITE_KING)
     ).toThrow('Invalid rank')
   })
 })
@@ -70,20 +71,20 @@ describe('filterQuadrant', () => {
 describe('groupByColorAndType', () => {
   it('groups pieces by color and type', () => {
     const pieces: PiecePosition[] = [
-      { square: 'a2', color: 'white', type: 'pawn' },
-      { square: 'b2', color: 'white', type: 'pawn' },
-      { square: 'a1', color: 'white', type: 'rook' },
-      { square: 'a7', color: 'black', type: 'pawn' },
-      { square: 'a8', color: 'black', type: 'rook' },
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'b2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'a7', color: PlayerColor.BLACK, type: PieceType.PAWN },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
     const result = groupByColorAndType(pieces)
 
     expect(result).toEqual([
-      { color: 'white', type: 'pawn', squares: ['a2', 'b2'] },
-      { color: 'white', type: 'rook', squares: ['a1'] },
-      { color: 'black', type: 'pawn', squares: ['a7'] },
-      { color: 'black', type: 'rook', squares: ['a8'] },
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['a2', 'b2'] },
+      { color: PlayerColor.WHITE, type: PieceType.ROOK, squares: ['a1'] },
+      { color: PlayerColor.BLACK, type: PieceType.PAWN, squares: ['a7'] },
+      { color: PlayerColor.BLACK, type: PieceType.ROOK, squares: ['a8'] },
     ])
   })
 
@@ -94,19 +95,31 @@ describe('groupByColorAndType', () => {
 
   it('throws for missing square', () => {
     expect(() =>
-      groupByColorAndType([{square: undefined as any, color: 'white', type: 'pawn'}])
+      groupByColorAndType([{square: undefined as any, color: PlayerColor.WHITE, type: PieceType.PAWN}])
     ).toThrow('Piece missing square property')
   })
 
   it('throws for missing color', () => {
     expect(() =>
-      groupByColorAndType([{square: 'a1', color: undefined as any, type: 'pawn'}])
+      groupByColorAndType([{square: 'a1', color: undefined as any, type: PieceType.PAWN}])
     ).toThrow('Piece missing color property')
   })
 
   it('throws for missing type', () => {
     expect(() =>
-      groupByColorAndType([{square: 'a1', color: 'white', type: undefined as any}])
+      groupByColorAndType([{square: 'a1', color: PlayerColor.WHITE, type: undefined as any}])
     ).toThrow('Piece missing type property')
+  })
+
+  it('returns false for invalid quadrant value', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'e4', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    // Cast invalid value to Quadrant type to test defensive fallback
+    const result = filterQuadrant(pieces, 'invalid' as any)
+
+    // Should filter out all pieces (return false for invalid quadrant)
+    expect(result).toEqual([])
   })
 })

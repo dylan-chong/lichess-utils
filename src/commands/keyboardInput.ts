@@ -1,29 +1,17 @@
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
-
-let inputListener: ((e: Event) => void) | null = null
-
-const SPEECH_COMMANDS = new Map([
-  ['pwk', 'wk'],
-  ['pwq', 'wq'],
-  ['pbk', 'bk'],
-  ['pbq', 'bq'],
-  ['pa', 'all'],
-  ['pww', 'white'],
-  ['pbb', 'black'],
-  ['pss', 'stop'],
-])
+import { KEYBOARD_COMMAND_MAP, DOM_SELECTORS } from '../constants'
 
 export function setupKeyboardCommands(): void {
-  const input = document.querySelector('.keyboard-move input') as HTMLInputElement
+  const input = document.querySelector(DOM_SELECTORS.KEYBOARD_INPUT) as HTMLInputElement
   if (!input) return
 
-  inputListener = (e: Event) => {
+  const handleInput = (e: Event) => {
     const target = e.target as HTMLInputElement
     const value = target.value
 
     // Check for speech commands
-    if (SPEECH_COMMANDS.has(value)) {
-      const command = SPEECH_COMMANDS.get(value)!
+    const command = KEYBOARD_COMMAND_MAP.get(value as any)
+    if (command) {
       handleSpeechCommand(command)
       target.value = ''
       return
@@ -36,15 +24,18 @@ export function setupKeyboardCommands(): void {
     }
   }
 
-  input.addEventListener('input', inputListener)
+  input.addEventListener('input', handleInput)
+
+  // Store cleanup function on the element for later removal
+  ;(input as any).__keyboardCommandCleanup = () => {
+    input.removeEventListener('input', handleInput)
+  }
 }
 
 export function teardownKeyboardCommands(): void {
-  if (!inputListener) return
-
-  const input = document.querySelector('.keyboard-move input') as HTMLInputElement
-  if (input) {
-    input.removeEventListener('input', inputListener)
+  const input = document.querySelector(DOM_SELECTORS.KEYBOARD_INPUT) as HTMLInputElement
+  if (input && (input as any).__keyboardCommandCleanup) {
+    ;(input as any).__keyboardCommandCleanup()
+    delete (input as any).__keyboardCommandCleanup
   }
-  inputListener = null
 }

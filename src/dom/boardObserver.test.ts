@@ -39,4 +39,14 @@ describe('boardObserver', () => {
 
     expect(boardChanged.value).toBe(0)
   })
+
+  it('returns early when board element not found', () => {
+    document.body.innerHTML = '' // No board element
+
+    const boardChanged = signal(0)
+    const state = createBoardObserver(boardChanged)
+
+    // Should not throw, just return without starting observer
+    expect(() => startBoardObserver(state)).not.toThrow()
+  })
 })

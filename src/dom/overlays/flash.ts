@@ -1,10 +1,12 @@
+import { DOM_SELECTORS, CssClass, CssDisplay } from '../../constants'
+
 export interface FlashOverlayState {
   overlay: HTMLElement
 }
 
 export function createFlashOverlay(): FlashOverlayState {
   const overlay = document.createElement('div')
-  overlay.className = 'userscript-flash-overlay'
+  overlay.className = CssClass.USERSCRIPT_FLASH
   overlay.style.cssText = `
     position: absolute;
     top: 0;
@@ -16,18 +18,18 @@ export function createFlashOverlay(): FlashOverlayState {
     display: none;
   `
 
-  const container = document.querySelector('cg-container')
+  const container = document.querySelector(DOM_SELECTORS.CONTAINER)
   container?.appendChild(overlay)
 
   return { overlay }
 }
 
 export function showFlash(state: FlashOverlayState): void {
-  state.overlay.style.display = 'block'
+  state.overlay.style.display = CssDisplay.BLOCK
 }
 
 export function hideFlash(state: FlashOverlayState): void {
-  state.overlay.style.display = 'none'
+  state.overlay.style.display = CssDisplay.NONE
 }
 
 export function destroyFlashOverlay(state: FlashOverlayState): void {

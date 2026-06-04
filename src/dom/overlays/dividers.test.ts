@@ -36,4 +36,10 @@ describe('dividers', () => {
 
     expect(parent?.contains(state.svg)).toBe(false)
   })
+
+  it('throws error when board element not found', () => {
+    document.body.innerHTML = '' // No board element
+
+    expect(() => createDividers()).toThrow('Board not found')
+  })
 })

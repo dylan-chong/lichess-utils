@@ -1,3 +1,4 @@
+import { SpeechCommand } from '../constants'
 import { describe, it, expect, beforeEach } from 'vitest'
 import { mockModule } from 'simone'
 
@@ -19,7 +20,7 @@ describe('keyboardInput', () => {
   it('handles speech command starting with p', () => {
     setupKeyboardCommands()
 
-    handleSpeechCommand.expects('handleSpeechCommand').withArgs('wk').returns(undefined)
+    handleSpeechCommand.expects('handleSpeechCommand').withArgs(SpeechCommand.WK).returns(undefined)
 
     input.value = 'pwk'
     input.dispatchEvent(new Event('input'))
@@ -30,7 +31,7 @@ describe('keyboardInput', () => {
   it('handles stop command', () => {
     setupKeyboardCommands()
 
-    handleSpeechCommand.expects('handleSpeechCommand').withArgs('stop').returns(undefined)
+    handleSpeechCommand.expects('handleSpeechCommand').withArgs(SpeechCommand.STOP).returns(undefined)
 
     input.value = 'pss'
     input.dispatchEvent(new Event('input'))
@@ -43,6 +44,16 @@ describe('keyboardInput', () => {
     input.dispatchEvent(new Event('input'))
 
     expect(input.value).toBe('e4')
+  })
+
+  it('ignores drawing commands (starting with -)', () => {
+    setupKeyboardCommands()
+
+    input.value = '-e4'
+    input.dispatchEvent(new Event('input'))
+
+    // Drawing commands are left untouched (will be handled elsewhere)
+    expect(input.value).toBe('-e4')
   })
 
   it('stops listening after teardown', () => {

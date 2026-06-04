@@ -1,25 +1,27 @@
 import { readPiecePositions } from '../dom/boardReader'
-import { filterQuadrant, type Quadrant } from '../pure/pieceGrouping'
+import { filterQuadrant } from '../pure/pieceGrouping'
 import { generateQuadrantText, generateAllPiecesText, generateColorText } from '../pure/speechText'
 import { speak, stopSpeaking } from '../browser/speechSynthesizer'
 import { settings } from '../settings/settingsStore'
+import { SpeechCommand, PlayerColor, Quadrant } from '../constants'
 
 export function handleSpeechCommand(command: string): void {
-  if (command === 'stop') {
+  if (command === SpeechCommand.STOP) {
     stopSpeaking()
     return
   }
 
   const pieces = readPiecePositions()
 
-  if (command === 'all') {
+  if (command === SpeechCommand.ALL) {
     const text = generateAllPiecesText(pieces)
     speak(text, settings.speakRate.value)
     return
   }
 
-  if (command === 'white' || command === 'black') {
-    const text = generateColorText(pieces, command)
+  if (command === SpeechCommand.WHITE || command === SpeechCommand.BLACK) {
+    const color = command === SpeechCommand.WHITE ? PlayerColor.WHITE : PlayerColor.BLACK
+    const text = generateColorText(pieces, color)
     speak(text, settings.speakRate.value)
     return
   }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { speak, stopSpeaking } from './speechSynthesizer'
+import { speak, stopSpeaking, getRate, setRate } from './speechSynthesizer'
 
 describe('speechSynthesizer', () => {
   beforeEach(() => {
@@ -39,5 +39,15 @@ describe('speechSynthesizer', () => {
   it('stopSpeaking calls cancel', () => {
     stopSpeaking()
     expect(window.speechSynthesis.cancel).toHaveBeenCalled()
+  })
+
+  it('setRate stores the rate value', () => {
+    setRate(1.5)
+    expect(getRate()).toBe(1.5)
+  })
+
+  it('getRate returns the current rate', () => {
+    setRate(2.0)
+    expect(getRate()).toBe(2.0)
   })
 })

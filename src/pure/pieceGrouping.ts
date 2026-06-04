@@ -1,10 +1,10 @@
+import { PlayerColor, PieceType, Quadrant } from '../constants'
+
 export interface PiecePosition {
   square: string
-  color: 'white' | 'black'
-  type: 'pawn' | 'knight' | 'bishop' | 'rook' | 'queen' | 'king'
+  color: PlayerColor
+  type: PieceType
 }
-
-export type Quadrant = 'wk' | 'wq' | 'bk' | 'bq'
 
 export function filterQuadrant(
   pieces: PiecePosition[],
@@ -34,17 +34,17 @@ export function filterQuadrant(
     const isWhiteRanks = rank >= 1 && rank <= 4
 
     // Match quadrant
-    if (quadrant === 'wk') return isKingSide && isWhiteRanks
-    if (quadrant === 'wq') return !isKingSide && isWhiteRanks
-    if (quadrant === 'bk') return isKingSide && !isWhiteRanks
-    if (quadrant === 'bq') return !isKingSide && !isWhiteRanks
+    if (quadrant === Quadrant.WHITE_KING) return isKingSide && isWhiteRanks
+    if (quadrant === Quadrant.WHITE_QUEEN) return !isKingSide && isWhiteRanks
+    if (quadrant === Quadrant.BLACK_KING) return isKingSide && !isWhiteRanks
+    if (quadrant === Quadrant.BLACK_QUEEN) return !isKingSide && !isWhiteRanks
 
     return false
   })
 }
 
 export interface GroupedPieces {
-  color: 'white' | 'black'
+  color: PlayerColor
   type: string
   squares: string[]
 }
@@ -82,7 +82,7 @@ export function groupByColorAndType(
   // Sort groups by color (white first) then type
   return Array.from(groups.values()).sort((a, b) => {
     if (a.color !== b.color) {
-      return a.color === 'white' ? -1 : 1
+      return a.color === PlayerColor.WHITE ? -1 : 1
     }
     return a.type.localeCompare(b.type)
   })

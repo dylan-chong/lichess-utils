@@ -1,13 +1,14 @@
-import { pixelsToSquare, type PlayerColor } from '../pure/coordinates'
+import { pixelsToSquare } from '../pure/coordinates'
 import type { PiecePosition } from '../pure/pieceGrouping'
+import { DOM_SELECTORS, CssClass, PlayerColor, PieceType } from '../constants'
 
 export function getPlayerColor(): PlayerColor {
-  const coords = document.querySelector('coords')
-  return coords?.classList.contains('black') ? 'black' : 'white'
+  const coords = document.querySelector(DOM_SELECTORS.COORDS)
+  return coords?.classList.contains(CssClass.BLACK) ? PlayerColor.BLACK : PlayerColor.WHITE
 }
 
 export function readPiecePositions(): PiecePosition[] {
-  const board = document.querySelector('cg-board:not(.userscript-custom-board)')
+  const board = document.querySelector(DOM_SELECTORS.BOARD_NO_CUSTOM)
   if (!board) return []
 
   // Parse width from style attribute since getBoundingClientRect may not work in test environments
@@ -17,14 +18,18 @@ export function readPiecePositions(): PiecePosition[] {
   const squareSize = boardWidth / 8
   const playerColor = getPlayerColor()
 
-  const pieces = board.querySelectorAll('piece')
+  const pieces = board.querySelectorAll(DOM_SELECTORS.PIECE)
   const positions: PiecePosition[] = []
 
   for (const piece of pieces) {
     // Extract color and type from class
     const classes = piece.className.split(' ')
-    const color = classes[0] as 'white' | 'black'
-    const type = classes[1] as PiecePosition['type']
+    const colorStr = classes[0]
+    const typeStr = classes[1]
+
+    // Map to enums
+    const color = colorStr === 'white' ? PlayerColor.WHITE : PlayerColor.BLACK
+    const type = typeStr as PieceType
 
     // Extract position from transform
     const transform = (piece as HTMLElement).style.transform

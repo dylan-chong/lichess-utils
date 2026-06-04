@@ -1,6 +1,7 @@
 import { describe, it } from 'vitest'
 import { mockModule } from 'simone'
 import { settings } from '../settings/settingsStore'
+import { PlayerColor, PieceType, Quadrant, SpeechCommand } from '../constants'
 
 const boardReader = mockModule(import('../dom/boardReader'))
 const speechSynthesizer = mockModule(import('../browser/speechSynthesizer'))
@@ -11,43 +12,55 @@ const { handleSpeechCommand } = await import('./handleSpeechCommand')
 describe('handleSpeechCommand', () => {
   it('speaks quadrant pieces', () => {
     const pieces = [
-      { square: 'e1', color: 'white' as const, type: 'king' as const },
+      { square: 'e1', color: PlayerColor.WHITE as const, type: PieceType.KING as const },
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    pieceGrouping.expects('filterQuadrant').withArgs(pieces, 'wk').returns(pieces)
+    pieceGrouping.expects('filterQuadrant').withArgs(pieces, Quadrant.WHITE_KING).returns(pieces)
     speechText.expects('generateQuadrantText').withArgs(pieces).returns('e1 white king.')
     speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
 
-    handleSpeechCommand('wk')
+    handleSpeechCommand(SpeechCommand.WK)
   })
 
   it('speaks all pieces', () => {
     const pieces = [
-      { square: 'e1', color: 'white' as const, type: 'king' as const },
+      { square: 'e1', color: PlayerColor.WHITE as const, type: PieceType.KING as const },
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     speechText.expects('generateAllPiecesText').withArgs(pieces).returns('e1 white king.')
     speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
 
-    handleSpeechCommand('all')
+    handleSpeechCommand(SpeechCommand.ALL)
   })
 
-  it('speaks pieces by color', () => {
+  it('speaks white pieces', () => {
     const pieces = [
-      { square: 'e1', color: 'white' as const, type: 'king' as const },
+      { square: 'e1', color: PlayerColor.WHITE as const, type: PieceType.KING as const },
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    speechText.expects('generateColorText').withArgs(pieces, 'white').returns('e1 white king.')
+    speechText.expects('generateColorText').withArgs(pieces, PlayerColor.WHITE).returns('e1 white king.')
     speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
 
-    handleSpeechCommand('white')
+    handleSpeechCommand(SpeechCommand.WHITE)
+  })
+
+  it('speaks black pieces', () => {
+    const pieces = [
+      { square: 'e8', color: PlayerColor.BLACK as const, type: PieceType.KING as const },
+    ]
+
+    boardReader.expects('readPiecePositions').withArgs().returns(pieces)
+    speechText.expects('generateColorText').withArgs(pieces, PlayerColor.BLACK).returns('e8 black king.')
+    speechSynthesizer.expects('speak').withArgs('e8 black king.', settings.speakRate.value).returns(undefined)
+
+    handleSpeechCommand(SpeechCommand.BLACK)
   })
 
   it('stops speaking', () => {
     speechSynthesizer.expects('stopSpeaking').withArgs().returns(undefined)
-    handleSpeechCommand('stop')
+    handleSpeechCommand(SpeechCommand.STOP)
   })
 })

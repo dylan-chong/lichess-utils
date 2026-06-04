@@ -1,3 +1,4 @@
+import { PlayerColor, PieceType } from '../constants'
 import { describe, it, expect } from 'vitest'
 import { generateQuadrantText, generateAllPiecesText, generateColorText } from './speechText'
 import type { PiecePosition } from './pieceGrouping'
@@ -5,9 +6,9 @@ import type { PiecePosition } from './pieceGrouping'
 describe('generateQuadrantText', () => {
   it('generates text for multiple pieces of same type', () => {
     const pieces: PiecePosition[] = [
-      { square: 'a2', color: 'white', type: 'pawn' },
-      { square: 'b2', color: 'white', type: 'pawn' },
-      { square: 'a1', color: 'white', type: 'rook' },
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'b2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
     ]
 
     const result = generateQuadrantText(pieces)
@@ -16,7 +17,7 @@ describe('generateQuadrantText', () => {
 
   it('generates text for single pieces', () => {
     const pieces: PiecePosition[] = [
-      { square: 'e1', color: 'white', type: 'king' },
+      { square: 'e1', color: PlayerColor.WHITE, type: PieceType.KING },
     ]
 
     const result = generateQuadrantText(pieces)
@@ -32,8 +33,8 @@ describe('generateQuadrantText', () => {
 describe('generateAllPiecesText', () => {
   it('generates text for all pieces', () => {
     const pieces: PiecePosition[] = [
-      { square: 'a1', color: 'white', type: 'rook' },
-      { square: 'a8', color: 'black', type: 'rook' },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
     const result = generateAllPiecesText(pieces)
@@ -44,21 +45,21 @@ describe('generateAllPiecesText', () => {
 describe('generateColorText', () => {
   it('generates text for white pieces only', () => {
     const pieces: PiecePosition[] = [
-      { square: 'a1', color: 'white', type: 'rook' },
-      { square: 'a8', color: 'black', type: 'rook' },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
-    const result = generateColorText(pieces, 'white')
+    const result = generateColorText(pieces, PlayerColor.WHITE)
     expect(result).toBe('a1 white rook.')
   })
 
   it('generates text for black pieces only', () => {
     const pieces: PiecePosition[] = [
-      { square: 'a1', color: 'white', type: 'rook' },
-      { square: 'a8', color: 'black', type: 'rook' },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
-    const result = generateColorText(pieces, 'black')
+    const result = generateColorText(pieces, PlayerColor.BLACK)
     expect(result).toBe('a8 black rook.')
   })
 })

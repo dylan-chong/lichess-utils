@@ -3,7 +3,7 @@ import { mockModule } from 'simone'
 import { defaultSettings } from './defaults'
 
 const storageMock = mockModule(import('./storage'))
-const { settings, loadSettings, saveSettings } = await import('./settingsStore')
+const { settings, loadSettings, saveSettings, setupAutoSave } = await import('./settingsStore')
 
 describe('settingsStore', () => {
   beforeEach(() => {
@@ -132,6 +132,34 @@ describe('settingsStore', () => {
         .returns(undefined)
 
       saveSettings()
+    })
+  })
+
+  describe('setupAutoSave', () => {
+    it('should call saveSettings when effect runs', () => {
+      const expectedJson = JSON.stringify({
+        speakRate: defaultSettings.speakRate,
+        piecesListEnabled: defaultSettings.piecesListEnabled,
+        dividersEnabled: defaultSettings.dividersEnabled,
+        customBoardEnabled: defaultSettings.customBoardEnabled,
+        obfuscationsEnabled: defaultSettings.obfuscationsEnabled,
+        parallax: defaultSettings.parallax,
+        hoverMode: defaultSettings.hoverMode,
+        pieceStyle: defaultSettings.pieceStyle,
+        blur: defaultSettings.blur,
+        blackSegments: defaultSettings.blackSegments,
+        blackSegmentsTiming: defaultSettings.blackSegmentsTiming,
+        flashModeEnabled: defaultSettings.flashModeEnabled,
+        flashDuration: defaultSettings.flashDuration,
+        flashInterval: defaultSettings.flashInterval,
+      })
+
+      storageMock
+        .expects('setItem')
+        .withArgs('lichess-board-speaker-settings', expectedJson)
+        .returns(undefined)
+
+      setupAutoSave()
     })
   })
 })

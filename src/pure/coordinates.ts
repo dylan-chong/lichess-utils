@@ -1,9 +1,9 @@
+import { PlayerColor } from '../constants'
+
 export interface PixelPosition {
   x: number
   y: number
 }
-
-export type PlayerColor = 'white' | 'black'
 
 const FILES = 'abcdefgh'
 
@@ -27,7 +27,7 @@ export function pixelsToSquare(
   let rank: number
   let file: string
 
-  if (playerColor === 'white') {
+  if (playerColor === PlayerColor.WHITE) {
     file = FILES[col]
     rank = 8 - row
   } else {
@@ -65,7 +65,7 @@ export function squareToPixels(
   let pixelCol: number
   let pixelRow: number
 
-  if (playerColor === 'white') {
+  if (playerColor === PlayerColor.WHITE) {
     // For white: files go left-to-right (a-h), ranks go bottom-to-top (1-8)
     // So rank 1 is at bottom (row 7), rank 8 is at top (row 0)
     pixelCol = col

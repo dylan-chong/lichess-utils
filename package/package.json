@@ -1,0 +1,36 @@
+{
+  "name": "simone",
+  "version": "2.0.0",
+  "type": "module",
+  "files": ["dist"],
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./vitest": {
+      "types": "./dist/vitest/index.d.ts",
+      "import": "./dist/vitest/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "tsc --noEmit && tsc --noEmit -p example/tsconfig.json && vitest --typecheck --run --coverage && vitest --typecheck --run --coverage --config example/vitest.config.ts",
+    "test:example": "vitest run --coverage --config example/vitest.config.ts",
+    "test:watch": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@types/node": "25.9.1",
+    "@types/ramda": "0.31.1",
+    "@vitest/coverage-v8": "4.1.8",
+    "typescript": "6.0.3",
+    "vitest": "4.1.8"
+  },
+  "dependencies": {
+    "ramda": "0.32.0"
+  }
+}

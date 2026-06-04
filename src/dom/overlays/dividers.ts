@@ -1,9 +1,11 @@
+import { DOM_SELECTORS, CssClass, CssDisplay } from '../../constants'
+
 export interface DividersState {
   svg: SVGSVGElement
 }
 
 export function createDividers(): DividersState {
-  const board = document.querySelector('cg-board')
+  const board = document.querySelector(DOM_SELECTORS.BOARD)
   if (!board) {
     throw new Error('Board not found')
   }
@@ -12,7 +14,7 @@ export function createDividers(): DividersState {
   const size = rect.width
 
   const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-  svg.setAttribute('class', 'userscript-dividers')
+  svg.setAttribute('class', CssClass.USERSCRIPT_DIVIDERS)
   svg.setAttribute('width', size.toString())
   svg.setAttribute('height', size.toString())
   svg.style.cssText = `
@@ -50,11 +52,11 @@ export function createDividers(): DividersState {
 }
 
 export function showDividers(state: DividersState): void {
-  state.svg.style.display = 'block'
+  state.svg.style.display = CssDisplay.BLOCK
 }
 
 export function hideDividers(state: DividersState): void {
-  state.svg.style.display = 'none'
+  state.svg.style.display = CssDisplay.NONE
 }
 
 export function destroyDividers(state: DividersState): void {
