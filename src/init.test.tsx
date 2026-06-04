@@ -11,7 +11,7 @@ const dividersOverlay = mockModule(import('./dom/overlays/dividers'))
 const onDividers = mockModule(import('./effects/onDividers'))
 const keyboardInput = mockModule(import('./commands/keyboardInput'))
 const root = mockModule(import('./components/root'))
-const dom = mockModule(import('./dom/dom'))
+const dom = mockModule(import('./platform/dom'))
 
 const { init } = await import('./init')
 

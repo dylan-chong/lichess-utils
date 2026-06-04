@@ -1,5 +1,5 @@
 import { CssClass, CssDisplay, DomSelector } from '../../constants'
-import { appendChild, createDiv, querySelector } from '../dom'
+import { appendChild, createDiv, querySelector } from '../../platform/dom'
 
 export interface FlashOverlayState {
   overlay: HTMLElement

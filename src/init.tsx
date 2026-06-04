@@ -4,10 +4,10 @@ import { createRoot, destroyRoot } from './components/root'
 import { DomSelector } from './constants'
 import { createBoardObserver, startBoardObserver, stopBoardObserver } from './dom/boardObserver'
 import { waitForElement } from './dom/boardReader'
-import { appendChild, createDiv, querySelector } from './dom/dom'
 import { createDividers, destroyDividers } from './dom/overlays/dividers'
 import { createFlashOverlay, destroyFlashOverlay } from './dom/overlays/flash'
 import { setupDividersEffect } from './effects/onDividers'
+import { appendChild, createDiv, querySelector } from './platform/dom'
 import { loadSettings, setupAutoSave } from './settings/settingsStore'
 
 export async function init() {
