@@ -22,31 +22,41 @@ const DISALLOWED_MOCK_PATTERNS = [
   { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap global interactions in modules like src/dom/dom.ts' },
 ]
 
-function checkVagueTestDescriptions(line: string, lineNumber: number, filePath: string): LintError | null {
-  for (const pattern of VAGUE_TEST_PATTERNS) {
-    if (pattern.test(line)) {
-      return {
-        file: filePath,
-        line: lineNumber,
-        message: 'Tests should describe the expected observable behaviour, not implementation details or vague actions',
+function checkVagueTestDescriptions(content: string, filePath: string): LintError[] {
+  const errors: LintError[] = []
+  const lines = content.split('\n')
+
+  lines.forEach((line, index) => {
+    for (const pattern of VAGUE_TEST_PATTERNS) {
+      if (pattern.test(line)) {
+        errors.push({
+          file: filePath,
+          line: index + 1,
+          message: 'Tests should describe the expected observable behaviour, not implementation details or vague actions',
+        })
+        break
       }
     }
-  }
-  return null
+  })
+
+  return errors
 }
 
-function checkDisallowedMockingPatterns(line: string, lineNumber: number, filePath: string): LintError[] {
+function checkDisallowedMockingPatterns(content: string, filePath: string): LintError[] {
   const errors: LintError[] = []
+  const lines = content.split('\n')
 
-  for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
-    if (pattern.test(line)) {
-      errors.push({
-        file: filePath,
-        line: lineNumber,
-        message,
-      })
+  lines.forEach((line, index) => {
+    for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
+      if (pattern.test(line)) {
+        errors.push({
+          file: filePath,
+          line: index + 1,
+          message,
+        })
+      }
     }
-  }
+  })
 
   return errors
 }
@@ -54,20 +64,10 @@ function checkDisallowedMockingPatterns(line: string, lineNumber: number, filePa
 function lintFile(filePath: string): LintError[] {
   const errors: LintError[] = []
   const content = fs.readFileSync(filePath, 'utf-8')
-  const lines = content.split('\n')
 
-  lines.forEach((line, index) => {
-    const lineNumber = index + 1
-
-    // Apply all lint rules
-    const vagueTestError = checkVagueTestDescriptions(line, lineNumber, filePath)
-    if (vagueTestError) {
-      errors.push(vagueTestError)
-    }
-
-    const mockingErrors = checkDisallowedMockingPatterns(line, lineNumber, filePath)
-    errors.push(...mockingErrors)
-  })
+  // Apply all lint rules
+  errors.push(...checkVagueTestDescriptions(content, filePath))
+  errors.push(...checkDisallowedMockingPatterns(content, filePath))
 
   return errors
 }
