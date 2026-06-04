@@ -3,6 +3,12 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { glob } from 'glob'
+import {
+  getLayerFromPath,
+  isImportAllowed,
+  getViolationMessage,
+  type Layer,
+} from './layerBoundaries'
 
 interface LintError {
   file: string
@@ -61,6 +67,61 @@ function checkDisallowedMockingPatterns(content: string, filePath: string): Lint
   return errors
 }
 
+function checkLayerBoundaries(content: string, filePath: string): LintError[] {
+  const errors: LintError[] = []
+  const lines = content.split('\n')
+
+  // Determine the layer of the current file
+  const fromLayer = getLayerFromPath(filePath)
+  if (!fromLayer) {
+    // Skip files that don't belong to a known layer
+    return errors
+  }
+
+  // Regular expressions to match import statements
+  const importPatterns = [
+    /import\s+.*?\s+from\s+['"](.+?)['"]/,  // import X from 'path'
+    /import\s+['"](.+?)['"]/,                // import 'path'
+    /export\s+.*?\s+from\s+['"](.+?)['"]/,  // export X from 'path'
+  ]
+
+  lines.forEach((line, index) => {
+    for (const pattern of importPatterns) {
+      const match = pattern.exec(line)
+      if (!match) continue
+
+      const importPath = match[1]
+
+      // Skip external packages (not relative imports)
+      if (!importPath.startsWith('.') && !importPath.startsWith('/')) {
+        continue
+      }
+
+      // Resolve the absolute path of the imported file
+      const fileDir = path.dirname(filePath)
+      const resolvedPath = path.resolve(fileDir, importPath)
+
+      // Get the layer of the imported file
+      const toLayer = getLayerFromPath(resolvedPath)
+      if (!toLayer) {
+        // Skip if we can't determine the layer
+        continue
+      }
+
+      // Check if this import is allowed
+      if (!isImportAllowed(fromLayer, toLayer)) {
+        errors.push({
+          file: filePath,
+          line: index + 1,
+          message: getViolationMessage(fromLayer, toLayer),
+        })
+      }
+    }
+  })
+
+  return errors
+}
+
 function lintFile(filePath: string): LintError[] {
   const errors: LintError[] = []
   const content = fs.readFileSync(filePath, 'utf-8')
@@ -68,21 +129,34 @@ function lintFile(filePath: string): LintError[] {
   // Apply all lint rules
   errors.push(...checkVagueTestDescriptions(content, filePath))
   errors.push(...checkDisallowedMockingPatterns(content, filePath))
+  errors.push(...checkLayerBoundaries(content, filePath))
 
   return errors
 }
 
 async function main() {
+  // Lint all source files for layer boundaries
+  const allFiles = await glob('src/**/*.{ts,tsx}', { cwd: process.cwd() })
+  // Lint test files for test-specific rules
   const testFiles = await glob('src/**/*.test.{ts,tsx}', { cwd: process.cwd() })
 
   let totalErrors = 0
   const allErrors: LintError[] = []
 
-  for (const file of testFiles) {
-    const errors = lintFile(file)
-    allErrors.push(...errors)
-    totalErrors += errors.length
+  // Check all files for layer boundaries
+  for (const file of allFiles) {
+    const content = fs.readFileSync(file, 'utf-8')
+    allErrors.push(...checkLayerBoundaries(content, file))
   }
+
+  // Check test files for test-specific rules
+  for (const file of testFiles) {
+    const content = fs.readFileSync(file, 'utf-8')
+    allErrors.push(...checkVagueTestDescriptions(content, file))
+    allErrors.push(...checkDisallowedMockingPatterns(content, file))
+  }
+
+  totalErrors = allErrors.length
 
   if (allErrors.length > 0) {
     console.error('\n❌ Custom lint errors found:\n')
