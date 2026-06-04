@@ -1,6 +1,6 @@
 import type { Signal } from '@preact/signals-core'
 import { render } from 'preact'
-import type { SettingsStore } from '../../application-settings/settingsStore'
+import type { SettingsStore } from '../../application/settings/settingsStore'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { ControlPanel } from './ControlPanel'
 

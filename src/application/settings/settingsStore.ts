@@ -1,7 +1,7 @@
 import type { Signal } from '@preact/signals-core'
 import { effect, signal } from '@preact/signals-core'
-import { type Settings, defaultSettings } from '../constants/settings'
-import * as storage from '../platform/storage'
+import { type Settings, defaultSettings } from '../../constants/settings'
+import * as storage from '../../platform/storage'
 
 const STORAGE_KEY = 'lichess-board-speaker-settings'
 

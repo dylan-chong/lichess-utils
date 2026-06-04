@@ -1,7 +1,7 @@
-import { handleSpeechCommand } from '../application-handlers/handleSpeechCommand'
-import type { SettingsStore } from '../application-settings/settingsStore'
-import { DomSelector, KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../constants'
-import { querySelector } from '../platform/dom'
+import { DomSelector, KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants'
+import { querySelector } from '../../platform/dom'
+import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
+import type { SettingsStore } from '../settings/settingsStore'
 
 interface InputElementWithCleanup extends HTMLInputElement {
   __keyboardCommandCleanup?: () => void

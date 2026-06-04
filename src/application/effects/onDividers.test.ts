@@ -1,10 +1,10 @@
 import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
-import type { DividersState } from '../adapters-overlays/dividers'
-import { createSettingsStore } from '../application-settings/settingsStore'
+import type { DividersState } from '../../presentation/non-preact-components/dividers'
+import { createSettingsStore } from '../settings/settingsStore'
 import { setupDividersEffect } from './onDividers'
 
-const updateDividers = mockModule(import('../application-handlers/updateDividers'))
+const updateDividers = mockModule(import('../handlers/updateDividers'))
 
 describe('onDividers effect', () => {
   const mockState: DividersState = {

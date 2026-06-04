@@ -1,21 +1,21 @@
 import { signal } from '@preact/signals-core'
-import { createDividers, destroyDividers } from './adapters-overlays/dividers'
-import { createFlashOverlay, destroyFlashOverlay } from './adapters-overlays/flash'
-import { setupDividersEffect } from './application-effects/onDividers'
-import { setupKeyboardCommands, teardownKeyboardCommands } from './application-input/keyboardInput'
+import { setupDividersEffect } from './application/effects/onDividers'
+import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
 import {
   createBoardObserver,
   startBoardObserver,
   stopBoardObserver,
-} from './application-observers/observerState'
+} from './application/observers/observerState'
 import {
   createSettingsStore,
   loadSettings,
   setupAutoSave,
-} from './application-settings/settingsStore'
+} from './application/settings/settingsStore'
 import { DomSelector } from './constants'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createRoot, destroyRoot } from './presentation/components/root'
+import { createDividers, destroyDividers } from './presentation/non-preact-components/dividers'
+import { createFlashOverlay, destroyFlashOverlay } from './presentation/non-preact-components/flash'
 
 export async function init() {
   // Wait for lichess to load the board

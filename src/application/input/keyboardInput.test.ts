@@ -1,10 +1,10 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createSettingsStore } from '../application-settings/settingsStore'
-import { SpeechCommand } from '../constants'
+import { SpeechCommand } from '../../constants'
+import { createSettingsStore } from '../settings/settingsStore'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './keyboardInput'
 
-const handleSpeechCommand = mockModule(import('../application-handlers/handleSpeechCommand'))
+const handleSpeechCommand = mockModule(import('../handlers/handleSpeechCommand'))
 
 describe('keyboardInput', () => {
   let input: HTMLInputElement

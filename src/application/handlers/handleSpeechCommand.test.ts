@@ -1,13 +1,13 @@
 import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
-import { createSettingsStore } from '../application-settings/settingsStore'
-import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
+import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../../constants'
+import { createSettingsStore } from '../settings/settingsStore'
 import { handleSpeechCommand } from './handleSpeechCommand'
 
-const boardReader = mockModule(import('../application/services/boardReader/reader'))
-const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
-const pieceGrouping = mockModule(import('../domain/chess/pieceGrouping'))
-const speechText = mockModule(import('../domain/speech/speechText'))
+const boardReader = mockModule(import('../services/boardReader/reader'))
+const speechSynthesizer = mockModule(import('../../platform/speechApi'))
+const pieceGrouping = mockModule(import('../../domain/chess/pieceGrouping'))
+const speechText = mockModule(import('../../domain/speech/speechText'))
 
 describe('handleSpeechCommand', () => {
   const settings = createSettingsStore()
@@ -21,7 +21,7 @@ describe('handleSpeechCommand', () => {
     pieceGrouping.expects('filterQuadrant').withArgs(pieces, Quadrant.WHITE_KING).returns(pieces)
     speechText.expects('generateQuadrantText').withArgs(pieces).returns('e1 white king.')
     speechSynthesizer
-      .expects('speak')
+      .expects('speakText')
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
@@ -36,7 +36,7 @@ describe('handleSpeechCommand', () => {
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     speechText.expects('generateAllPiecesText').withArgs(pieces).returns('e1 white king.')
     speechSynthesizer
-      .expects('speak')
+      .expects('speakText')
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
@@ -54,7 +54,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(pieces, PlayerColor.WHITE)
       .returns('e1 white king.')
     speechSynthesizer
-      .expects('speak')
+      .expects('speakText')
       .withArgs('e1 white king.', settings.speakRate.value)
       .returns(undefined)
 
@@ -72,7 +72,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(pieces, PlayerColor.BLACK)
       .returns('e8 black king.')
     speechSynthesizer
-      .expects('speak')
+      .expects('speakText')
       .withArgs('e8 black king.', settings.speakRate.value)
       .returns(undefined)
 

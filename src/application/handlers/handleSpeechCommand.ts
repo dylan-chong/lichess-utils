@@ -1,13 +1,13 @@
-import { speak, stopSpeaking } from '../adapters-speech/speechSynthesizer'
-import type { SettingsStore } from '../application-settings/settingsStore'
-import { readPiecePositions } from '../application/services/boardReader/reader'
-import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
-import { filterQuadrant } from '../domain/chess/pieceGrouping'
+import { PlayerColor, type Quadrant, SpeechCommand } from '../../constants'
+import { filterQuadrant } from '../../domain/chess/pieceGrouping'
 import {
   generateAllPiecesText,
   generateColorText,
   generateQuadrantText,
-} from '../domain/speech/speechText'
+} from '../../domain/speech/speechText'
+import { speakText, stopSpeaking } from '../../platform/speechApi'
+import { readPiecePositions } from '../services/boardReader/reader'
+import type { SettingsStore } from '../settings/settingsStore'
 
 export function handleSpeechCommand(command: string, settings: SettingsStore): void {
   if (command === SpeechCommand.STOP) {
@@ -19,14 +19,14 @@ export function handleSpeechCommand(command: string, settings: SettingsStore): v
 
   if (command === SpeechCommand.ALL) {
     const text = generateAllPiecesText(pieces)
-    speak(text, settings.speakRate.value)
+    speakText(text, settings.speakRate.value)
     return
   }
 
   if (command === SpeechCommand.WHITE || command === SpeechCommand.BLACK) {
     const color = command === SpeechCommand.WHITE ? PlayerColor.WHITE : PlayerColor.BLACK
     const text = generateColorText(pieces, color)
-    speak(text, settings.speakRate.value)
+    speakText(text, settings.speakRate.value)
     return
   }
 
@@ -34,5 +34,5 @@ export function handleSpeechCommand(command: string, settings: SettingsStore): v
   const quadrant = command as Quadrant
   const filtered = filterQuadrant(pieces, quadrant)
   const text = generateQuadrantText(filtered)
-  speak(text, settings.speakRate.value)
+  speakText(text, settings.speakRate.value)
 }

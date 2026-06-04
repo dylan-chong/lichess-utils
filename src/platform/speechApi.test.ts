@@ -2,9 +2,13 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   cancel,
   createUtterance,
+  getRate,
   getSpeechSynthesis,
   getSpeechSynthesisUtterance,
+  setRate,
   speak,
+  speakText,
+  stopSpeaking,
 } from './speechApi'
 
 describe('speechApi', () => {
@@ -67,5 +71,49 @@ describe('speechApi', () => {
 
     cancel(mockSynthesis)
     expect(cancelCalled).toBe(true)
+  })
+
+  describe('higher-level functions', () => {
+    it('speakText creates utterance with correct rate and speaks it', () => {
+      const mockSpeak = { called: false, utterance: null as any }
+      const mockSynthesis = {
+        speak: (utt: any) => {
+          mockSpeak.called = true
+          mockSpeak.utterance = utt
+        },
+      } as any
+
+      global.window = { speechSynthesis: mockSynthesis } as any
+
+      speakText('test message', 1.5)
+
+      expect(mockSpeak.called).toBe(true)
+      expect(mockSpeak.utterance.text).toBe('test message')
+      expect(mockSpeak.utterance.rate).toBe(1.5)
+    })
+
+    it('stopSpeaking calls cancel on speech synthesis', () => {
+      let cancelCalled = false
+      const mockSynthesis = {
+        cancel: () => {
+          cancelCalled = true
+        },
+      } as any
+
+      global.window = { speechSynthesis: mockSynthesis } as any
+
+      stopSpeaking()
+      expect(cancelCalled).toBe(true)
+    })
+
+    it('setRate stores the rate value', () => {
+      setRate(1.5)
+      expect(getRate()).toBe(1.5)
+    })
+
+    it('getRate returns the current rate', () => {
+      setRate(2.0)
+      expect(getRate()).toBe(2.0)
+    })
   })
 })

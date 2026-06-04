@@ -1,7 +1,7 @@
 import { effect } from '@preact/signals-core'
-import type { DividersState } from '../adapters-overlays/dividers'
-import { updateDividers } from '../application-handlers/updateDividers'
-import type { SettingsStore } from '../application-settings/settingsStore'
+import type { DividersState } from '../../presentation/non-preact-components/dividers'
+import { updateDividers } from '../handlers/updateDividers'
+import type { SettingsStore } from '../settings/settingsStore'
 
 export function setupDividersEffect(state: DividersState, settings: SettingsStore): () => void {
   return effect(() => {

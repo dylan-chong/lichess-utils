@@ -1,17 +1,17 @@
 import { signal } from '@preact/signals-core'
 import { mockModule } from 'simone'
 import { describe, expect, it } from 'vitest'
-import type { SettingsStore } from './application-settings/settingsStore'
+import type { SettingsStore } from './application/settings/settingsStore'
 import { init } from './init'
 
 // Mock all dependencies
-const settingsStore = mockModule(import('./application-settings/settingsStore'))
+const settingsStore = mockModule(import('./application/settings/settingsStore'))
 const dom = mockModule(import('./platform/dom'))
-const boardObserver = mockModule(import('./application-observers/observerState'))
-const flashOverlay = mockModule(import('./adapters-overlays/flash'))
-const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
-const onDividers = mockModule(import('./application-effects/onDividers'))
-const keyboardInput = mockModule(import('./application-input/keyboardInput'))
+const boardObserver = mockModule(import('./application/observers/observerState'))
+const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
+const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
+const onDividers = mockModule(import('./application/effects/onDividers'))
+const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
 describe('init', () => {

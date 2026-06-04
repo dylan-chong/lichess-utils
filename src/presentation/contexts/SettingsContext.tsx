@@ -1,6 +1,6 @@
 import { createContext } from 'preact'
 import { useContext } from 'preact/hooks'
-import type { SettingsStore } from '../../application-settings/settingsStore'
+import type { SettingsStore } from '../../application/settings/settingsStore'
 
 const SettingsContext = createContext<SettingsStore | null>(null)
 

@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals-core'
 import { describe, expect, it } from 'vitest'
-import { createSettingsStore } from '../../application-settings/settingsStore'
+import { createSettingsStore } from '../../application/settings/settingsStore'
 import { createRoot, destroyRoot } from './root'
 
 describe('root', () => {
