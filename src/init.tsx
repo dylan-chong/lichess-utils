@@ -1,4 +1,3 @@
-import { render } from 'preact'
 import { signal } from '@preact/signals-core'
 import { setupAutoSave, loadSettings } from './settings/settingsStore'
 import { waitForElement } from './dom/boardReader'
@@ -7,8 +6,9 @@ import { createFlashOverlay, destroyFlashOverlay } from './dom/overlays/flash'
 import { createDividers, destroyDividers } from './dom/overlays/dividers'
 import { setupDividersEffect } from './effects/onDividers'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './commands/keyboardInput'
-import { ControlPanel } from './components/ControlPanel'
+import { createRoot, destroyRoot } from './components/root'
 import { DOM_SELECTORS } from './constants'
+import { createDiv, querySelector, appendChild } from './dom/dom'
 
 export async function init() {
   // Wait for lichess to load the board
@@ -36,10 +36,12 @@ export async function init() {
   setupKeyboardCommands()
 
   // Mount Preact UI
-  const mountPoint = document.createElement('div')
-  const keyboardMove = document.querySelector(DOM_SELECTORS.KEYBOARD_MOVE)
-  keyboardMove?.appendChild(mountPoint)
-  render(<ControlPanel boardChanged={boardChanged} />, mountPoint)
+  const mountPoint = createDiv()
+  const keyboardMove = querySelector(DOM_SELECTORS.KEYBOARD_MOVE)
+  if (keyboardMove) {
+    appendChild(keyboardMove, mountPoint)
+  }
+  createRoot(boardChanged, mountPoint)
 
   // Return cleanup function
   return () => {
@@ -48,6 +50,6 @@ export async function init() {
     destroyFlashOverlay(flashState)
     destroyDividers(dividersState)
     teardownKeyboardCommands()
-    render(null, mountPoint)
+    destroyRoot(mountPoint)
   }
 }

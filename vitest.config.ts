@@ -22,5 +22,22 @@ export default defineConfig({
   test: {
     environment: 'happy-dom',
     globals: true,
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'html'],
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
+      exclude: [
+        'node_modules/**',
+        '**/types.ts',
+        '**/*.test.ts',
+        '**/*.test.tsx',
+      ],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 97, // Allow minor defensive code branch gaps
+        statements: 100,
+      },
+    },
   }
 })
