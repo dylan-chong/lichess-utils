@@ -28,6 +28,13 @@ describe('flash overlay', () => {
     expect(state.overlay.style.display).toBe('none')
   })
 
+  it('creates overlay without appending when container is missing', () => {
+    document.body.innerHTML = ''
+    const state = createFlashOverlay()
+    expect(state.overlay).toBeInstanceOf(HTMLElement)
+    expect(state.overlay.parentElement).toBeNull()
+  })
+
   it('removes overlay on destroy', () => {
     const state = createFlashOverlay()
     const parent = state.overlay.parentElement

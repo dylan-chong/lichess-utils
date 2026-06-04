@@ -64,6 +64,22 @@ describe('settingsStore', () => {
       })
     })
 
+    it('should ignore unknown setting keys from storage', () => {
+      const storedSettings = {
+        unknownSetting: 'value',
+        speakRate: 1.5,
+      }
+
+      storageMock
+        .expects('getItem')
+        .withArgs('lichess-board-speaker-settings')
+        .returns(JSON.stringify(storedSettings))
+
+      loadSettings()
+
+      expect(settings.speakRate.value).toBe(1.5)
+    })
+
     it('should ignore invalid JSON', () => {
       storageMock
         .expects('getItem')

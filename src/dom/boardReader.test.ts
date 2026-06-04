@@ -127,4 +127,19 @@ describe('waitForElement', () => {
     const element = await promise
     expect(element).toBeInstanceOf(Element)
   })
+
+  it('resolves only after the target element is added, ignoring unrelated mutations', async () => {
+    const promise = waitForElement('.target')
+
+    const unrelated = document.createElement('span')
+    document.body.appendChild(unrelated)
+
+    await new Promise((r) => setTimeout(r, 10))
+    const div = document.createElement('div')
+    div.className = 'target'
+    document.body.appendChild(div)
+
+    const element = await promise
+    expect(element).toBeInstanceOf(Element)
+  })
 })

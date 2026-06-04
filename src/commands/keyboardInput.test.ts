@@ -71,6 +71,10 @@ describe('keyboardInput', () => {
     expect(input.value).toBe('pwk')
   })
 
+  it('teardown does nothing when setup was not called', () => {
+    expect(() => teardownKeyboardCommands()).not.toThrow()
+  })
+
   it('returns early without error when input element is missing', () => {
     document.body.innerHTML = '' // No input element
     expect(() => setupKeyboardCommands()).not.toThrow()

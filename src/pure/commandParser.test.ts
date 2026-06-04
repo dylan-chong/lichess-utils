@@ -27,6 +27,11 @@ describe('parseDrawCommand', () => {
     expect(result).toEqual([])
   })
 
+  it('ignores parts with invalid length', () => {
+    const result = parseDrawCommand('-abc,e4')
+    expect(result).toEqual([{ type: AnnotationType.CIRCLE, square: 'e4' }])
+  })
+
   it('returns empty array for dash only', () => {
     const result = parseDrawCommand('-')
     expect(result).toEqual([])
