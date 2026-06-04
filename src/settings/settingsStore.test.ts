@@ -2,7 +2,7 @@ import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultSettings } from './defaults'
 
-const storageMock = mockModule(import('./storage'))
+const storageMock = mockModule(import('../platform/storage'))
 const { settings, loadSettings, saveSettings, setupAutoSave } = await import('./settingsStore')
 
 describe('settingsStore', () => {

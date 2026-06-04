@@ -1,6 +1,6 @@
 import { effect, signal } from '@preact/signals-core'
+import * as storage from '../platform/storage'
 import { defaultSettings } from './defaults'
-import * as storage from './storage'
 import type { Settings } from './types'
 
 const STORAGE_KEY = 'lichess-board-speaker-settings'
