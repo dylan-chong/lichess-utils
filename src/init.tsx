@@ -8,10 +8,9 @@ import {
   startBoardObserver,
   stopBoardObserver,
 } from './application-observers/observerState'
-import { waitForElement } from './application-services/boardReader'
 import { createSettingsStore } from './application-settings/settingsStore'
 import { DomSelector } from './constants'
-import { appendChild, createDiv, querySelector } from './platform/dom'
+import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createRoot, destroyRoot } from './presentation/components/root'
 
 export async function init() {

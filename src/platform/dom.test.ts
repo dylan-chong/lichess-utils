@@ -6,6 +6,7 @@ import {
   getBoundingClientRect,
   querySelector,
   querySelectorAll,
+  waitForElement,
 } from './dom'
 
 describe('dom', () => {
@@ -73,5 +74,40 @@ describe('dom', () => {
     expect(rect).toBeDefined()
     expect(typeof rect.width).toBe('number')
     expect(typeof rect.height).toBe('number')
+  })
+
+  it('waitForElement resolves immediately if element exists', async () => {
+    document.body.innerHTML = '<div class="test"></div>'
+
+    const element = await waitForElement('.test')
+    expect(element).toBeInstanceOf(Element)
+  })
+
+  it('waitForElement waits for element to be added', async () => {
+    const promise = waitForElement('.test')
+
+    setTimeout(() => {
+      const div = document.createElement('div')
+      div.className = 'test'
+      document.body.appendChild(div)
+    }, 10)
+
+    const element = await promise
+    expect(element).toBeInstanceOf(Element)
+  })
+
+  it('waitForElement resolves only after the target element is added, ignoring unrelated mutations', async () => {
+    const promise = waitForElement('.target')
+
+    const unrelated = document.createElement('span')
+    document.body.appendChild(unrelated)
+
+    await new Promise((r) => setTimeout(r, 10))
+    const div = document.createElement('div')
+    div.className = 'target'
+    document.body.appendChild(div)
+
+    const element = await promise
+    expect(element).toBeInstanceOf(Element)
   })
 })

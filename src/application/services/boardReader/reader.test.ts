@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { PieceType, PlayerColor } from '../constants'
-import { getPlayerColor, readPiecePositions, waitForElement } from './boardReader'
+import { PieceType, PlayerColor } from '../../../constants'
+import { getPlayerColor, readPiecePositions } from './reader'
 
 describe('getPlayerColor', () => {
   beforeEach(() => {
@@ -100,46 +100,5 @@ describe('readPiecePositions', () => {
 
     const result = readPiecePositions()
     expect(result).toEqual([])
-  })
-})
-
-describe('waitForElement', () => {
-  beforeEach(() => {
-    document.body.innerHTML = ''
-  })
-
-  it('resolves immediately if element exists', async () => {
-    document.body.innerHTML = '<div class="test"></div>'
-
-    const element = await waitForElement('.test')
-    expect(element).toBeInstanceOf(Element)
-  })
-
-  it('waits for element to be added', async () => {
-    const promise = waitForElement('.test')
-
-    setTimeout(() => {
-      const div = document.createElement('div')
-      div.className = 'test'
-      document.body.appendChild(div)
-    }, 10)
-
-    const element = await promise
-    expect(element).toBeInstanceOf(Element)
-  })
-
-  it('resolves only after the target element is added, ignoring unrelated mutations', async () => {
-    const promise = waitForElement('.target')
-
-    const unrelated = document.createElement('span')
-    document.body.appendChild(unrelated)
-
-    await new Promise((r) => setTimeout(r, 10))
-    const div = document.createElement('div')
-    div.className = 'target'
-    document.body.appendChild(div)
-
-    const element = await promise
-    expect(element).toBeInstanceOf(Element)
   })
 })

@@ -5,14 +5,13 @@ import type { SettingsStore } from './application-settings/settingsStore'
 
 // Mock all dependencies
 const settingsStore = mockModule(import('./application-settings/settingsStore'))
-const boardReader = mockModule(import('./application-services/boardReader'))
+const dom = mockModule(import('./platform/dom'))
 const boardObserver = mockModule(import('./application-observers/observerState'))
 const flashOverlay = mockModule(import('./adapters-overlays/flash'))
 const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
 const onDividers = mockModule(import('./application-effects/onDividers'))
 const keyboardInput = mockModule(import('./application-input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
-const dom = mockModule(import('./platform/dom'))
 
 const { init } = await import('./init')
 
@@ -34,7 +33,7 @@ describe('init', () => {
       setupAutoSave: () => {},
     } as unknown as SettingsStore
 
-    boardReader
+    dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
@@ -81,7 +80,7 @@ describe('init', () => {
       setupAutoSave: () => {},
     } as unknown as SettingsStore
 
-    boardReader
+    dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
@@ -134,7 +133,7 @@ describe('init', () => {
       setupAutoSave: () => {},
     } as unknown as SettingsStore
 
-    boardReader
+    dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(document.createElement('div')))

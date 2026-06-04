@@ -21,3 +21,26 @@ export function appendChild(parent: Element, child: Element): void {
 export function getBoundingClientRect(element: Element): DOMRect {
   return element.getBoundingClientRect()
 }
+
+export function waitForElement(selector: string): Promise<Element> {
+  return new Promise((resolve) => {
+    const element = querySelector(selector)
+    if (element) {
+      resolve(element)
+      return
+    }
+
+    const observer = new MutationObserver(() => {
+      const element = querySelector(selector)
+      if (element) {
+        observer.disconnect()
+        resolve(element)
+      }
+    })
+
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true,
+    })
+  })
+}

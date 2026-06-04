@@ -1,9 +1,9 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultSettings } from '../constants/settings'
+import { createSettingsStore } from './settingsStore'
 
 const storageMock = mockModule(import('../platform/storage'))
-const { createSettingsStore } = await import('./settingsStore')
 
 describe('settingsStore', () => {
   let settings: ReturnType<typeof createSettingsStore>
