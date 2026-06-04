@@ -1,14 +1,11 @@
 #!/usr/bin/env sh
 
+set -ex
+
 # Run tests (includes type-check and coverage)
 npm test
 
 # Build
 npm run build
 
-# Check that build output has no unstaged changes
-if ! git diff --exit-code lichess-board-speaker.user.js; then
-  echo "Error: Build produced unstaged changes in lichess-board-speaker.user.js"
-  echo "Please stage these changes and try again"
-  exit 1
-fi
+git add lichess-board-speaker.user.js
