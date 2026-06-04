@@ -9,7 +9,7 @@ const boardObserver = mockModule(import('./application-observers/observerState')
 const flashOverlay = mockModule(import('./adapters-overlays/flash'))
 const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
 const onDividers = mockModule(import('./application-effects/onDividers'))
-const keyboardInput = mockModule(import('./commands/keyboardInput'))
+const keyboardInput = mockModule(import('./application-input/keyboardInput'))
 const root = mockModule(import('./components/root'))
 const dom = mockModule(import('./platform/dom'))
 
