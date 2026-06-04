@@ -2,12 +2,12 @@ import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
 import { createSettingsStore } from '../application-settings/settingsStore'
 import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
+import { handleSpeechCommand } from './handleSpeechCommand'
 
 const boardReader = mockModule(import('../application/services/boardReader/reader'))
 const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
 const pieceGrouping = mockModule(import('../domain/chess/pieceGrouping'))
 const speechText = mockModule(import('../domain/speech/speechText'))
-const { handleSpeechCommand } = await import('./handleSpeechCommand')
 
 describe('handleSpeechCommand', () => {
   const settings = createSettingsStore()

@@ -2,9 +2,9 @@ import { mockModule } from 'simone'
 import { beforeEach, describe, it, vi } from 'vitest'
 import type { FlashOverlayState } from '../adapters-overlays/flash'
 import { createSettingsStore } from '../application-settings/settingsStore'
+import { handleFlash } from './handleFlash'
 
 const flash = mockModule(import('../adapters-overlays/flash'))
-const { handleFlash } = await import('./handleFlash')
 
 describe('handleFlash', () => {
   let mockState: FlashOverlayState

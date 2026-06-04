@@ -2,6 +2,7 @@ import { signal } from '@preact/signals-core'
 import { mockModule } from 'simone'
 import { describe, expect, it } from 'vitest'
 import type { SettingsStore } from './application-settings/settingsStore'
+import { init } from './init'
 
 // Mock all dependencies
 const settingsStore = mockModule(import('./application-settings/settingsStore'))
@@ -12,8 +13,6 @@ const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
 const onDividers = mockModule(import('./application-effects/onDividers'))
 const keyboardInput = mockModule(import('./application-input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
-
-const { init } = await import('./init')
 
 describe('init', () => {
   it('initializes all components, observers, and effects in correct order', async () => {

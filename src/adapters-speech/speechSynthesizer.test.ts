@@ -1,8 +1,8 @@
 import { mockModule } from 'simone'
 import { describe, expect, it } from 'vitest'
+import { getRate, setRate, speak, stopSpeaking } from './speechSynthesizer'
 
 const speechApi = mockModule(import('../platform/speechApi'))
-const { getRate, setRate, speak, stopSpeaking } = await import('./speechSynthesizer')
 
 describe('speechSynthesizer', () => {
   it('calls speechSynthesis.speak with correct text', () => {
