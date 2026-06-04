@@ -1,11 +1,12 @@
 import { DomSelector, CssClass, CssDisplay } from '../../constants'
+import { createDiv, querySelector, appendChild } from '../dom'
 
 export interface FlashOverlayState {
   overlay: HTMLElement
 }
 
 export function createFlashOverlay(): FlashOverlayState {
-  const overlay = document.createElement('div')
+  const overlay = createDiv()
   overlay.className = CssClass.USERSCRIPT_FLASH
   overlay.style.cssText = `
     position: absolute;
@@ -18,8 +19,10 @@ export function createFlashOverlay(): FlashOverlayState {
     display: none;
   `
 
-  const container = document.querySelector(DomSelector.CONTAINER)
-  container?.appendChild(overlay)
+  const container = querySelector(DomSelector.CONTAINER)
+  if (container) {
+    appendChild(container, overlay)
+  }
 
   return { overlay }
 }

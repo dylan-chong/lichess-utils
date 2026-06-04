@@ -1,8 +1,9 @@
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
 import { KEYBOARD_COMMAND_MAP, DomSelector } from '../constants'
+import { querySelector } from '../dom/dom'
 
 export function setupKeyboardCommands(): void {
-  const input = document.querySelector(DomSelector.KEYBOARD_INPUT) as HTMLInputElement
+  const input = querySelector(DomSelector.KEYBOARD_INPUT) as HTMLInputElement | null
   if (!input) return
 
   const handleInput = (e: Event) => {
@@ -33,7 +34,7 @@ export function setupKeyboardCommands(): void {
 }
 
 export function teardownKeyboardCommands(): void {
-  const input = document.querySelector(DomSelector.KEYBOARD_INPUT) as HTMLInputElement
+  const input = querySelector(DomSelector.KEYBOARD_INPUT) as HTMLInputElement | null
   if (input && (input as any).__keyboardCommandCleanup) {
     ;(input as any).__keyboardCommandCleanup()
     delete (input as any).__keyboardCommandCleanup

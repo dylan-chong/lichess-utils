@@ -1,5 +1,6 @@
 import type { Signal } from '@preact/signals-core'
 import { DomSelector } from '../constants'
+import { querySelector } from './dom'
 
 export interface BoardObserverState {
   observer: MutationObserver
@@ -15,7 +16,7 @@ export function createBoardObserver(boardChanged: Signal<number>): BoardObserver
 }
 
 export function startBoardObserver(state: BoardObserverState): void {
-  const board = document.querySelector(DomSelector.BOARD)
+  const board = querySelector(DomSelector.BOARD)
   if (!board) return
 
   state.observer.observe(board, {

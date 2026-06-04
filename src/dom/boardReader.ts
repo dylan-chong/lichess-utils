@@ -1,14 +1,15 @@
 import { pixelsToSquare } from '../pure/coordinates'
 import type { PiecePosition } from '../pure/pieceGrouping'
 import { DomSelector, CssClass, PlayerColor, PieceType } from '../constants'
+import { querySelector } from './dom'
 
 export function getPlayerColor(): PlayerColor {
-  const coords = document.querySelector(DomSelector.COORDS)
+  const coords = querySelector(DomSelector.COORDS)
   return coords?.classList.contains(CssClass.BLACK) ? PlayerColor.BLACK : PlayerColor.WHITE
 }
 
 export function readPiecePositions(): PiecePosition[] {
-  const board = document.querySelector(DomSelector.BOARD_NO_CUSTOM)
+  const board = querySelector(DomSelector.BOARD_NO_CUSTOM)
   if (!board) return []
 
   // Parse width from style attribute since getBoundingClientRect may not work in test environments
@@ -49,14 +50,14 @@ export function readPiecePositions(): PiecePosition[] {
 
 export function waitForElement(selector: string): Promise<Element> {
   return new Promise((resolve) => {
-    const element = document.querySelector(selector)
+    const element = querySelector(selector)
     if (element) {
       resolve(element)
       return
     }
 
     const observer = new MutationObserver(() => {
-      const element = document.querySelector(selector)
+      const element = querySelector(selector)
       if (element) {
         observer.disconnect()
         resolve(element)

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from 'vitest'
-import { createDiv, querySelector, appendChild } from './dom'
+import { createDiv, createSvgElement, querySelector, querySelectorAll, appendChild } from './dom'
 
 describe('dom', () => {
   beforeEach(() => {
@@ -12,6 +12,18 @@ describe('dom', () => {
     expect(div instanceof HTMLDivElement).toBe(true)
   })
 
+  it('createSvgElement returns an SVG element', () => {
+    const svg = createSvgElement('svg')
+    expect(svg.tagName).toBe('SVG')
+    expect(svg instanceof SVGElement).toBe(true)
+  })
+
+  it('createSvgElement creates different SVG element types', () => {
+    const line = createSvgElement('line')
+    expect(line.tagName).toBe('LINE')
+    expect(line instanceof SVGElement).toBe(true)
+  })
+
   it('querySelector returns element when found', () => {
     document.body.innerHTML = '<div class="test"></div>'
     const element = querySelector('.test')
@@ -22,6 +34,17 @@ describe('dom', () => {
   it('querySelector returns null when not found', () => {
     const element = querySelector('.nonexistent')
     expect(element).toBeNull()
+  })
+
+  it('querySelectorAll returns all matching elements', () => {
+    document.body.innerHTML = '<div class="test"></div><div class="test"></div>'
+    const elements = querySelectorAll('.test')
+    expect(elements.length).toBe(2)
+  })
+
+  it('querySelectorAll returns empty NodeList when no matches', () => {
+    const elements = querySelectorAll('.nonexistent')
+    expect(elements.length).toBe(0)
   })
 
   it('appendChild appends child to parent', () => {

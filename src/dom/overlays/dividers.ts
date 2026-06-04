@@ -1,11 +1,12 @@
 import { DomSelector, CssClass, CssDisplay } from '../../constants'
+import { querySelector, createSvgElement, appendChild } from '../dom'
 
 export interface DividersState {
   svg: SVGSVGElement
 }
 
 export function createDividers(): DividersState {
-  const board = document.querySelector(DomSelector.BOARD)
+  const board = querySelector(DomSelector.BOARD)
   if (!board) {
     throw new Error('Board not found')
   }
@@ -13,7 +14,7 @@ export function createDividers(): DividersState {
   const rect = board.getBoundingClientRect()
   const size = rect.width
 
-  const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
+  const svg = createSvgElement('svg') as SVGSVGElement
   svg.setAttribute('class', CssClass.USERSCRIPT_DIVIDERS)
   svg.setAttribute('width', size.toString())
   svg.setAttribute('height', size.toString())
@@ -26,7 +27,7 @@ export function createDividers(): DividersState {
   `
 
   // Vertical line
-  const vLine = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+  const vLine = createSvgElement('line')
   vLine.setAttribute('x1', (size / 2).toString())
   vLine.setAttribute('y1', '0')
   vLine.setAttribute('x2', (size / 2).toString())
@@ -35,7 +36,7 @@ export function createDividers(): DividersState {
   vLine.setAttribute('stroke-width', '2')
 
   // Horizontal line
-  const hLine = document.createElementNS('http://www.w3.org/2000/svg', 'line')
+  const hLine = createSvgElement('line')
   hLine.setAttribute('x1', '0')
   hLine.setAttribute('y1', (size / 2).toString())
   hLine.setAttribute('x2', size.toString())
@@ -43,10 +44,10 @@ export function createDividers(): DividersState {
   hLine.setAttribute('stroke', 'red')
   hLine.setAttribute('stroke-width', '2')
 
-  svg.appendChild(vLine)
-  svg.appendChild(hLine)
+  appendChild(svg, vLine)
+  appendChild(svg, hLine)
 
-  board.appendChild(svg)
+  appendChild(board, svg)
 
   return { svg }
 }
