@@ -36,9 +36,9 @@ export function extractPieceData(pieceElement: Element, squareSize: number): Raw
   const match = transform.match(/translate\(([0-9.]+)px,?\s*([0-9.]+)px?\)/)
   if (!match) return null
 
-  // Transform gives bottom-left corner, convert to center
+  // Transform gives top-left corner, convert to center
   const x = Number.parseFloat(match[1]) + squareSize / 2
-  const y = Number.parseFloat(match[2]) - squareSize / 2
+  const y = Number.parseFloat(match[2]) + squareSize / 2
 
   return {
     color: colorStr,

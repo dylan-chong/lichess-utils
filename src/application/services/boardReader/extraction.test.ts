@@ -39,7 +39,7 @@ describe('extractPieceData', () => {
       color: 'white',
       type: 'pawn',
       x: 139,
-      y: 161,
+      y: 239,
     })
   })
 
