@@ -88,6 +88,24 @@ describe('groupByColorAndType', () => {
     ])
   })
 
+  it('sorts white pieces before black pieces', () => {
+    // Input with BLACK pieces before WHITE to test sorting
+    const pieces: PiecePosition[] = [
+      { square: 'a7', color: PlayerColor.BLACK, type: PieceType.PAWN },
+      { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+    ]
+
+    const result = groupByColorAndType(pieces)
+
+    // WHITE groups should appear first
+    expect(result[0].color).toBe(PlayerColor.WHITE)
+    expect(result[1].color).toBe(PlayerColor.WHITE)
+    expect(result[2].color).toBe(PlayerColor.BLACK)
+    expect(result[3].color).toBe(PlayerColor.BLACK)
+  })
+
   it('handles empty array', () => {
     const result = groupByColorAndType([])
     expect(result).toEqual([])

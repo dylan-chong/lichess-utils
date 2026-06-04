@@ -65,4 +65,9 @@ describe('keyboardInput', () => {
 
     expect(input.value).toBe('pwk')
   })
+
+  it('handles missing input element gracefully', () => {
+    document.body.innerHTML = '' // No input element
+    expect(() => setupKeyboardCommands()).not.toThrow()
+  })
 })

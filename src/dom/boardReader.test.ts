@@ -44,6 +44,23 @@ describe('readPiecePositions', () => {
     ])
   })
 
+  it('reads black pieces correctly', () => {
+    document.body.innerHTML = `
+      <cg-board style="width: 624px">
+        <piece class="black pawn" style="transform: translate(0px, 234px)"></piece>
+        <piece class="black knight" style="transform: translate(78px, 156px)"></piece>
+      </cg-board>
+      <coords></coords>
+    `
+
+    const result = readPiecePositions()
+
+    expect(result).toEqual([
+      { square: 'a6', color: PlayerColor.BLACK, type: PieceType.PAWN },
+      { square: 'b7', color: PlayerColor.BLACK, type: PieceType.KNIGHT },
+    ])
+  })
+
   it('falls back to getBoundingClientRect when no width style', () => {
     document.body.innerHTML = `
       <cg-board>
