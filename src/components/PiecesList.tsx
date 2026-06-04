@@ -1,6 +1,6 @@
 import type { Signal } from '@preact/signals'
 import { getPlayerColor, readPiecePositions } from '../dom/boardReader'
-import { groupByColorAndType } from '../pure/pieceGrouping'
+import { groupByColorAndType } from '../domain/chess/pieceGrouping'
 
 interface PiecesListProps {
   boardChanged: Signal<number>

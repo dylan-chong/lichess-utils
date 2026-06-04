@@ -3,10 +3,10 @@ import { render, screen } from '@testing-library/preact'
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PieceType, PlayerColor } from '../constants'
-import type { PiecePosition } from '../pure/pieceGrouping'
+import type { PiecePosition } from '../domain/chess/pieceGrouping'
 
 const boardReaderMock = mockModule(import('../dom/boardReader'))
-const pieceGroupingMock = mockModule(import('../pure/pieceGrouping'))
+const pieceGroupingMock = mockModule(import('../domain/chess/pieceGrouping'))
 
 const { PiecesList } = await import('./PiecesList')
 

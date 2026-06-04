@@ -1,4 +1,4 @@
-import { type PiecePosition, groupByColorAndType } from './pieceGrouping'
+import { type PiecePosition, groupByColorAndType } from '../domain/chess/pieceGrouping'
 
 export function generateQuadrantText(pieces: PiecePosition[]): string {
   if (pieces.length === 0) return ''

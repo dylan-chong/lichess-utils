@@ -1,4 +1,4 @@
-import { type PieceType, PlayerColor, Quadrant } from '../constants'
+import { type PieceType, PlayerColor, Quadrant } from '../../constants'
 
 export interface PiecePosition {
   square: string

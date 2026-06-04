@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PieceType, PlayerColor, Quadrant } from '../constants'
+import { PieceType, PlayerColor, Quadrant } from '../../constants'
 import { filterQuadrant, groupByColorAndType } from './pieceGrouping'
 import type { PiecePosition } from './pieceGrouping'
 

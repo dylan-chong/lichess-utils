@@ -1,7 +1,7 @@
 import { speak, stopSpeaking } from '../adapters-speech/speechSynthesizer'
 import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
 import { readPiecePositions } from '../dom/boardReader'
-import { filterQuadrant } from '../pure/pieceGrouping'
+import { filterQuadrant } from '../domain/chess/pieceGrouping'
 import { generateAllPiecesText, generateColorText, generateQuadrantText } from '../pure/speechText'
 import { settings } from '../settings/settingsStore'
 

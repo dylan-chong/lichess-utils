@@ -1,7 +1,7 @@
 import { CssClass, DomSelector, type PieceType, PlayerColor } from '../constants'
 import { pixelsToSquare } from '../domain/chess/coordinates'
+import type { PiecePosition } from '../domain/chess/pieceGrouping'
 import { getBoundingClientRect, querySelector } from '../platform/dom'
-import type { PiecePosition } from '../pure/pieceGrouping'
 
 export function getPlayerColor(): PlayerColor {
   const coords = querySelector(DomSelector.COORDS)

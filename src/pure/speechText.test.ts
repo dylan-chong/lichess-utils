@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PieceType, PlayerColor } from '../constants'
-import type { PiecePosition } from './pieceGrouping'
+import type { PiecePosition } from '../domain/chess/pieceGrouping'
 import { generateAllPiecesText, generateColorText, generateQuadrantText } from './speechText'
 
 describe('generateQuadrantText', () => {
