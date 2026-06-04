@@ -3,7 +3,7 @@ import { describe, it } from 'vitest'
 import type { DividersState } from '../adapters-overlays/dividers'
 import { settings } from '../settings/settingsStore'
 
-const updateDividers = mockModule(import('../handlers/updateDividers'))
+const updateDividers = mockModule(import('../application-handlers/updateDividers'))
 const { setupDividersEffect } = await import('./onDividers')
 
 describe('onDividers effect', () => {
