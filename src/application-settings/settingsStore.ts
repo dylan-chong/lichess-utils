@@ -20,13 +20,10 @@ export interface SettingsStore {
   flashModeEnabled: Signal<boolean>
   flashDuration: Signal<number>
   flashInterval: Signal<number>
-  loadSettings: () => void
-  saveSettings: () => void
-  setupAutoSave: () => void
 }
 
 export function createSettingsStore(): SettingsStore {
-  const settings: SettingsStore = {
+  return {
     speakRate: signal(defaultSettings.speakRate),
     piecesListEnabled: signal(defaultSettings.piecesListEnabled),
     dividersEnabled: signal(defaultSettings.dividersEnabled),
@@ -41,49 +38,47 @@ export function createSettingsStore(): SettingsStore {
     flashModeEnabled: signal(defaultSettings.flashModeEnabled),
     flashDuration: signal(defaultSettings.flashDuration),
     flashInterval: signal(defaultSettings.flashInterval),
-
-    loadSettings() {
-      const stored = storage.getItem(STORAGE_KEY)
-      if (!stored) return
-
-      const data = JSON.parse(stored) as Partial<Settings>
-      for (const key of Object.keys(data)) {
-        const settingKey = key as keyof Settings
-        if (
-          settings[settingKey] &&
-          typeof settings[settingKey] === 'object' &&
-          'value' in settings[settingKey]
-        ) {
-          // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
-          ;(settings[settingKey] as any).value = data[settingKey]
-        }
-      }
-    },
-
-    saveSettings() {
-      const data: Partial<Settings> = {}
-      for (const key of Object.keys(settings)) {
-        const settingKey = key as keyof typeof settings
-        if (typeof settings[settingKey] === 'object' && 'value' in settings[settingKey]) {
-          // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
-          data[settingKey as keyof Settings] = (settings[settingKey] as any).value
-        }
-      }
-      storage.setItem(STORAGE_KEY, JSON.stringify(data))
-    },
-
-    setupAutoSave() {
-      effect(() => {
-        for (const key of Object.keys(settings)) {
-          const setting = settings[key as keyof typeof settings]
-          if (typeof setting === 'object' && 'value' in setting) {
-            setting.value
-          }
-        }
-        settings.saveSettings()
-      })
-    },
   }
+}
 
-  return settings
+export function loadSettings(settings: SettingsStore): void {
+  const stored = storage.getItem(STORAGE_KEY)
+  if (!stored) return
+
+  const data = JSON.parse(stored) as Partial<Settings>
+  for (const key of Object.keys(data)) {
+    const settingKey = key as keyof Settings
+    if (
+      settings[settingKey] &&
+      typeof settings[settingKey] === 'object' &&
+      'value' in settings[settingKey]
+    ) {
+      // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
+      ;(settings[settingKey] as any).value = data[settingKey]
+    }
+  }
+}
+
+export function saveSettings(settings: SettingsStore): void {
+  const data: Partial<Settings> = {}
+  for (const key of Object.keys(settings)) {
+    const settingKey = key as keyof typeof settings
+    if (typeof settings[settingKey] === 'object' && 'value' in settings[settingKey]) {
+      // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
+      data[settingKey as keyof Settings] = (settings[settingKey] as any).value
+    }
+  }
+  storage.setItem(STORAGE_KEY, JSON.stringify(data))
+}
+
+export function setupAutoSave(settings: SettingsStore): void {
+  effect(() => {
+    for (const key of Object.keys(settings)) {
+      const setting = settings[key as keyof typeof settings]
+      if (typeof setting === 'object' && 'value' in setting) {
+        setting.value
+      }
+    }
+    saveSettings(settings)
+  })
 }

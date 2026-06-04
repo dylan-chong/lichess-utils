@@ -27,16 +27,15 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
-    const mockSettings = {
-      loadSettings: () => {},
-      setupAutoSave: () => {},
-    } as unknown as SettingsStore
+    const mockSettings = {} as unknown as SettingsStore
 
     dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
+    settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
+    settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver
@@ -74,16 +73,15 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
-    const mockSettings = {
-      loadSettings: () => {},
-      setupAutoSave: () => {},
-    } as unknown as SettingsStore
+    const mockSettings = {} as unknown as SettingsStore
 
     dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(mockKeyboardMove))
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
+    settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
+    settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver
@@ -127,16 +125,15 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
-    const mockSettings = {
-      loadSettings: () => {},
-      setupAutoSave: () => {},
-    } as unknown as SettingsStore
+    const mockSettings = {} as unknown as SettingsStore
 
     dom
       .expects('waitForElement')
       .withArgs('.keyboard-move')
       .returns(Promise.resolve(document.createElement('div')))
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
+    settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
+    settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     boardObserver

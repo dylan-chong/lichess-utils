@@ -8,7 +8,11 @@ import {
   startBoardObserver,
   stopBoardObserver,
 } from './application-observers/observerState'
-import { createSettingsStore } from './application-settings/settingsStore'
+import {
+  createSettingsStore,
+  loadSettings,
+  setupAutoSave,
+} from './application-settings/settingsStore'
 import { DomSelector } from './constants'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createRoot, destroyRoot } from './presentation/components/root'
@@ -19,8 +23,8 @@ export async function init() {
 
   // Initialize settings
   const settings = createSettingsStore()
-  settings.loadSettings()
-  settings.setupAutoSave()
+  loadSettings(settings)
+  setupAutoSave(settings)
 
   // Create shared board change signal
   const boardChanged = signal(0)

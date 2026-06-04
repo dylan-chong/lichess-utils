@@ -1,21 +1,15 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultSettings } from '../constants/settings'
-import { createSettingsStore } from './settingsStore'
+import { createSettingsStore, loadSettings, saveSettings, setupAutoSave } from './settingsStore'
 
 const storageMock = mockModule(import('../platform/storage'))
 
 describe('settingsStore', () => {
   let settings: ReturnType<typeof createSettingsStore>
-  let loadSettings: () => void
-  let saveSettings: () => void
-  let setupAutoSave: () => void
 
   beforeEach(() => {
     settings = createSettingsStore()
-    loadSettings = settings.loadSettings
-    saveSettings = settings.saveSettings
-    setupAutoSave = settings.setupAutoSave
   })
 
   describe('loadSettings', () => {
@@ -31,7 +25,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings')
         .returns(JSON.stringify(storedSettings))
 
-      loadSettings()
+      loadSettings(settings)
 
       expect(settings).toMatchObject({
         speakRate: { value: 1.5 },
@@ -43,7 +37,7 @@ describe('settingsStore', () => {
     it('should do nothing when storage is empty', () => {
       storageMock.expects('getItem').withArgs('lichess-board-speaker-settings').returns(null)
 
-      loadSettings()
+      loadSettings(settings)
 
       expect(settings).toMatchObject({
         speakRate: { value: defaultSettings.speakRate },
@@ -61,7 +55,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings')
         .returns(JSON.stringify(storedSettings))
 
-      loadSettings()
+      loadSettings(settings)
 
       expect(settings).toMatchObject({
         speakRate: { value: 2.0 },
@@ -80,7 +74,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings')
         .returns(JSON.stringify(storedSettings))
 
-      loadSettings()
+      loadSettings(settings)
 
       expect(settings.speakRate.value).toBe(1.5)
     })
@@ -91,7 +85,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings')
         .returns('invalid json')
 
-      expect(() => loadSettings()).toThrow()
+      expect(() => loadSettings(settings)).toThrow()
     })
   })
 
@@ -123,7 +117,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings', JSON.stringify(expectedData))
         .returns(undefined)
 
-      saveSettings()
+      saveSettings(settings)
     })
 
     it('should serialize all signal values', () => {
@@ -149,7 +143,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings', JSON.stringify(expectedData))
         .returns(undefined)
 
-      saveSettings()
+      saveSettings(settings)
     })
   })
 
@@ -177,7 +171,7 @@ describe('settingsStore', () => {
         .withArgs('lichess-board-speaker-settings', expectedJson)
         .returns(undefined)
 
-      setupAutoSave()
+      setupAutoSave(settings)
     })
   })
 })
