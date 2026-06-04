@@ -7,7 +7,6 @@ import {
   getLayerFromPath,
   isImportAllowed,
   getViolationMessage,
-  type Layer,
 } from './layerBoundaries'
 
 interface LintError {
@@ -122,17 +121,6 @@ function checkLayerBoundaries(content: string, filePath: string): LintError[] {
   return errors
 }
 
-function lintFile(filePath: string): LintError[] {
-  const errors: LintError[] = []
-  const content = fs.readFileSync(filePath, 'utf-8')
-
-  // Apply all lint rules
-  errors.push(...checkVagueTestDescriptions(content, filePath))
-  errors.push(...checkDisallowedMockingPatterns(content, filePath))
-  errors.push(...checkLayerBoundaries(content, filePath))
-
-  return errors
-}
 
 async function main() {
   // Lint all source files for layer boundaries
