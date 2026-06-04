@@ -63,10 +63,8 @@ export function saveSettings(settings: SettingsStore): void {
   const data: Partial<Settings> = {}
   for (const key of Object.keys(settings)) {
     const settingKey = key as keyof typeof settings
-    if (typeof settings[settingKey] === 'object' && 'value' in settings[settingKey]) {
-      // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
-      data[settingKey as keyof Settings] = (settings[settingKey] as any).value
-    }
+    // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
+    data[settingKey as keyof Settings] = (settings[settingKey] as any).value
   }
   storage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
@@ -75,9 +73,7 @@ export function setupAutoSave(settings: SettingsStore): void {
   effect(() => {
     for (const key of Object.keys(settings)) {
       const setting = settings[key as keyof typeof settings]
-      if (typeof setting === 'object' && 'value' in setting) {
-        setting.value
-      }
+      setting.value
     }
     saveSettings(settings)
   })
