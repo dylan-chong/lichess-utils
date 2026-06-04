@@ -1,6 +1,6 @@
 import { signal } from '@preact/signals-core'
 import { beforeEach, describe, expect, it } from 'vitest'
-import { createBoardObserver, startBoardObserver, stopBoardObserver } from './boardObserver'
+import { createBoardObserver, startBoardObserver, stopBoardObserver } from './observerState'
 
 describe('boardObserver', () => {
   beforeEach(() => {

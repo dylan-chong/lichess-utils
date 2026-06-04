@@ -2,10 +2,14 @@ import { signal } from '@preact/signals-core'
 import { createDividers, destroyDividers } from './adapters-overlays/dividers'
 import { createFlashOverlay, destroyFlashOverlay } from './adapters-overlays/flash'
 import { setupDividersEffect } from './application-effects/onDividers'
+import {
+  createBoardObserver,
+  startBoardObserver,
+  stopBoardObserver,
+} from './application-observers/observerState'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './commands/keyboardInput'
 import { createRoot, destroyRoot } from './components/root'
 import { DomSelector } from './constants'
-import { createBoardObserver, startBoardObserver, stopBoardObserver } from './dom/boardObserver'
 import { waitForElement } from './dom/boardReader'
 import { appendChild, createDiv, querySelector } from './platform/dom'
 import { loadSettings, setupAutoSave } from './settings/settingsStore'
