@@ -1,0 +1,321 @@
+<h2>Managers as Factory Functions</h2>
+<p class="subtitle">No classes, just closures and returned functions</p>
+
+<div class="section">
+  <h3>BoardManager</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/boardManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { readPiecePositions } from './boardReader'<br/>
+import { createBoardWatcher } from './boardWatcher'<br/>
+import { createCustom3DBoard } from './custom3DBoard'<br/>
+import { createDividers } from './dividers'<br/>
+<br/>
+export function createBoardManager() {<br/>
+&nbsp;&nbsp;const watcher = createBoardWatcher()<br/>
+&nbsp;&nbsp;const dividers = createDividers()<br/>
+&nbsp;&nbsp;let board3D = null<br/>
+&nbsp;&nbsp;let cleanupEffect = null<br/>
+&nbsp;&nbsp;let cleanupWatcher = null<br/>
+<br/>
+&nbsp;&nbsp;function init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;watcher.start()<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to board changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupWatcher = watcher.onChange(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const pieces = readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.render(pieces)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to settings changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reapplyAll()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function reapplyAll() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Custom board<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.customBoardEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D = createCustom3DBoard()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.init()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.updateParallax(settings.parallax.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.updateHoverMode(settings.hoverMode.value)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (settings.obfuscationsEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.updatePieceStyle(settings.pieceStyle.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.updateBlur(settings.blur.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.updateBlackSegments(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.blackSegments.value,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.blackSegmentsTiming.value<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else if (board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;board3D = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Dividers<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.dividersEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dividers.render(settings.customBoardEnabled.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;dividers.hide()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;watcher.stop()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;board3D?.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;dividers.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect?.()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupWatcher?.()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { init, destroy, watcher }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>FlashManager</h3>
+  <div class="mockup">
+    <div class="mockup-header">flash/flashManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { createFlashOverlay } from './flashOverlay'<br/>
+<br/>
+export function createFlashManager(boardWatcher) {<br/>
+&nbsp;&nbsp;const overlay = createFlashOverlay()<br/>
+&nbsp;&nbsp;let durationTimer = null<br/>
+&nbsp;&nbsp;let intervalTimer = null<br/>
+&nbsp;&nbsp;let cleanupEffect = null<br/>
+&nbsp;&nbsp;let cleanupWatcher = null<br/>
+<br/>
+&nbsp;&nbsp;function init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to board changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupWatcher = boardWatcher.onChange(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (settings.flashModeEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;onBoardChange()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to settings changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reapply()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function reapply() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.flashModeEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overlay.show()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;startIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overlay.hide()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function onBoardChange() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.hide()<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (durationTimer) clearTimeout(durationTimer)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const duration = settings.flashDuration.value * 1000<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;durationTimer = setTimeout(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;overlay.show()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}, duration)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;startIntervalFlash()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function startIntervalFlash() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const interval = settings.flashInterval.value * 1000<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;intervalTimer = setInterval(onBoardChange, interval)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function stopIntervalFlash() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (intervalTimer) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearInterval(intervalTimer)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;intervalTimer = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (durationTimer) clearTimeout(durationTimer)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect?.()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupWatcher?.()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { init, destroy }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>SpeechManager</h3>
+  <div class="mockup">
+    <div class="mockup-header">speech/speechManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { createSpeechSynthesizer } from './speechSynthesizer'<br/>
+import { readPiecePositions } from '../board/boardReader'<br/>
+import * as textGen from './textGenerators'<br/>
+<br/>
+export function createSpeechManager() {<br/>
+&nbsp;&nbsp;const synthesizer = createSpeechSynthesizer()<br/>
+&nbsp;&nbsp;let cleanupEffect = null<br/>
+<br/>
+&nbsp;&nbsp;function init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;synthesizer.setRate(settings.speakRate.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function speakQuadrant(quadrant) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateQuadrantText(pieces, quadrant)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function speakAll() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateAllPiecesText(pieces)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function speakColor(color) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateColorText(pieces, color)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function stop() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;synthesizer.stop()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cleanupEffect?.()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { init, speakQuadrant, speakAll, speakColor, stop, destroy }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>DrawingManager</h3>
+  <div class="mockup">
+    <div class="mockup-header">drawing/drawingManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { parseDrawCommand } from './commandParser'<br/>
+import { createDrawingsOverlay } from './drawingsOverlay'<br/>
+<br/>
+export function createDrawingManager() {<br/>
+&nbsp;&nbsp;const overlay = createDrawingsOverlay()<br/>
+<br/>
+&nbsp;&nbsp;function draw(commandStr) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const commands = parseDrawCommand(commandStr)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.clear()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.draw(commands)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function clear() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.clear()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;overlay.destroy()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { draw, clear, destroy }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Main Entry (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-header">main.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { render } from 'preact'<br/>
+import { loadSettings } from './settings/settingsStore'<br/>
+import { ControlPanel } from './components/ControlPanel'<br/>
+import { createBoardManager } from './board/boardManager'<br/>
+import { createSpeechManager } from './speech/speechManager'<br/>
+import { createDrawingManager } from './drawing/drawingManager'<br/>
+import { createFlashManager } from './flash/flashManager'<br/>
+import { setupCommandHandler } from './commands/commandHandler'<br/>
+<br/>
+async function waitForElement(selector) {<br/>
+&nbsp;&nbsp;return new Promise(resolve => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (document.querySelector(selector)) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return resolve(document.querySelector(selector))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const observer = new MutationObserver(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (document.querySelector(selector)) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;resolve(document.querySelector(selector))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;observer.disconnect()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;observer.observe(document.body, { childList: true, subtree: true })<br/>
+&nbsp;&nbsp;})<br/>
+}<br/>
+<br/>
+async function init() {<br/>
+&nbsp;&nbsp;await waitForElement('.keyboard-move')<br/>
+<br/>
+&nbsp;&nbsp;loadSettings()<br/>
+<br/>
+&nbsp;&nbsp;const boardManager = createBoardManager()<br/>
+&nbsp;&nbsp;const speechManager = createSpeechManager()<br/>
+&nbsp;&nbsp;const drawingManager = createDrawingManager()<br/>
+&nbsp;&nbsp;const flashManager = createFlashManager(boardManager.watcher)<br/>
+<br/>
+&nbsp;&nbsp;boardManager.init()<br/>
+&nbsp;&nbsp;speechManager.init()<br/>
+&nbsp;&nbsp;flashManager.init()<br/>
+<br/>
+&nbsp;&nbsp;setupCommandHandler(speechManager, drawingManager)<br/>
+<br/>
+&nbsp;&nbsp;const mountPoint = document.createElement('div')<br/>
+&nbsp;&nbsp;document.querySelector('.keyboard-move')?.appendChild(mountPoint)<br/>
+&nbsp;&nbsp;render(&lt;ControlPanel /&gt;, mountPoint)<br/>
+<br/>
+&nbsp;&nbsp;return () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;boardManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;speechManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;drawingManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;flashManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;render(null, mountPoint)<br/>
+&nbsp;&nbsp;}<br/>
+}<br/>
+<br/>
+init()
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Factory function pattern:</strong></p>
+  <ul>
+    <li>Functions that return objects with methods</li>
+    <li>State lives in closure scope (private by default)</li>
+    <li>No <code>this</code> keyword, no <code>new</code>, no <code>class</code></li>
+    <li>Simpler to test (just call the function, get back an object)</li>
+    <li>Dependencies passed as parameters (easier to see what depends on what)</li>
+  </ul>
+</div>

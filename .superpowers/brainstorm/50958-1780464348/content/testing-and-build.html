@@ -1,0 +1,228 @@
+<h2>Testing Strategy & Build Configuration</h2>
+<p class="subtitle">Unit tests with node:test and bundling to userscript</p>
+
+<div class="section">
+  <h3>Testing Approach</h3>
+  <div class="mockup">
+    <div class="mockup-header">What to Test</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>✓ Settings Store</strong><br/>
+- update() saves to localStorage and notifies listeners<br/>
+- get() returns correct values<br/>
+- load() restores from localStorage<br/>
+- Multiple listeners all get notified<br/>
+<br/>
+<strong>✓ Board Reading Logic</strong><br/>
+- pixelsToSquare() converts coordinates correctly<br/>
+- Handles both white/black perspectives<br/>
+- Edge cases (0,0), (max,max)<br/>
+<br/>
+<strong>✓ Coordinate Utilities</strong><br/>
+- squareToPixels(), pixelsToSquare() round-trip<br/>
+- File/rank conversions (col → 'a'-'h', row → 1-8)<br/>
+<br/>
+<strong>✓ Speech Text Generation</strong><br/>
+- generateQuadrantText() for all 4 quadrants<br/>
+- generateAllPiecesText() groups by piece type<br/>
+- generateColorText() filters by color<br/>
+<br/>
+<strong>✓ Drawing Command Parser</strong><br/>
+- parseDrawCommand('-e4') → circle<br/>
+- parseDrawCommand('-e2e4') → arrow<br/>
+- parseDrawCommand('-a1,b2c3,d4') → multiple<br/>
+- Invalid input handling<br/>
+<br/>
+<strong>✗ Skip (manual testing only)</strong><br/>
+- Vue component rendering<br/>
+- Three.js canvas output<br/>
+- SVG rendering<br/>
+- DOM manipulation<br/>
+- MutationObserver behavior<br/>
+- Web Speech API
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Test Structure</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+src/__tests__/<br/>
+├── settings/<br/>
+│   └── SettingsStore.test.ts<br/>
+├── board/<br/>
+│   ├── coordinateUtils.test.ts<br/>
+│   └── BoardReader.test.ts (with mocked DOM)<br/>
+├── speech/<br/>
+│   └── textGenerators.test.ts<br/>
+└── drawing/<br/>
+    └── commandParser.test.ts<br/>
+<br/>
+<strong>Example test with node:test:</strong><br/>
+<br/>
+// settings/SettingsStore.test.ts<br/>
+import { describe, it, beforeEach } from 'node:test'<br/>
+import assert from 'node:assert'<br/>
+import { SettingsStore } from '../settings/SettingsStore'<br/>
+<br/>
+describe('SettingsStore', () => {<br/>
+&nbsp;&nbsp;let store: SettingsStore<br/>
+<br/>
+&nbsp;&nbsp;beforeEach(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store = new SettingsStore()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Mock localStorage<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;global.localStorage = {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;getItem: () => null,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;setItem: () => {},<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;it('updates setting and notifies listeners', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;let notified = false<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store.onChange(() => { notified = true })<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store.update('blur', 3)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assert.strictEqual(store.get('blur'), 3)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assert.strictEqual(notified, true)<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;it('notifies all listeners', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;let count = 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store.onChange(() => { count++ })<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store.onChange(() => { count++ })<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;store.update('blur', 5)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;assert.strictEqual(count, 2)<br/>
+&nbsp;&nbsp;})<br/>
+})<br/>
+<br/>
+<strong>Run tests:</strong><br/>
+npm test<br/>
+# or<br/>
+node --test src/__tests__/**/*.test.ts
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Build Configuration</h3>
+  <div class="mockup">
+    <div class="mockup-header">Vite Configuration</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// vite.config.ts<br/>
+import { defineConfig } from 'vite'<br/>
+import vue from '@vitejs/plugin-vue'<br/>
+<br/>
+export default defineConfig({<br/>
+&nbsp;&nbsp;plugins: [vue()],<br/>
+&nbsp;&nbsp;build: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;lib: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;entry: './src/main.ts',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;name: 'LichessBoardSpeaker',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;formats: ['iife'], // Single file bundle<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;fileName: () => 'lichess-board-speaker.user.js'<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;outDir: '.', // Output to project root<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;minify: false, // Readable code as requested<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;sourcemap: 'inline', // For debugging<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;rollupOptions: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;external: [], // Bundle everything<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;output: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;banner: generateUserscriptHeader(),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;format: 'iife',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inlineDynamicImports: true<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+})<br/>
+<br/>
+function generateUserscriptHeader() {<br/>
+&nbsp;&nbsp;const pkg = require('./package.json')<br/>
+&nbsp;&nbsp;return `// ==UserScript==<br/>
+// @name        lichess-board-speaker<br/>
+// @description Blindfold chess training tool for lichess.org<br/>
+// @version     ${pkg.version}<br/>
+// @match       *://lichess.org/*<br/>
+// @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js<br/>
+// @grant       none<br/>
+// @inject-into content<br/>
+// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js<br/>
+// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js<br/>
+// ==/UserScript==`<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Package.json Scripts</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+{<br/>
+&nbsp;&nbsp;"name": "lichess-board-speaker",<br/>
+&nbsp;&nbsp;"version": "3.4.7",<br/>
+&nbsp;&nbsp;"type": "module",<br/>
+&nbsp;&nbsp;"scripts": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"dev": "vite build --watch",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"build": "vite build",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test": "node --test --loader tsx src/__tests__/**/*.test.ts",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:watch": "node --test --watch --loader tsx src/__tests__/**/*.test.ts",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"type-check": "tsc --noEmit"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"dependencies": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vue": "^3.4.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"three": "^0.160.0"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"devDependencies": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@vitejs/plugin-vue": "^5.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"typescript": "^5.3.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vite": "^5.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"tsx": "^4.7.0"<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Development Workflow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. Make changes to TypeScript/Vue files</strong><br/>
+&nbsp;&nbsp;&nbsp;src/board/Custom3DBoard.ts<br/>
+&nbsp;&nbsp;&nbsp;src/components/ControlPanel.vue<br/>
+<br/>
+<strong>2. Run build in watch mode</strong><br/>
+&nbsp;&nbsp;&nbsp;npm run dev<br/>
+&nbsp;&nbsp;&nbsp;→ Watches for changes<br/>
+&nbsp;&nbsp;&nbsp;→ Rebuilds lichess-board-speaker.user.js on save<br/>
+<br/>
+<strong>3. Reload lichess.org page</strong><br/>
+&nbsp;&nbsp;&nbsp;→ Tampermonkey detects updated .user.js<br/>
+&nbsp;&nbsp;&nbsp;→ Reloads script automatically<br/>
+&nbsp;&nbsp;&nbsp;→ Test changes immediately<br/>
+<br/>
+<strong>For testing:</strong><br/>
+&nbsp;&nbsp;&nbsp;npm test # Run once<br/>
+&nbsp;&nbsp;&nbsp;npm run test:watch # Watch mode<br/>
+<br/>
+<strong>Before commit:</strong><br/>
+&nbsp;&nbsp;&nbsp;npm run type-check # Verify TypeScript types<br/>
+&nbsp;&nbsp;&nbsp;npm test # Run all tests<br/>
+&nbsp;&nbsp;&nbsp;npm run build # Production build
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key points:</strong></p>
+  <ul>
+    <li>Vite bundles everything (TypeScript + Vue + Three.js) into single .user.js file</li>
+    <li>No minification (readable code with inline source maps)</li>
+    <li>Userscript header auto-generated with version from package.json</li>
+    <li>Tests run with native node:test (no Jest/Vitest needed)</li>
+    <li>tsx loader handles TypeScript in tests</li>
+  </ul>
+</div>

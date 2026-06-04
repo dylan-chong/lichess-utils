@@ -1,0 +1,365 @@
+<h2>Testing with Vitest</h2>
+<p class="subtitle">Comprehensive testing strategy using the Preact ecosystem standard</p>
+
+<div class="section">
+  <h3>Why Vitest for This Project</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <strong>Preact + Vite ecosystem fit:</strong><br/>
+      • Already using Vite for bundling<br/>
+      • Vitest shares Vite config (no duplication)<br/>
+      • Fast - native ESM, instant re-runs<br/>
+      • Jest-compatible API (familiar)<br/>
+      <br/>
+      <strong>Built-in features we need:</strong><br/>
+      • happy-dom included (DOM environment for tests)<br/>
+      • TypeScript support out of the box<br/>
+      • Mock utilities (vi.mock, vi.fn)<br/>
+      • Coverage reporting (c8/istanbul)<br/>
+      <br/>
+      <strong>vs node:test:</strong><br/>
+      • node:test: minimal, no DOM, manual mocking<br/>
+      • Vitest: batteries included, DOM ready, rich ecosystem
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Testing Strategy by Directory</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">pure/ - Pure Functions (Easiest)</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • Input → output correctness<br/>
+      • Edge cases (empty arrays, boundary values)<br/>
+      • Error handling<br/>
+      <br/>
+      <strong>No mocking needed</strong><br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • coordinates.ts: pixelsToSquare() with various positions, white/black perspective<br/>
+      • speechText.ts: generateQuadrantText() with different piece configurations<br/>
+      • commandParser.ts: parseDrawCommand() with valid/invalid inputs<br/>
+      • pieceGrouping.ts: filterQuadrant(), groupByColorAndType()
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">settings/ - Settings Store</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • loadSettings() restores from localStorage<br/>
+      • saveSettings() persists correctly<br/>
+      • Signals update properly<br/>
+      • Auto-save effect triggers<br/>
+      <br/>
+      <strong>Mocking:</strong><br/>
+      • Mock localStorage (vi.stubGlobal)<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • Update signal → verify localStorage.setItem called<br/>
+      • Load with stored data → verify signals have correct values<br/>
+      • Load with no data → verify defaults used
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">dom/ - DOM Operations</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • boardReader reads correct positions from mock DOM<br/>
+      • boardObserver triggers signal on DOM changes<br/>
+      • Overlays create/update/remove elements correctly<br/>
+      <br/>
+      <strong>Environment:</strong><br/>
+      • Vitest with happy-dom provides document, querySelector, etc.<br/>
+      • Create mock lichess DOM structure in tests<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • boardReader.ts: Create mock pieces with transforms → verify correct squares returned<br/>
+      • boardObserver.ts: Modify mock board → verify boardChanged signal incremented<br/>
+      • overlays/flash.ts: Call show() → verify overlay element visible<br/>
+      • overlays/dividers.ts: Call render() → verify SVG created with correct lines
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">browser/ - Browser API Wrappers</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • Wrapper calls correct Web API<br/>
+      • Parameters passed correctly<br/>
+      • Error handling<br/>
+      <br/>
+      <strong>Mocking:</strong><br/>
+      • Mock Web APIs (speechSynthesis, etc.)<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • speechSynthesizer.speak(text, rate) → verify speechSynthesis.speak called<br/>
+      • speechSynthesizer.stop() → verify speechSynthesis.cancel called<br/>
+      • Verify SpeechSynthesisUtterance created with correct text/rate
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">handlers/ - Business Logic</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • Orchestration logic<br/>
+      • Correct dependencies called<br/>
+      • Error paths<br/>
+      <br/>
+      <strong>Mocking:</strong><br/>
+      • Mock DOM operations<br/>
+      • Mock browser APIs<br/>
+      • Mock pure function results (optional)<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • handleSpeechCommand('wk'):<br/>
+      &nbsp;&nbsp;- Mock boardReader.readPiecePositions → return test pieces<br/>
+      &nbsp;&nbsp;- Mock speechSynthesizer.speak<br/>
+      &nbsp;&nbsp;- Verify speak called with correct generated text<br/>
+      • update3dBoard(settings):<br/>
+      &nbsp;&nbsp;- Mock renderer3d methods<br/>
+      &nbsp;&nbsp;- Verify updateParallax, updateBlur, etc. called with correct values<br/>
+      • handleFlash():<br/>
+      &nbsp;&nbsp;- Mock overlay and timers<br/>
+      &nbsp;&nbsp;- Verify flash timing logic (show/hide sequence)
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">effects/ - Signal Watchers</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • Signal changes trigger handler calls<br/>
+      • Correct values passed to handlers<br/>
+      • Cleanup functions work<br/>
+      <br/>
+      <strong>Mocking:</strong><br/>
+      • Mock handlers<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • on3dBoard.ts:<br/>
+      &nbsp;&nbsp;- Mock update3dBoard handler<br/>
+      &nbsp;&nbsp;- Change customBoardEnabled signal<br/>
+      &nbsp;&nbsp;- Verify handler called with current settings<br/>
+      • onFlash.ts:<br/>
+      &nbsp;&nbsp;- Mock handleFlash handler<br/>
+      &nbsp;&nbsp;- Increment boardChanged signal<br/>
+      &nbsp;&nbsp;- Verify handler called
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">components/ - Preact Components</div>
+    <div class="mockup-body">
+      <strong>What to test:</strong><br/>
+      • Component renders correctly<br/>
+      • User interactions work (clicks, etc.)<br/>
+      • Conditional rendering based on signals<br/>
+      <br/>
+      <strong>Tools:</strong><br/>
+      • @testing-library/preact<br/>
+      • @preact/signals for signal manipulation<br/>
+      <br/>
+      <strong>Example tests:</strong><br/>
+      • SettingButton: Click → verify signal updated<br/>
+      • ControlPanel: customBoardEnabled=true → verify custom board buttons visible<br/>
+      • PiecesList: boardChanged signal → verify component shows updated pieces
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Configuration</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">vitest.config.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { defineConfig } from 'vitest/config'<br/>
+import { preact } from '@preact/preset-vite'<br/>
+<br/>
+export default defineConfig({<br/>
+&nbsp;&nbsp;plugins: [preact()],<br/>
+&nbsp;&nbsp;test: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;environment: 'happy-dom', // DOM environment<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;globals: true, // describe, it, expect globally available<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;coverage: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;provider: 'v8',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;reporter: ['text', 'html'],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;include: ['src/**/*.{ts,tsx}'],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;exclude: ['src/**/*.test.{ts,tsx}', 'src/main.ts']<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">package.json (updated)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+{<br/>
+&nbsp;&nbsp;"scripts": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"dev": "vite build --watch",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"build": "vite build",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test": "vitest run",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:watch": "vitest",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:coverage": "vitest run --coverage",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:ui": "vitest --ui",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"type-check": "tsc --noEmit"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"dependencies": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"preact": "^10.19.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@preact/signals": "^1.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"three": "^0.160.0"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"devDependencies": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@preact/preset-vite": "^2.8.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@testing-library/preact": "^3.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"typescript": "^5.3.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vite": "^5.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vitest": "^1.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@vitest/ui": "^1.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"happy-dom": "^12.10.0"<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Test File Structure</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+src/<br/>
+├── pure/<br/>
+│   ├── coordinates.ts<br/>
+│   └── coordinates.test.ts<br/>
+├── dom/<br/>
+│   ├── boardReader.ts<br/>
+│   └── boardReader.test.ts<br/>
+├── handlers/<br/>
+│   ├── handleSpeechCommand.ts<br/>
+│   └── handleSpeechCommand.test.ts<br/>
+├── effects/<br/>
+│   ├── on3dBoard.ts<br/>
+│   └── on3dBoard.test.ts<br/>
+└── components/<br/>
+    ├── SettingButton.tsx<br/>
+    └── SettingButton.test.tsx<br/>
+<br/>
+<strong>Pattern:</strong> Test files live next to source files
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Test Patterns Overview</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">Pure Function Test Pattern</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+describe('pixelsToSquare', () => {<br/>
+&nbsp;&nbsp;it('converts pixels to square for white player', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const result = pixelsToSquare(195, 390, 58.5, true)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(result).toBe('d5')<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;it('flips coordinates for black player', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const result = pixelsToSquare(195, 390, 58.5, false)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(result).toBe('e4')<br/>
+&nbsp;&nbsp;})<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">DOM Test Pattern (with happy-dom)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+describe('boardReader', () => {<br/>
+&nbsp;&nbsp;it('reads piece positions from DOM', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Create mock lichess DOM<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;document.body.innerHTML = `<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;cg-board&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;piece class="white pawn" style="transform: translate(0px, 390px)"&gt;&lt;/piece&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/cg-board&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;`<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(pieces).toHaveLength(1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(pieces[0]).toMatchObject({<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;color: 'white',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;type: 'pawn',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;square: 'a2'<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;})<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Handler Test Pattern (with mocks)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { vi } from 'vitest'<br/>
+<br/>
+describe('handleSpeechCommand', () => {<br/>
+&nbsp;&nbsp;it('speaks white kingside quadrant', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Mock dependencies<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const mockReader = { readPiecePositions: vi.fn() }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const mockSynthesizer = { speak: vi.fn() }<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;mockReader.readPiecePositions.mockReturnValue([<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{ color: 'white', type: 'pawn', square: 'e2' }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;])<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;handleSpeechCommand('wk', mockReader, mockSynthesizer)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(mockSynthesizer.speak).toHaveBeenCalledWith(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;expect.stringContaining('e2 white pawn')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;})<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Component Test Pattern (with testing-library)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { render, fireEvent } from '@testing-library/preact'<br/>
+<br/>
+describe('SettingButton', () => {<br/>
+&nbsp;&nbsp;it('cycles through options on click', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const testSignal = signal(0)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const { getByRole } = render(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;SettingButton<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;label="Blur"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;signal={testSignal}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;options={[0, 1, 2, 3]}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;/&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const button = getByRole('button')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(button).toHaveTextContent('Blur: 0')<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;fireEvent.click(button)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(testSignal.value).toBe(1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;expect(button).toHaveTextContent('Blur: 1')<br/>
+&nbsp;&nbsp;})<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Summary:</strong></p>
+  <ul>
+    <li>Vitest is the Preact/Vite standard - fast, DOM-ready, batteries included</li>
+    <li>All directories are testable (pure, dom, browser, handlers, effects, components)</li>
+    <li>happy-dom provides DOM environment without a browser</li>
+    <li>@testing-library/preact for user-centric component tests</li>
+    <li>Tests live next to source files</li>
+    <li>Run with npm test (once) or npm run test:watch (continuous)</li>
+  </ul>
+</div>

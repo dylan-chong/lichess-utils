@@ -1,5 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { createDiv, createSvgElement, querySelector, querySelectorAll, appendChild } from './dom'
+import { beforeEach, describe, expect, it } from 'vitest'
+import {
+  appendChild,
+  createDiv,
+  createSvgElement,
+  getBoundingClientRect,
+  querySelector,
+  querySelectorAll,
+} from './dom'
 
 describe('dom', () => {
   beforeEach(() => {
@@ -55,5 +62,16 @@ describe('dom', () => {
 
     expect(parent.children.length).toBe(1)
     expect(parent.firstChild).toBe(child)
+  })
+
+  it('getBoundingClientRect returns element bounds', () => {
+    const div = document.createElement('div')
+    document.body.appendChild(div)
+
+    const rect = getBoundingClientRect(div)
+
+    expect(rect).toBeDefined()
+    expect(typeof rect.width).toBe('number')
+    expect(typeof rect.height).toBe('number')
   })
 })

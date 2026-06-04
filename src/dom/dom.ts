@@ -17,3 +17,7 @@ export function querySelectorAll(selector: string): NodeListOf<Element> {
 export function appendChild(parent: Element, child: Element): void {
   parent.appendChild(child)
 }
+
+export function getBoundingClientRect(element: Element): DOMRect {
+  return element.getBoundingClientRect()
+}

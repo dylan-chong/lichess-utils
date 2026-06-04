@@ -1,8 +1,8 @@
-import { PlayerColor, PieceType } from '../constants'
-import { describe, it, expect, beforeEach } from 'vitest'
-import { render, screen } from '@testing-library/preact'
 import { signal } from '@preact/signals'
+import { render, screen } from '@testing-library/preact'
 import { mockModule } from 'simone'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { PieceType, PlayerColor } from '../constants'
 import type { PiecePosition } from '../pure/pieceGrouping'
 
 const boardReaderMock = mockModule(import('../dom/boardReader'))
@@ -92,10 +92,13 @@ describe('PiecesList', () => {
   it('should display multiple pieces of same type', () => {
     boardReaderMock.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
     boardReaderMock.expects('readPiecePositions').withArgs().returns([])
-    pieceGroupingMock.expects('groupByColorAndType').withArgs([]).returns([
-      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['a2', 'b2', 'c2'] },
-      { color: PlayerColor.WHITE, type: PieceType.KNIGHT, squares: ['b1', 'g1'] },
-    ])
+    pieceGroupingMock
+      .expects('groupByColorAndType')
+      .withArgs([])
+      .returns([
+        { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['a2', 'b2', 'c2'] },
+        { color: PlayerColor.WHITE, type: PieceType.KNIGHT, squares: ['b1', 'g1'] },
+      ])
 
     render(<PiecesList boardChanged={boardChanged} />)
 

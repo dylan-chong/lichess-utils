@@ -1,0 +1,268 @@
+<h2>Detailed Component Structure</h2>
+<p class="subtitle">Visual breakdown of all modules and their relationships</p>
+
+<div class="section">
+  <h3>Settings Module</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>settings/SettingsStore.ts</strong><br/>
+class SettingsStore extends EventEmitter {<br/>
+&nbsp;&nbsp;// All 14 settings as properties<br/>
+&nbsp;&nbsp;speakRate: number<br/>
+&nbsp;&nbsp;piecesListEnabled: boolean<br/>
+&nbsp;&nbsp;dividersEnabled: boolean<br/>
+&nbsp;&nbsp;customBoardEnabled: boolean<br/>
+&nbsp;&nbsp;obfuscationsEnabled: boolean<br/>
+&nbsp;&nbsp;parallax: number<br/>
+&nbsp;&nbsp;hoverMode: string<br/>
+&nbsp;&nbsp;pieceStyle: string<br/>
+&nbsp;&nbsp;blur: number<br/>
+&nbsp;&nbsp;blackSegments: string<br/>
+&nbsp;&nbsp;blackSegmentsTiming: string<br/>
+&nbsp;&nbsp;flashModeEnabled: boolean<br/>
+&nbsp;&nbsp;flashDuration: number<br/>
+&nbsp;&nbsp;flashInterval: number<br/>
+<br/>
+&nbsp;&nbsp;update(key, value) // Updates setting, saves, emits event<br/>
+&nbsp;&nbsp;get(key) // Returns current value<br/>
+&nbsp;&nbsp;getAll() // Returns all settings<br/>
+&nbsp;&nbsp;load() // Loads from localStorage<br/>
+&nbsp;&nbsp;save() // Saves to localStorage<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Board Module</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>board/BoardReader.ts</strong><br/>
+class BoardReader {<br/>
+&nbsp;&nbsp;readPiecePositions() // Parses lichess DOM<br/>
+&nbsp;&nbsp;getPlayerColor() // Checks coords.black class<br/>
+&nbsp;&nbsp;pixelsToSquare(x, y) // Converts pixel position to chess notation<br/>
+}<br/>
+<br/>
+<strong>board/BoardWatcher.ts</strong><br/>
+class BoardWatcher extends EventEmitter {<br/>
+&nbsp;&nbsp;start() // Sets up MutationObserver on cg-board<br/>
+&nbsp;&nbsp;stop() // Disconnects observer<br/>
+&nbsp;&nbsp;// Emits 'board:changed' when pieces move<br/>
+}<br/>
+<br/>
+<strong>board/Custom3DBoard.ts</strong><br/>
+class Custom3DBoard {<br/>
+&nbsp;&nbsp;canvas: HTMLCanvasElement<br/>
+&nbsp;&nbsp;scene: THREE.Scene<br/>
+&nbsp;&nbsp;camera: THREE.Camera<br/>
+&nbsp;&nbsp;renderer: THREE.Renderer<br/>
+<br/>
+&nbsp;&nbsp;init() // Creates Three.js scene<br/>
+&nbsp;&nbsp;reapply(settings) // Updates parallax, hover, piece style, blur<br/>
+&nbsp;&nbsp;render(pieces) // Renders current piece positions<br/>
+&nbsp;&nbsp;destroy() // Cleans up canvas/scene<br/>
+}<br/>
+<br/>
+<strong>board/Dividers.ts</strong><br/>
+class Dividers {<br/>
+&nbsp;&nbsp;svg: SVGElement<br/>
+&nbsp;&nbsp;reapply(settings) // Show/hide dividers, 2D vs 3D mode<br/>
+&nbsp;&nbsp;render() // Draws quadrant lines<br/>
+&nbsp;&nbsp;destroy() // Removes SVG<br/>
+}<br/>
+<br/>
+<strong>board/BoardManager.ts</strong> (Coordinator)<br/>
+class BoardManager {<br/>
+&nbsp;&nbsp;reader: BoardReader<br/>
+&nbsp;&nbsp;watcher: BoardWatcher<br/>
+&nbsp;&nbsp;board3D: Custom3DBoard<br/>
+&nbsp;&nbsp;dividers: Dividers<br/>
+<br/>
+&nbsp;&nbsp;init() // Sets up all board subsystems<br/>
+&nbsp;&nbsp;reapply(settings) // Reapplies custom board, obfuscations, dividers<br/>
+&nbsp;&nbsp;destroy() // Cleanup<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Speech Module</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>speech/SpeechSynthesizer.ts</strong><br/>
+class SpeechSynthesizer {<br/>
+&nbsp;&nbsp;synthesis: SpeechSynthesis<br/>
+&nbsp;&nbsp;currentRate: number<br/>
+<br/>
+&nbsp;&nbsp;speak(text, rate) // Speaks using Web Speech API<br/>
+&nbsp;&nbsp;stop() // Cancels current speech<br/>
+}<br/>
+<br/>
+<strong>speech/textGenerators.ts</strong><br/>
+generateQuadrantText(pieces, quadrant) // "white pawns on a2, b2..."<br/>
+generateAllPiecesText(pieces) // All pieces<br/>
+generateColorText(pieces, color) // All white or all black<br/>
+<br/>
+<strong>speech/SpeechManager.ts</strong><br/>
+class SpeechManager {<br/>
+&nbsp;&nbsp;synthesizer: SpeechSynthesizer<br/>
+&nbsp;&nbsp;boardReader: BoardReader<br/>
+<br/>
+&nbsp;&nbsp;speakQuadrant(quadrant) // Reads quadrant aloud<br/>
+&nbsp;&nbsp;speakAll() // Reads all pieces<br/>
+&nbsp;&nbsp;speakColor(color) // Reads one color<br/>
+&nbsp;&nbsp;stop() // Stops speaking<br/>
+&nbsp;&nbsp;reapply(settings) // Updates speak rate<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Drawing Module</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>drawing/commandParser.ts</strong><br/>
+parseDrawCommand(input) // "-e4" → {circle: 'e4'}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// "-e2e4" → {arrow: ['e2','e4']}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// "-a1,b2c3" → [{circle:'a1'}, {arrow:['b2','c3']}]<br/>
+<br/>
+<strong>drawing/DrawingsOverlay.ts</strong><br/>
+class DrawingsOverlay {<br/>
+&nbsp;&nbsp;svg: SVGElement<br/>
+<br/>
+&nbsp;&nbsp;draw(commands) // Renders circles/arrows on board<br/>
+&nbsp;&nbsp;clear() // Removes all drawings<br/>
+&nbsp;&nbsp;destroy() // Removes SVG<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Flash Mode Module</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>flash/FlashOverlay.ts</strong><br/>
+class FlashOverlay {<br/>
+&nbsp;&nbsp;overlay: HTMLDivElement // Black screen over board<br/>
+<br/>
+&nbsp;&nbsp;show() // Makes overlay visible<br/>
+&nbsp;&nbsp;hide() // Hides overlay<br/>
+&nbsp;&nbsp;destroy() // Removes overlay<br/>
+}<br/>
+<br/>
+<strong>flash/FlashManager.ts</strong><br/>
+class FlashManager {<br/>
+&nbsp;&nbsp;overlay: FlashOverlay<br/>
+&nbsp;&nbsp;durationTimer: number<br/>
+&nbsp;&nbsp;intervalTimer: number<br/>
+<br/>
+&nbsp;&nbsp;onBoardChange() // Flash briefly after move<br/>
+&nbsp;&nbsp;startIntervalFlash() // Auto-flash at interval<br/>
+&nbsp;&nbsp;stopIntervalFlash() // Stop auto-flash<br/>
+&nbsp;&nbsp;reapply(settings) // Update duration/interval/enabled<br/>
+&nbsp;&nbsp;destroy() // Clear timers<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Vue Components</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>components/ControlPanel.vue</strong><br/>
+&lt;template&gt;<br/>
+&nbsp;&nbsp;&lt;div class="userscript-controls"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow :buttons="mainButtons" /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow v-if="customBoardEnabled" :buttons="customBoardButtons" /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow v-if="obfuscationsEnabled" :buttons="obfuscationButtons" /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow v-if="blackSegments !== 'none'" :buttons="timingButtons" /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow v-if="flashModeEnabled" :buttons="flashButtons" /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;PiecesList v-if="piecesListEnabled" /&gt;<br/>
+&nbsp;&nbsp;&lt;/div&gt;<br/>
+&lt;/template&gt;<br/>
+<br/>
+<strong>components/ButtonRow.vue</strong><br/>
+&lt;template&gt;<br/>
+&nbsp;&nbsp;&lt;div class="button-row"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;SettingButton v-for="btn in buttons" :button="btn" /&gt;<br/>
+&nbsp;&nbsp;&lt;/div&gt;<br/>
+&lt;/template&gt;<br/>
+<br/>
+<strong>components/SettingButton.vue</strong><br/>
+&lt;template&gt;<br/>
+&nbsp;&nbsp;&lt;button @click="onClick"&gt;{{ label }}: {{ currentValue }}&lt;/button&gt;<br/>
+&lt;/template&gt;<br/>
+// Cycles through options array on click<br/>
+<br/>
+<strong>components/PiecesList.vue</strong><br/>
+&lt;template&gt;<br/>
+&nbsp;&nbsp;&lt;div class="pieces-list-box"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;You are: {{ playerColor }}&lt;/div&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;Turn: {{ currentTurn }}&lt;/div&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div v-for="(pieces, color) in groupedPieces"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{{ color }}: ...<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;&lt;/div&gt;<br/>
+&lt;/template&gt;<br/>
+// Listens to board:changed event, reads positions
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Main Entry Point</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>main.ts</strong><br/>
+// Wait for lichess DOM<br/>
+waitForElement('.keyboard-move').then(() => {<br/>
+&nbsp;&nbsp;// Initialize systems<br/>
+&nbsp;&nbsp;const settingsStore = new SettingsStore()<br/>
+&nbsp;&nbsp;settingsStore.load()<br/>
+<br/>
+&nbsp;&nbsp;const boardManager = new BoardManager(settingsStore)<br/>
+&nbsp;&nbsp;const speechManager = new SpeechManager(settingsStore, boardManager.reader)<br/>
+&nbsp;&nbsp;const drawingManager = new DrawingManager()<br/>
+&nbsp;&nbsp;const flashManager = new FlashManager(settingsStore)<br/>
+<br/>
+&nbsp;&nbsp;boardManager.init()<br/>
+<br/>
+&nbsp;&nbsp;// Wire up settings changes<br/>
+&nbsp;&nbsp;settingsStore.on('settings:changed', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;boardManager.reapply(settingsStore.getAll())<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;speechManager.reapply(settingsStore.getAll())<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;flashManager.reapply(settingsStore.getAll())<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;// Wire up board changes to flash mode<br/>
+&nbsp;&nbsp;boardManager.watcher.on('board:changed', () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;flashManager.onBoardChange()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Vue PiecesList also listens to this<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;// Mount Vue UI<br/>
+&nbsp;&nbsp;const app = createApp(ControlPanel)<br/>
+&nbsp;&nbsp;app.provide('settingsStore', settingsStore)<br/>
+&nbsp;&nbsp;app.provide('boardReader', boardManager.reader)<br/>
+&nbsp;&nbsp;app.provide('speechManager', speechManager)<br/>
+&nbsp;&nbsp;app.provide('drawingManager', drawingManager)<br/>
+&nbsp;&nbsp;app.mount(mountPoint)<br/>
+<br/>
+&nbsp;&nbsp;// Initial apply<br/>
+&nbsp;&nbsp;settingsStore.emit('settings:changed')<br/>
+<br/>
+&nbsp;&nbsp;// Set up keyboard command handler<br/>
+&nbsp;&nbsp;setupCommandHandler(speechManager, drawingManager)<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Check out http://localhost:57991</strong> for the component diagram, or let me know if you want to continue with the next section (data flow and state management details).</p>
+</div>

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
 import { mockModule } from 'simone'
+import { describe, expect, it } from 'vitest'
 
 // Mock init before importing main
 const initMock = mockModule(import('./init'))

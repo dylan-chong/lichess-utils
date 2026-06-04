@@ -1,0 +1,84 @@
+<h2>Settings management approach</h2>
+<p class="subtitle">You mentioned making settings changes easy to test with minimal code paths</p>
+
+<div class="section">
+  <p>The current userscript has 14 settings (speak rate, pieces list, dividers, custom board, obfuscations, parallax, hover mode, piece style, blur, black segments, timing, flash mode, flash duration, flash interval).</p>
+  <p>You want <strong>"changing settings reapplies all settings for ease of testing"</strong> with a minimal code path. How should settings flow through the architecture?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="central-store" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Central Settings Store (Recommended)</h3>
+      <p>Single reactive store, components watch settings, any change triggers full reapply</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+// Flow:<br/>
+1. User clicks button → SettingsStore.update()<br/>
+2. Store saves to localStorage<br/>
+3. Store emits change event<br/>
+4. ALL components react to new settings<br/>
+5. Each component reapplies its part (3D board, dividers, blur, etc)
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Single source of truth</li>
+            <li>Settings changes always consistent</li>
+            <li>Easy to test: change setting, everything updates</li>
+            <li>No complex invalidation logic</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>May reapply more than strictly necessary</li>
+            <li>Components need to be idempotent</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="granular" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Granular Updates</h3>
+      <p>Components only update when their specific settings change</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+// Flow:<br/>
+1. User clicks button → SettingsStore.update('blur')<br/>
+2. Store determines what changed<br/>
+3. Only BlurComponent updates<br/>
+4. Other components stay unchanged
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>More efficient (no unnecessary work)</li>
+            <li>Better for complex/expensive updates</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Complex dependency tracking</li>
+            <li>Harder to reason about state</li>
+            <li>More code paths to test</li>
+            <li>Settings interactions harder to verify</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>My recommendation:</strong> Option A (Central Store) matches your goal of "minimal code path" and "reapply all settings." It's simpler to test and reason about.</p>
+</div>

@@ -1,7 +1,7 @@
-import { signal, effect } from '@preact/signals-core'
+import { effect, signal } from '@preact/signals-core'
 import { defaultSettings } from './defaults'
-import type { Settings } from './types'
 import * as storage from './storage'
+import type { Settings } from './types'
 
 const STORAGE_KEY = 'lichess-board-speaker-settings'
 
@@ -27,27 +27,31 @@ export function loadSettings(): void {
   if (!stored) return
 
   const data = JSON.parse(stored) as Partial<Settings>
-  Object.keys(data).forEach((key) => {
+  for (const key of Object.keys(data)) {
     const settingKey = key as keyof Settings
     if (settings[settingKey]) {
+      // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
       settings[settingKey].value = data[settingKey] as any
     }
-  })
+  }
 }
 
 export function saveSettings(): void {
   const data: Partial<Settings> = {}
-  Object.keys(settings).forEach((key) => {
+  for (const key of Object.keys(settings)) {
     const settingKey = key as keyof typeof settings
+    // biome-ignore lint/suspicious/noExplicitAny: Settings type is dynamic
     data[settingKey] = settings[settingKey].value as any
-  })
+  }
   storage.setItem(STORAGE_KEY, JSON.stringify(data))
 }
 
 // Auto-save effect (should be called once during app initialization)
 export function setupAutoSave(): void {
   effect(() => {
-    Object.values(settings).forEach((s) => s.value)
+    for (const s of Object.values(settings)) {
+      s.value
+    }
     saveSettings()
   })
 }

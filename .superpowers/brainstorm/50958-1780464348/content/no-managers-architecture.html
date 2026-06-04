@@ -1,0 +1,202 @@
+<h2>Architecture Without Managers</h2>
+<p class="subtitle">Independent modules that watch their own signals</p>
+
+<div class="section">
+  <h3>Revised Module Structure</h3>
+  <div class="mockup">
+    <div class="mockup-header">Each module is self-contained</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>src/</strong><br/>
+├── main.ts<br/>
+├── settings/<br/>
+│   ├── settingsStore.ts (signals + load/save functions)<br/>
+│   ├── types.ts<br/>
+│   └── defaults.ts<br/>
+├── board/<br/>
+│   ├── watcher.ts (watches DOM, emits boardChanged signal)<br/>
+│   ├── reader.ts (pure functions: readPiecePositions, getPlayerColor)<br/>
+│   ├── renderer3d.ts (init/destroy, watches settings, reacts to board changes)<br/>
+│   ├── dividers.ts (init/destroy, watches dividersEnabled + customBoardEnabled)<br/>
+│   └── coordinateUtils.ts (pure functions)<br/>
+├── flash/<br/>
+│   ├── overlay.ts (init/destroy, watches flashMode settings, reacts to board changes)<br/>
+│   └── timing.ts (pure functions for calculating intervals)<br/>
+├── speech/<br/>
+│   ├── synthesizer.ts (init/destroy, watches speakRate)<br/>
+│   ├── textGenerators.ts (pure functions)<br/>
+│   └── commands.ts (functions: speakQuadrant, speakAll, speakColor)<br/>
+├── drawing/<br/>
+│   ├── overlay.ts (init/destroy, no settings watching)<br/>
+│   └── commandParser.ts (pure function)<br/>
+├── commands/<br/>
+│   └── inputHandler.ts (sets up keyboard listener, delegates to speech/drawing)<br/>
+├── components/ (Preact)<br/>
+│   ├── ControlPanel.tsx<br/>
+│   ├── ButtonRow.tsx<br/>
+│   ├── SettingButton.tsx<br/>
+│   └── PiecesList.tsx<br/>
+└── __tests__/<br/>
+    ├── settings/<br/>
+    ├── board/<br/>
+    ├── speech/<br/>
+    └── drawing/
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Module Responsibilities</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">board/watcher.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Detect when lichess board changes<br/>
+      <strong>Exports:</strong> boardChanged signal, init(), destroy()<br/>
+      <strong>Watches:</strong> Nothing (just observes DOM)<br/>
+      <strong>Reacts to:</strong> MutationObserver events<br/>
+      <strong>Side effects:</strong> Increments boardChanged signal
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">board/reader.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Read piece positions from lichess DOM<br/>
+      <strong>Exports:</strong> readPiecePositions(), getPlayerColor(), pixelsToSquare()<br/>
+      <strong>Watches:</strong> Nothing (pure functions)<br/>
+      <strong>Reacts to:</strong> Nothing (called on demand)<br/>
+      <strong>Side effects:</strong> None
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">board/renderer3d.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Render 3D board with Three.js<br/>
+      <strong>Exports:</strong> init(), destroy()<br/>
+      <strong>Watches:</strong> customBoardEnabled, obfuscationsEnabled, parallax, hoverMode, pieceStyle, blur, blackSegments, blackSegmentsTiming, boardChanged<br/>
+      <strong>Reacts to:</strong> Settings changes → update rendering; board changes → update piece positions<br/>
+      <strong>Side effects:</strong> Creates/removes canvas, renders 3D scene
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">board/dividers.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Show/hide quadrant divider lines<br/>
+      <strong>Exports:</strong> init(), destroy()<br/>
+      <strong>Watches:</strong> dividersEnabled, customBoardEnabled<br/>
+      <strong>Reacts to:</strong> Settings change → show/hide/reposition SVG<br/>
+      <strong>Side effects:</strong> Creates/removes/updates SVG element
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">flash/overlay.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Control flash mode overlay timing<br/>
+      <strong>Exports:</strong> init(), destroy()<br/>
+      <strong>Watches:</strong> flashModeEnabled, flashDuration, flashInterval, boardChanged<br/>
+      <strong>Reacts to:</strong> Board change → flash briefly; settings change → update timers<br/>
+      <strong>Side effects:</strong> Shows/hides overlay, manages timers
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">speech/synthesizer.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Speak text using Web Speech API<br/>
+      <strong>Exports:</strong> init(), destroy(), speak(), stop()<br/>
+      <strong>Watches:</strong> speakRate<br/>
+      <strong>Reacts to:</strong> Settings change → update speech rate<br/>
+      <strong>Side effects:</strong> Controls Web Speech API
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">speech/commands.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> High-level speech commands<br/>
+      <strong>Exports:</strong> speakQuadrant(), speakAll(), speakColor(), stopSpeaking()<br/>
+      <strong>Watches:</strong> Nothing (called on demand)<br/>
+      <strong>Reacts to:</strong> Nothing (orchestrates reader + synthesizer)<br/>
+      <strong>Side effects:</strong> Calls synthesizer.speak()
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">drawing/overlay.ts</div>
+    <div class="mockup-body">
+      <strong>Purpose:</strong> Draw circles and arrows on board<br/>
+      <strong>Exports:</strong> init(), destroy(), draw(), clear()<br/>
+      <strong>Watches:</strong> Nothing (manual commands only)<br/>
+      <strong>Reacts to:</strong> User commands via keyboard<br/>
+      <strong>Side effects:</strong> Creates/updates/removes SVG drawings
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Initialization Pattern</h3>
+  <div class="mockup">
+    <div class="mockup-header">main.ts - No coordinators needed</div>
+    <div class="mockup-body">
+      <strong>Responsibilities:</strong><br/>
+      • Wait for lichess DOM<br/>
+      • Load settings from localStorage<br/>
+      • Initialize all modules (each sets up own effects)<br/>
+      • Mount Preact UI<br/>
+      • Set up keyboard command handler<br/>
+      • Return cleanup function for page navigation<br/>
+      <br/>
+      <strong>Pattern:</strong><br/>
+      • Import module init functions<br/>
+      • Call each init() - they handle their own reactivity<br/>
+      • Store cleanup functions<br/>
+      • On destroy, call all cleanup functions<br/>
+      <br/>
+      <strong>No coordination needed</strong> - each module is autonomous
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Data Flow (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>User clicks button:</strong><br/>
+SettingButton → settings.blur.value = 1<br/>
+&nbsp;&nbsp;↓ (signal change)<br/>
+board/renderer3d effect() → update blur<br/>
+&nbsp;&nbsp;(no other modules care about blur)<br/>
+<br/>
+<strong>User makes move on lichess:</strong><br/>
+lichess updates DOM<br/>
+&nbsp;&nbsp;↓<br/>
+board/watcher MutationObserver → boardChanged.value++<br/>
+&nbsp;&nbsp;↓ (signal change)<br/>
+&nbsp;&nbsp;├→ board/renderer3d effect() → update piece positions<br/>
+&nbsp;&nbsp;├→ flash/overlay effect() → flash briefly<br/>
+&nbsp;&nbsp;└→ PiecesList component → re-render<br/>
+<br/>
+<strong>User types "pwk" command:</strong><br/>
+inputHandler detects command<br/>
+&nbsp;&nbsp;↓<br/>
+speech/commands.speakQuadrant('wk')<br/>
+&nbsp;&nbsp;├→ board/reader.readPiecePositions()<br/>
+&nbsp;&nbsp;├→ speech/textGenerators.generateQuadrantText()<br/>
+&nbsp;&nbsp;└→ speech/synthesizer.speak(text)
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key principles:</strong></p>
+  <ul>
+    <li>No coordinators - modules are autonomous</li>
+    <li>Each module sets up own effect() in init()</li>
+    <li>Pure functions don't watch anything (called on demand)</li>
+    <li>Modules only watch signals they care about</li>
+    <li>main.ts just calls init() on everything - no orchestration</li>
+  </ul>
+</div>

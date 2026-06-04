@@ -1,0 +1,64 @@
+<h2>Build output format</h2>
+<p class="subtitle">How should the TypeScript/Vue.js project compile to a userscript?</p>
+
+<div class="section">
+  <p>You mentioned the build should overwrite <code>lichess-board-speaker.user.js</code>. Since userscripts are single-file JavaScript with special headers, how should the build process work?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="bundled" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Bundled Userscript (Recommended)</h3>
+      <p>Build process bundles TypeScript + Vue components into a single .user.js file</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Standard userscript distribution (single file)</li>
+            <li>Works with existing Tampermonkey setup</li>
+            <li>Can use build tools like Vite/Rollup</li>
+            <li>Vue SFC components work normally</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Build step required for every change</li>
+            <li>Debugging minified code is harder</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="dev-dist" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Dev/Dist Modes</h3>
+      <p>Development uses separate files, production builds to single userscript</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Fast iteration in dev mode</li>
+            <li>Source maps for debugging</li>
+            <li>Clean separation of concerns</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>More complex build configuration</li>
+            <li>Need to test both modes</li>
+            <li>Dev mode may not work with userscript managers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Note:</strong> Both approaches produce the same final <code>lichess-board-speaker.user.js</code> file. The difference is whether you have a dev mode or always work with the bundled version.</p>
+</div>

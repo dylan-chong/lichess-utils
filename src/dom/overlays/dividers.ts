@@ -1,5 +1,5 @@
-import { DomSelector, CssClass, CssDisplay } from '../../constants'
-import { querySelector, createSvgElement, appendChild } from '../dom'
+import { CssClass, CssDisplay, DomSelector } from '../../constants'
+import { appendChild, createSvgElement, querySelector } from '../dom'
 
 export interface DividersState {
   svg: SVGSVGElement

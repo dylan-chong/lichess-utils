@@ -1,20 +1,16 @@
-import { describe, it, expect } from 'vitest'
-import { parseDrawCommand } from './commandParser'
+import { describe, expect, it } from 'vitest'
 import { AnnotationType } from '../constants'
+import { parseDrawCommand } from './commandParser'
 
 describe('parseDrawCommand', () => {
   it('parses single circle command', () => {
     const result = parseDrawCommand('-e4')
-    expect(result).toEqual([
-      { type: AnnotationType.CIRCLE, square: 'e4' },
-    ])
+    expect(result).toEqual([{ type: AnnotationType.CIRCLE, square: 'e4' }])
   })
 
   it('parses single arrow command', () => {
     const result = parseDrawCommand('-e2e4')
-    expect(result).toEqual([
-      { type: AnnotationType.ARROW, from: 'e2', to: 'e4' },
-    ])
+    expect(result).toEqual([{ type: AnnotationType.ARROW, from: 'e2', to: 'e4' }])
   })
 
   it('parses multiple annotations', () => {

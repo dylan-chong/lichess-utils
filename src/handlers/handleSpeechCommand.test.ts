@@ -1,7 +1,7 @@
-import { describe, it } from 'vitest'
 import { mockModule } from 'simone'
+import { describe, it } from 'vitest'
+import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
 import { settings } from '../settings/settingsStore'
-import { PlayerColor, PieceType, Quadrant, SpeechCommand } from '../constants'
 
 const boardReader = mockModule(import('../dom/boardReader'))
 const speechSynthesizer = mockModule(import('../browser/speechSynthesizer'))
@@ -18,7 +18,10 @@ describe('handleSpeechCommand', () => {
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     pieceGrouping.expects('filterQuadrant').withArgs(pieces, Quadrant.WHITE_KING).returns(pieces)
     speechText.expects('generateQuadrantText').withArgs(pieces).returns('e1 white king.')
-    speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
+    speechSynthesizer
+      .expects('speak')
+      .withArgs('e1 white king.', settings.speakRate.value)
+      .returns(undefined)
 
     handleSpeechCommand(SpeechCommand.WK)
   })
@@ -30,7 +33,10 @@ describe('handleSpeechCommand', () => {
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     speechText.expects('generateAllPiecesText').withArgs(pieces).returns('e1 white king.')
-    speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
+    speechSynthesizer
+      .expects('speak')
+      .withArgs('e1 white king.', settings.speakRate.value)
+      .returns(undefined)
 
     handleSpeechCommand(SpeechCommand.ALL)
   })
@@ -41,8 +47,14 @@ describe('handleSpeechCommand', () => {
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    speechText.expects('generateColorText').withArgs(pieces, PlayerColor.WHITE).returns('e1 white king.')
-    speechSynthesizer.expects('speak').withArgs('e1 white king.', settings.speakRate.value).returns(undefined)
+    speechText
+      .expects('generateColorText')
+      .withArgs(pieces, PlayerColor.WHITE)
+      .returns('e1 white king.')
+    speechSynthesizer
+      .expects('speak')
+      .withArgs('e1 white king.', settings.speakRate.value)
+      .returns(undefined)
 
     handleSpeechCommand(SpeechCommand.WHITE)
   })
@@ -53,8 +65,14 @@ describe('handleSpeechCommand', () => {
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    speechText.expects('generateColorText').withArgs(pieces, PlayerColor.BLACK).returns('e8 black king.')
-    speechSynthesizer.expects('speak').withArgs('e8 black king.', settings.speakRate.value).returns(undefined)
+    speechText
+      .expects('generateColorText')
+      .withArgs(pieces, PlayerColor.BLACK)
+      .returns('e8 black king.')
+    speechSynthesizer
+      .expects('speak')
+      .withArgs('e8 black king.', settings.speakRate.value)
+      .returns(undefined)
 
     handleSpeechCommand(SpeechCommand.BLACK)
   })

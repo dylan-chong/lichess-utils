@@ -1,4 +1,4 @@
-import { Signal } from '@preact/signals'
+import type { Signal } from '@preact/signals'
 
 interface SettingButtonProps<T> {
   label: string
@@ -6,11 +6,7 @@ interface SettingButtonProps<T> {
   options: readonly T[]
 }
 
-export function SettingButton<T>({
-  label,
-  setting,
-  options,
-}: SettingButtonProps<T>) {
+export function SettingButton<T>({ label, setting, options }: SettingButtonProps<T>) {
   const handleClick = () => {
     const currentIndex = options.indexOf(setting.value)
     const nextIndex = (currentIndex + 1) % options.length

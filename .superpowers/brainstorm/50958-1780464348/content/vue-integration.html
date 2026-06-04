@@ -1,0 +1,102 @@
+<h2>Vue.js integration with lichess DOM</h2>
+<p class="subtitle">How should Vue components interact with the lichess.org page?</p>
+
+<div class="section">
+  <p>The userscript runs on lichess.org and needs to:</p>
+  <ul>
+    <li>Insert UI controls into lichess's existing DOM (<code>.keyboard-move</code> container)</li>
+    <li>Overlay the chessboard (<code>cg-board</code>, <code>cg-container</code>)</li>
+    <li>Read piece positions from lichess's board DOM</li>
+    <li>Detect board changes with MutationObserver</li>
+  </ul>
+  <p>How should Vue fit into this?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="vue-controls-only" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Vue for Controls Only (Recommended)</h3>
+      <p>Vue renders the button UI, vanilla JS handles board interactions</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+// Vue: Button controls & pieces list<br/>
+&lt;ControlPanel /&gt;<br/>
+  &lt;ButtonRow /&gt;<br/>
+  &lt;PiecesList /&gt;<br/>
+<br/>
+// Vanilla JS: Board overlays<br/>
+- Custom3DBoard (Three.js canvas)<br/>
+- DrawingsOverlay (SVG annotations)<br/>
+- FlashOverlay (black screen)<br/>
+- Dividers (SVG lines)<br/>
+- BoardReader (read lichess DOM)<br/>
+- MutationObserver (detect changes)
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Vue excels at button UI and reactive state</li>
+            <li>Board overlays don't need Vue overhead</li>
+            <li>Clear separation: UI vs canvas/SVG rendering</li>
+            <li>Easier to port existing Three.js code</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Two paradigms (Vue + vanilla JS)</li>
+            <li>Need to coordinate between them</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="vue-everywhere" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Vue Everywhere</h3>
+      <p>Use Vue for all UI including board overlays and canvas management</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+// Everything in Vue:<br/>
+&lt;App&gt;<br/>
+  &lt;ControlPanel /&gt;<br/>
+  &lt;BoardOverlays&gt;<br/>
+    &lt;Custom3DBoard /&gt;<br/>
+    &lt;DrawingsOverlay /&gt;<br/>
+    &lt;FlashOverlay /&gt;<br/>
+    &lt;Dividers /&gt;<br/>
+  &lt;/BoardOverlays&gt;<br/>
+&lt;/App&gt;
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Single paradigm throughout</li>
+            <li>Consistent component lifecycle</li>
+            <li>Vue reactivity everywhere</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Vue overhead for canvas/SVG rendering</li>
+            <li>More complex component tree</li>
+            <li>Three.js integration trickier</li>
+            <li>Harder to reason about performance</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>My recommendation:</strong> Option A. Vue is great for button controls and reactive lists, but board overlays (canvas, SVG) are better handled with vanilla JS/Three.js.</p>
+</div>

@@ -1,7 +1,7 @@
-import { describe, it, vi, beforeEach } from 'vitest'
 import { mockModule } from 'simone'
-import { settings } from '../settings/settingsStore'
+import { beforeEach, describe, it, vi } from 'vitest'
 import type { FlashOverlayState } from '../dom/overlays/flash'
+import { settings } from '../settings/settingsStore'
 
 const flash = mockModule(import('../dom/overlays/flash'))
 const { handleFlash } = await import('./handleFlash')

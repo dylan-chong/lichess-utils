@@ -1,5 +1,5 @@
+import { describe, expect, it } from 'vitest'
 import { PlayerColor } from '../constants'
-import { describe, it, expect } from 'vitest'
 import { pixelsToSquare, squareToPixels } from './coordinates'
 
 describe('pixelsToSquare', () => {
@@ -15,20 +15,12 @@ describe('pixelsToSquare', () => {
 
   it('converts pixels to square for black player', () => {
     // For black, board is flipped: x=39 is center of 'h' file, y=507 is center of rank 7
-    const result = pixelsToSquare(
-      { x: 39, y: 507 },
-      78,
-      PlayerColor.BLACK
-    )
+    const result = pixelsToSquare({ x: 39, y: 507 }, 78, PlayerColor.BLACK)
     expect(result).toBe('h7')
   })
 
-  it('handles exact square boundaries', () => {
-    const result = pixelsToSquare(
-      { x: 0, y: 0 },
-      78,
-      PlayerColor.WHITE
-    )
+  it('returns correct square at board boundaries', () => {
+    const result = pixelsToSquare({ x: 0, y: 0 }, 78, PlayerColor.WHITE)
     expect(result).toBe('a8')
   })
 })
@@ -50,7 +42,7 @@ describe('squareToPixels', () => {
     expect(result).toEqual({ x: 273, y: 273 })
   })
 
-  it('handles corner squares', () => {
+  it('returns correct pixels for corner squares', () => {
     const result = squareToPixels('a1', 78, PlayerColor.WHITE)
     // a1: column 0, rank 1
     // For white: row = 7 - 0 = 7

@@ -1,6 +1,6 @@
-import { SpeechCommand } from '../constants'
-import { describe, it, expect, beforeEach } from 'vitest'
 import { mockModule } from 'simone'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { SpeechCommand } from '../constants'
 
 const handleSpeechCommand = mockModule(import('../handlers/handleSpeechCommand'))
 const { setupKeyboardCommands, teardownKeyboardCommands } = await import('./keyboardInput')
@@ -14,10 +14,12 @@ describe('keyboardInput', () => {
         <input type="text" />
       </div>
     `
-    input = document.querySelector('.keyboard-move input')!
+    const elem = document.querySelector('.keyboard-move input')
+    if (!elem) throw new Error('Input element not found')
+    input = elem as HTMLInputElement
   })
 
-  it('handles speech command starting with p', () => {
+  it('executes speech command and clears input when command is entered', () => {
     setupKeyboardCommands()
 
     handleSpeechCommand.expects('handleSpeechCommand').withArgs(SpeechCommand.WK).returns(undefined)
@@ -28,10 +30,13 @@ describe('keyboardInput', () => {
     expect(input.value).toBe('')
   })
 
-  it('handles stop command', () => {
+  it('executes stop command when pss is entered', () => {
     setupKeyboardCommands()
 
-    handleSpeechCommand.expects('handleSpeechCommand').withArgs(SpeechCommand.STOP).returns(undefined)
+    handleSpeechCommand
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.STOP)
+      .returns(undefined)
 
     input.value = 'pss'
     input.dispatchEvent(new Event('input'))
@@ -66,7 +71,7 @@ describe('keyboardInput', () => {
     expect(input.value).toBe('pwk')
   })
 
-  it('handles missing input element gracefully', () => {
+  it('returns early without error when input element is missing', () => {
     document.body.innerHTML = '' // No input element
     expect(() => setupKeyboardCommands()).not.toThrow()
   })

@@ -1,7 +1,7 @@
-import { PlayerColor, PieceType } from '../constants'
-import { describe, it, expect } from 'vitest'
-import { generateQuadrantText, generateAllPiecesText, generateColorText } from './speechText'
+import { describe, expect, it } from 'vitest'
+import { PieceType, PlayerColor } from '../constants'
 import type { PiecePosition } from './pieceGrouping'
+import { generateAllPiecesText, generateColorText, generateQuadrantText } from './speechText'
 
 describe('generateQuadrantText', () => {
   it('generates text for multiple pieces of same type', () => {
@@ -24,7 +24,7 @@ describe('generateQuadrantText', () => {
     expect(result).toBe('e1 white king.')
   })
 
-  it('handles empty array', () => {
+  it('returns empty string when given no pieces', () => {
     const result = generateQuadrantText([])
     expect(result).toBe('')
   })

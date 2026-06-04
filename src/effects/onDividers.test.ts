@@ -1,7 +1,7 @@
-import { describe, it } from 'vitest'
 import { mockModule } from 'simone'
-import { settings } from '../settings/settingsStore'
+import { describe, it } from 'vitest'
 import type { DividersState } from '../dom/overlays/dividers'
+import { settings } from '../settings/settingsStore'
 
 const updateDividers = mockModule(import('../handlers/updateDividers'))
 const { setupDividersEffect } = await import('./onDividers')

@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
 import { signal } from '@preact/signals-core'
+import { describe, expect, it } from 'vitest'
 import { createRoot, destroyRoot } from './root'
 
 describe('root', () => {

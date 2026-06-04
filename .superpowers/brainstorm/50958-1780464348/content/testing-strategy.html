@@ -1,0 +1,94 @@
+<h2>Testing strategy with node:test</h2>
+<p class="subtitle">What should unit tests cover in this architecture?</p>
+
+<div class="section">
+  <p>You specified <strong>node:test</strong> for unit testing. Given the architecture (Vue controls + vanilla JS board overlays), what should be the testing focus?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="core-logic" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Core Logic & State (Recommended)</h3>
+      <p>Test settings store, board reading logic, and business logic. Skip DOM/rendering.</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+<strong>Test Coverage:</strong><br/>
+✓ SettingsStore (get/set/save/load)<br/>
+✓ BoardReader (parse piece positions)<br/>
+✓ Coordinate conversion logic<br/>
+✓ Speech text generation<br/>
+✓ Drawing command parser<br/>
+✓ Settings validation<br/>
+<br/>
+<strong>Skip:</strong><br/>
+✗ Vue component rendering<br/>
+✗ Three.js canvas output<br/>
+✗ SVG overlay rendering<br/>
+✗ MutationObserver DOM watching
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Fast tests (no DOM, no browser)</li>
+            <li>Focus on business logic bugs</li>
+            <li>Easy to write and maintain</li>
+            <li>Tests survive refactoring</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>No coverage of rendering bugs</li>
+            <li>Won't catch DOM integration issues</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="full-coverage" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Full Coverage with JSDOM</h3>
+      <p>Test everything including Vue components and DOM interactions with JSDOM</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.9rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px;">
+<strong>Test Coverage:</strong><br/>
+✓ SettingsStore<br/>
+✓ BoardReader<br/>
+✓ Business logic<br/>
+✓ Vue component rendering<br/>
+✓ Button click handlers<br/>
+✓ DOM manipulation<br/>
+✓ MutationObserver behavior
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Comprehensive coverage</li>
+            <li>Catches more integration bugs</li>
+            <li>Tests closer to real usage</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Slower tests</li>
+            <li>More setup complexity (JSDOM, Vue test utils)</li>
+            <li>Tests more brittle (break on UI changes)</li>
+            <li>Harder to debug</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>My recommendation:</strong> Option A. Testing core logic gives you confidence in correctness without the complexity of DOM testing. You'll manually test the UI in the browser anyway since this is a userscript.</p>
+</div>

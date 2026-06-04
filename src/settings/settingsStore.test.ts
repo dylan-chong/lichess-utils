@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
 import { mockModule } from 'simone'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { defaultSettings } from './defaults'
 
 const storageMock = mockModule(import('./storage'))
@@ -7,10 +7,10 @@ const { settings, loadSettings, saveSettings, setupAutoSave } = await import('./
 
 describe('settingsStore', () => {
   beforeEach(() => {
-    Object.keys(settings).forEach((key) => {
+    for (const key of Object.keys(settings)) {
       const settingKey = key as keyof typeof settings
       settings[settingKey].value = defaultSettings[settingKey] as any
-    })
+    }
   })
 
   describe('loadSettings', () => {
@@ -36,10 +36,7 @@ describe('settingsStore', () => {
     })
 
     it('should do nothing when storage is empty', () => {
-      storageMock
-        .expects('getItem')
-        .withArgs('lichess-board-speaker-settings')
-        .returns(null)
+      storageMock.expects('getItem').withArgs('lichess-board-speaker-settings').returns(null)
 
       loadSettings()
 
@@ -49,7 +46,7 @@ describe('settingsStore', () => {
       })
     })
 
-    it('should handle partial settings', () => {
+    it('should load only the settings present in storage', () => {
       const storedSettings = {
         speakRate: 2.0,
       }

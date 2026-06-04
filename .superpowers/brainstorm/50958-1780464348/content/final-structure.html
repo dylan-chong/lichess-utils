@@ -1,0 +1,211 @@
+<h2>Final Architecture: Organized by Purity</h2>
+<p class="subtitle">Pure functions, DOM operations, effects, and handlers cleanly separated</p>
+
+<div class="section">
+  <h3>Complete File Structure</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+src/<br/>
+├── <strong>main.ts</strong><br/>
+│<br/>
+├── <strong>settings/</strong><br/>
+│   ├── settingsStore.ts  (signals + load/save)<br/>
+│   ├── types.ts<br/>
+│   └── defaults.ts<br/>
+│<br/>
+├── <strong>pure/</strong>  (testable, no side effects)<br/>
+│   ├── coordinates.ts  (pixelsToSquare, squareToPixels, etc)<br/>
+│   ├── speechText.ts  (generateQuadrantText, generateAllPiecesText, etc)<br/>
+│   ├── commandParser.ts  (parseDrawCommand)<br/>
+│   ├── pieceGrouping.ts  (groupByColorAndType, filterQuadrant, etc)<br/>
+│   └── flashTiming.ts  (calculateNextFlash, etc)<br/>
+│<br/>
+├── <strong>dom/</strong>  (DOM reads/writes)<br/>
+│   ├── boardReader.ts  (readPiecePositions, getPlayerColor)<br/>
+│   ├── boardObserver.ts  (MutationObserver wrapper → boardChanged signal)<br/>
+│   ├── renderer3d.ts  (Three.js canvas setup/rendering)<br/>
+│   └── overlays/<br/>
+│       ├── flash.ts  (create/show/hide flash overlay)<br/>
+│       ├── dividers.ts  (create/show/hide SVG dividers)<br/>
+│       └── drawings.ts  (create/draw/clear SVG annotations)<br/>
+│<br/>
+├── <strong>browser/</strong>  (Browser APIs)<br/>
+│   └── speechSynthesizer.ts  (Web Speech API wrapper)<br/>
+│<br/>
+├── <strong>effects/</strong>  (signal watchers - thin glue layer)<br/>
+│   ├── on3dBoard.ts  (watches customBoard/obfuscation settings)<br/>
+│   ├── onDividers.ts  (watches dividersEnabled + customBoardEnabled)<br/>
+│   ├── onFlash.ts  (watches flashMode settings + boardChanged)<br/>
+│   ├── onSpeechRate.ts  (watches speakRate)<br/>
+│   └── onBoardChange.ts  (watches boardChanged for 3D updates)<br/>
+│<br/>
+├── <strong>handlers/</strong>  (business logic - what to do)<br/>
+│   ├── update3dBoard.ts  (apply settings to 3D renderer)<br/>
+│   ├── updateDividers.ts  (show/hide/position dividers)<br/>
+│   ├── handleFlash.ts  (flash logic: show, wait, hide, repeat)<br/>
+│   ├── handleBoardUpdate.ts  (update 3D board with new positions)<br/>
+│   └── handleSpeechCommand.ts  (speakQuadrant, speakAll, speakColor, stop)<br/>
+│<br/>
+├── <strong>commands/</strong><br/>
+│   └── keyboardInput.ts  (listen to move input, dispatch to handlers)<br/>
+│<br/>
+├── <strong>components/</strong>  (Preact UI)<br/>
+│   ├── ControlPanel.tsx<br/>
+│   ├── ButtonRow.tsx<br/>
+│   ├── SettingButton.tsx<br/>
+│   └── PiecesList.tsx<br/>
+│<br/>
+└── <strong>__tests__/</strong><br/>
+    ├── pure/  (easy - no mocking needed)<br/>
+    │   ├── coordinates.test.ts<br/>
+    │   ├── speechText.test.ts<br/>
+    │   ├── commandParser.test.ts<br/>
+    │   └── pieceGrouping.test.ts<br/>
+    ├── handlers/  (mock DOM/browser dependencies)<br/>
+    │   ├── handleFlash.test.ts<br/>
+    │   └── handleSpeechCommand.test.ts<br/>
+    └── settings/<br/>
+        └── settingsStore.test.ts
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Layer Responsibilities</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">pure/ - Pure Functions</div>
+    <div class="mockup-body">
+      <strong>What goes here:</strong> Functions with no side effects<br/>
+      <strong>Inputs:</strong> Plain data (numbers, strings, objects)<br/>
+      <strong>Outputs:</strong> Plain data<br/>
+      <strong>No access to:</strong> DOM, signals, localStorage, Web APIs<br/>
+      <strong>Testing:</strong> Easiest - just call function, check output<br/>
+      <br/>
+      <strong>Examples:</strong><br/>
+      • pixelsToSquare(x, y, squareSize, isPlayingWhite) → 'e4'<br/>
+      • generateQuadrantText(pieces, 'wk') → "white pawns on e2, f2..."<br/>
+      • parseDrawCommand('-e4,a1b2') → [{circle: 'e4'}, {arrow: ['a1','b2']}]
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">dom/ - DOM Operations</div>
+    <div class="mockup-body">
+      <strong>What goes here:</strong> Code that reads/writes DOM<br/>
+      <strong>Responsibilities:</strong> querySelector, createElement, appendChild, etc<br/>
+      <strong>No business logic:</strong> Just DOM manipulation<br/>
+      <strong>Testing:</strong> Skip in unit tests (manual test in browser)<br/>
+      <br/>
+      <strong>Examples:</strong><br/>
+      • boardReader.readPiecePositions() - queries piece elements, reads transforms<br/>
+      • boardObserver.init() - sets up MutationObserver, updates signal<br/>
+      • overlays/flash.createOverlay() - creates div, appends to cg-container<br/>
+      • renderer3d.updateScene() - updates Three.js meshes
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">browser/ - Browser APIs</div>
+    <div class="mockup-body">
+      <strong>What goes here:</strong> Wrappers around Web APIs<br/>
+      <strong>Examples:</strong> Web Speech API, localStorage, fetch, etc<br/>
+      <strong>Why separate:</strong> Easy to mock in tests<br/>
+      <strong>Testing:</strong> Mock the wrapper<br/>
+      <br/>
+      <strong>Example:</strong><br/>
+      • speechSynthesizer.speak(text, rate) - wraps speechSynthesis.speak()<br/>
+      • speechSynthesizer.stop() - wraps speechSynthesis.cancel()
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">effects/ - Signal Watchers (Thin Glue)</div>
+    <div class="mockup-body">
+      <strong>What goes here:</strong> effect() calls that wire signals to handlers<br/>
+      <strong>Responsibilities:</strong> Watch signals, call handlers, that's it<br/>
+      <strong>Keep thin:</strong> No business logic, just glue<br/>
+      <strong>Pattern:</strong> Each file exports init() and destroy()<br/>
+      <br/>
+      <strong>Structure:</strong><br/>
+      • Reads relevant signals<br/>
+      • Calls handler function with current values<br/>
+      • Returns cleanup function<br/>
+      <br/>
+      <strong>Example:</strong><br/>
+      on3dBoard.ts watches customBoardEnabled, obfuscationsEnabled, parallax, etc<br/>
+      → calls update3dBoard() handler with current settings
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">handlers/ - Business Logic</div>
+    <div class="mockup-body">
+      <strong>What goes here:</strong> The actual "what to do" code<br/>
+      <strong>Called by:</strong> Effects (reactive) or commands (imperative)<br/>
+      <strong>Can use:</strong> Pure functions, DOM operations, browser APIs<br/>
+      <strong>Testing:</strong> Mock DOM/browser dependencies<br/>
+      <br/>
+      <strong>Examples:</strong><br/>
+      • update3dBoard(settings) - coordinates renderer3d, applies all settings<br/>
+      • handleFlash(duration, interval) - orchestrates flash overlay timing<br/>
+      • handleSpeechCommand('wk') - reads board, generates text, speaks it
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Data Flow Examples</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">User clicks "Blur: 0px" button</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+1. components/SettingButton → settings.blur.value = 1<br/>
+2. effects/on3dBoard effect() detects change<br/>
+3. effects/on3dBoard calls handlers/update3dBoard(settings)<br/>
+4. handlers/update3dBoard calls dom/renderer3d.updateBlur(1)<br/>
+5. dom/renderer3d applies blur filter to canvas
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">User makes move on lichess</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+1. lichess updates DOM<br/>
+2. dom/boardObserver MutationObserver fires<br/>
+3. dom/boardObserver increments boardChanged signal<br/>
+4. effects/onBoardChange effect() detects change<br/>
+5. effects/onBoardChange calls handlers/handleBoardUpdate()<br/>
+6. handlers/handleBoardUpdate:<br/>
+&nbsp;&nbsp;&nbsp;→ calls dom/boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;→ calls dom/renderer3d.updatePieces(pieces)<br/>
+7. effects/onFlash effect() also detects boardChanged<br/>
+8. effects/onFlash calls handlers/handleFlash()<br/>
+9. handlers/handleFlash orchestrates flash timing with dom/overlays/flash
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">User types "pwk" command</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+1. commands/keyboardInput detects "pwk"<br/>
+2. commands/keyboardInput calls handlers/handleSpeechCommand('wk')<br/>
+3. handlers/handleSpeechCommand:<br/>
+&nbsp;&nbsp;&nbsp;→ calls dom/boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;→ calls pure/pieceGrouping.filterQuadrant(pieces, 'wk')<br/>
+&nbsp;&nbsp;&nbsp;→ calls pure/speechText.generateQuadrantText(filteredPieces)<br/>
+&nbsp;&nbsp;&nbsp;→ calls browser/speechSynthesizer.speak(text, currentRate)
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Why this structure works:</strong></p>
+  <ul>
+    <li><strong>Testability clear at a glance</strong> - pure/ is easy, dom/ is skipped, handlers/ need mocks</li>
+    <li><strong>Effects are thin</strong> - just wire signals to handlers, no logic</li>
+    <li><strong>Handlers orchestrate</strong> - compose pure functions with DOM/browser operations</li>
+    <li><strong>Pure functions reusable</strong> - no coupling to framework or DOM</li>
+    <li><strong>Easy to find code</strong> - "where's the coordinate math?" → pure/, "where's the flash logic?" → handlers/</li>
+  </ul>
+</div>

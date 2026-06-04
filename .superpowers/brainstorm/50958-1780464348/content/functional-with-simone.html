@@ -1,0 +1,283 @@
+<h2>Functional Architecture for Simone</h2>
+<p class="subtitle">Module-level functions operating on explicit data types</p>
+
+<div class="section">
+  <h3>Simone Constraint</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <strong>Simone mocks module-level functions, not class methods</strong><br/>
+      <br/>
+      <strong>Instead of:</strong><br/>
+      • Classes with methods<br/>
+      • Factory functions returning objects with methods<br/>
+      <br/>
+      <strong>We use:</strong><br/>
+      • Data types (interfaces)<br/>
+      • Module-level functions that operate on those types<br/>
+      • Prefer immutable (return new objects) where possible<br/>
+      • Explicit mutation where unavoidable (DOM, Three.js, timers)
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pattern: Data + Functions</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">Pure Functions (Immutable)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// pure/coordinates.ts<br/>
+<br/>
+// No state, just types + functions<br/>
+export function pixelsToSquare(<br/>
+&nbsp;&nbsp;x: number,<br/>
+&nbsp;&nbsp;y: number,<br/>
+&nbsp;&nbsp;squareSize: number,<br/>
+&nbsp;&nbsp;isPlayingWhite: boolean<br/>
+): string {<br/>
+&nbsp;&nbsp;// Pure logic, returns new value<br/>
+}
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Functions with Explicit Mutation (DOM/Three.js)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// dom/renderer3d.ts<br/>
+<br/>
+// Data type<br/>
+interface Renderer3DState {<br/>
+&nbsp;&nbsp;scene: THREE.Scene<br/>
+&nbsp;&nbsp;canvas: HTMLCanvasElement<br/>
+&nbsp;&nbsp;camera: THREE.Camera<br/>
+&nbsp;&nbsp;renderer: THREE.WebGLRenderer<br/>
+}<br/>
+<br/>
+// Create state<br/>
+export function createRenderer3D(): Renderer3DState {<br/>
+&nbsp;&nbsp;const canvas = document.createElement('canvas')<br/>
+&nbsp;&nbsp;const scene = new THREE.Scene()<br/>
+&nbsp;&nbsp;// ...<br/>
+&nbsp;&nbsp;return { scene, canvas, camera, renderer }<br/>
+}<br/>
+<br/>
+// Functions that mutate state (unavoidable with Three.js/DOM)<br/>
+export function updateBlur(state: Renderer3DState, amount: number): void {<br/>
+&nbsp;&nbsp;// Mutates state.scene (Three.js requires mutation)<br/>
+&nbsp;&nbsp;state.renderer.setPixelRatio(amount)<br/>
+}<br/>
+<br/>
+export function updatePieces(state: Renderer3DState, pieces: Piece[]): void {<br/>
+&nbsp;&nbsp;// Mutates scene graph<br/>
+}<br/>
+<br/>
+export function destroyRenderer3D(state: Renderer3DState): void {<br/>
+&nbsp;&nbsp;state.canvas.remove()<br/>
+&nbsp;&nbsp;state.renderer.dispose()<br/>
+}
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">Functions with Timers (Explicit State)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// flash/overlay.ts<br/>
+<br/>
+interface FlashState {<br/>
+&nbsp;&nbsp;overlay: HTMLDivElement<br/>
+&nbsp;&nbsp;durationTimer: number | null<br/>
+&nbsp;&nbsp;intervalTimer: number | null<br/>
+}<br/>
+<br/>
+export function createFlashOverlay(): FlashState {<br/>
+&nbsp;&nbsp;const overlay = document.createElement('div')<br/>
+&nbsp;&nbsp;overlay.className = 'userscript-flash-overlay'<br/>
+&nbsp;&nbsp;// ...<br/>
+&nbsp;&nbsp;return { overlay, durationTimer: null, intervalTimer: null }<br/>
+}<br/>
+<br/>
+export function showFlash(state: FlashState, duration: number): void {<br/>
+&nbsp;&nbsp;state.overlay.style.display = 'none' // Show board<br/>
+&nbsp;&nbsp;if (state.durationTimer) clearTimeout(state.durationTimer)<br/>
+&nbsp;&nbsp;state.durationTimer = setTimeout(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;state.overlay.style.display = 'block' // Hide board<br/>
+&nbsp;&nbsp;}, duration * 1000)<br/>
+}<br/>
+<br/>
+export function startIntervalFlash(state: FlashState, interval: number, onFlash: () => void): void {<br/>
+&nbsp;&nbsp;if (state.intervalTimer) clearInterval(state.intervalTimer)<br/>
+&nbsp;&nbsp;state.intervalTimer = setInterval(onFlash, interval * 1000)<br/>
+}<br/>
+<br/>
+export function destroyFlashOverlay(state: FlashState): void {<br/>
+&nbsp;&nbsp;if (state.durationTimer) clearTimeout(state.durationTimer)<br/>
+&nbsp;&nbsp;if (state.intervalTimer) clearInterval(state.intervalTimer)<br/>
+&nbsp;&nbsp;state.overlay.remove()<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Question: When to Mutate vs Return New?</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <strong>Return new (immutable):</strong><br/>
+      • Pure calculations (coordinates, text generation)<br/>
+      • Data transformations (filtering, grouping)<br/>
+      • Settings (signals already handle immutability)<br/>
+      <br/>
+      <strong>Mutate in place:</strong><br/>
+      • DOM manipulation (appendChild, remove, style changes)<br/>
+      • Three.js scene graph (adding/removing meshes)<br/>
+      • Timers (storing IDs, clearing)<br/>
+      • Browser APIs (speechSynthesis, MutationObserver)<br/>
+      <br/>
+      <strong>Reason:</strong> These APIs require mutation - we can't "return a new DOM" or "return a new Three.js scene"
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Revised Module Patterns</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">pure/ - Fully Immutable</div>
+    <div class="mockup-body">
+      <strong>Pattern:</strong> Types + pure functions<br/>
+      <strong>State:</strong> None (or passed as parameters)<br/>
+      <strong>Returns:</strong> New values<br/>
+      <br/>
+      <strong>Example modules:</strong><br/>
+      • coordinates.ts - pixel/square conversions<br/>
+      • speechText.ts - generate text from pieces<br/>
+      • commandParser.ts - parse draw commands<br/>
+      • pieceGrouping.ts - filter/group pieces
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">dom/ - Explicit State + Mutation</div>
+    <div class="mockup-body">
+      <strong>Pattern:</strong> State type + functions that operate on it<br/>
+      <strong>State:</strong> Explicit (canvas, scene, overlay elements)<br/>
+      <strong>Mutation:</strong> Required (DOM/Three.js APIs)<br/>
+      <br/>
+      <strong>Example modules:</strong><br/>
+      • boardReader.ts - no state, just reads DOM<br/>
+      • boardObserver.ts - MutationObserver state<br/>
+      • renderer3d.ts - Renderer3DState type + functions<br/>
+      • overlays/*.ts - overlay elements + functions
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">browser/ - API Wrappers</div>
+    <div class="mockup-body">
+      <strong>Pattern:</strong> Thin wrappers around Web APIs<br/>
+      <strong>State:</strong> Managed by browser<br/>
+      <strong>Mutation:</strong> Calling browser APIs<br/>
+      <br/>
+      <strong>Example:</strong><br/>
+      • speechSynthesizer.ts - wraps speechSynthesis API
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">handlers/ - Orchestration Functions</div>
+    <div class="mockup-body">
+      <strong>Pattern:</strong> Functions that compose other functions<br/>
+      <strong>State:</strong> Passed from caller<br/>
+      <strong>Returns:</strong> void (side effects via dependencies)<br/>
+      <br/>
+      <strong>Example:</strong><br/>
+      • handleSpeechCommand(quadrant, renderer3dState, ...)<br/>
+      • update3dBoard(settings, renderer3dState)
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">effects/ - Signal Watchers</div>
+    <div class="mockup-body">
+      <strong>Pattern:</strong> Functions that set up effects<br/>
+      <strong>Returns:</strong> Cleanup function<br/>
+      <br/>
+      <strong>Example:</strong><br/>
+      • setup3dBoardEffect(renderer3dState): () => void<br/>
+      • setupFlashEffect(flashState): () => void
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Main Entry Point (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-header">main.ts - Coordinates State</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// Create all stateful things<br/>
+const renderer3dState = createRenderer3D()<br/>
+const flashState = createFlashOverlay()<br/>
+const dividersState = createDividers()<br/>
+const drawingsState = createDrawingsOverlay()<br/>
+const boardObserverState = createBoardObserver()<br/>
+<br/>
+// Set up effects (pass state to them)<br/>
+const cleanup3d = setup3dBoardEffect(renderer3dState)<br/>
+const cleanupFlash = setupFlashEffect(flashState, boardObserverState)<br/>
+const cleanupDividers = setupDividersEffect(dividersState)<br/>
+<br/>
+// Set up commands (pass state as dependencies)<br/>
+setupKeyboardCommands({<br/>
+&nbsp;&nbsp;onSpeechCommand: (cmd) => handleSpeechCommand(cmd),<br/>
+&nbsp;&nbsp;onDrawCommand: (cmd) => handleDrawCommand(cmd, drawingsState)<br/>
+})<br/>
+<br/>
+// Cleanup function<br/>
+return () => {<br/>
+&nbsp;&nbsp;cleanup3d()<br/>
+&nbsp;&nbsp;cleanupFlash()<br/>
+&nbsp;&nbsp;cleanupDividers()<br/>
+&nbsp;&nbsp;destroyRenderer3D(renderer3dState)<br/>
+&nbsp;&nbsp;destroyFlashOverlay(flashState)<br/>
+&nbsp;&nbsp;// ...<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Testing with Simone (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-header">Mocking Module Functions</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { mockModule } from 'simone'<br/>
+<br/>
+// Mock entire modules (functions, not classes)<br/>
+const boardReader = mockModule&lt;typeof import('../dom/boardReader')&gt;('../dom/boardReader')<br/>
+const renderer3d = mockModule&lt;typeof import('../dom/renderer3d')&gt;('../dom/renderer3d')<br/>
+<br/>
+it('updates 3d board on settings change', () => {<br/>
+&nbsp;&nbsp;// Mock functions called by handler<br/>
+&nbsp;&nbsp;renderer3d.expects('updateBlur').withArgs(mockState, 3).returns(undefined)<br/>
+&nbsp;&nbsp;renderer3d.expects('updateParallax').withArgs(mockState, 45).returns(undefined)<br/>
+<br/>
+&nbsp;&nbsp;// Call handler<br/>
+&nbsp;&nbsp;update3dBoard({ blur: 3, parallax: 45 }, mockState)<br/>
+<br/>
+&nbsp;&nbsp;// Simone verifies expectations consumed<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key changes from earlier design:</strong></p>
+  <ul>
+    <li><strong>No classes or factory functions</strong> - just data types + module functions</li>
+    <li><strong>Explicit state types</strong> - Renderer3DState, FlashState, etc.</li>
+    <li><strong>State created in main.ts</strong> - passed to effects and handlers</li>
+    <li><strong>Functions are Simone-mockable</strong> - all at module level</li>
+    <li><strong>Honest about mutation</strong> - we mutate where APIs require it (DOM, Three.js, timers)</li>
+    <li><strong>Immutable where possible</strong> - pure functions return new values</li>
+  </ul>
+</div>

@@ -1,0 +1,182 @@
+<h2>Data Flow & State Management</h2>
+<p class="subtitle">How data moves through the system</p>
+
+<div class="section">
+  <h3>Settings Flow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. User clicks "Blur: 0px" button</strong><br/>
+&nbsp;&nbsp;↓<br/>
+<strong>2. SettingButton.vue emits click</strong><br/>
+&nbsp;&nbsp;currentValue = 0px<br/>
+&nbsp;&nbsp;options = [0px, 1px, 2px, 3px, 4px, 6px, 8px]<br/>
+&nbsp;&nbsp;nextValue = 1px<br/>
+&nbsp;&nbsp;settingsStore.update('blur', 1)<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>3. SettingsStore.update('blur', 1)</strong><br/>
+&nbsp;&nbsp;this.blur = 1<br/>
+&nbsp;&nbsp;this.save() // localStorage.setItem('lichess-board-speaker-settings', JSON.stringify(this))<br/>
+&nbsp;&nbsp;this.emit('settings:changed', this.getAll())<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>4. All managers receive event</strong><br/>
+&nbsp;&nbsp;boardManager.reapply(settings) → updates blur on 3D canvas<br/>
+&nbsp;&nbsp;speechManager.reapply(settings) → (no change needed)<br/>
+&nbsp;&nbsp;flashManager.reapply(settings) → (no change needed)<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>5. Vue components re-render</strong><br/>
+&nbsp;&nbsp;SettingButton shows "Blur: 1px"<br/>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Board Change Flow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. User makes a move on lichess board</strong><br/>
+&nbsp;&nbsp;↓<br/>
+<strong>2. MutationObserver detects DOM change</strong><br/>
+&nbsp;&nbsp;BoardWatcher sees piece.style.transform changed<br/>
+&nbsp;&nbsp;boardWatcher.emit('board:changed')<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>3. Multiple systems react</strong><br/>
+&nbsp;&nbsp;FlashManager.onBoardChange()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ overlay.hide() // Show board<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ setTimeout(() => overlay.show(), flashDuration)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Reset interval timer<br/>
+&nbsp;&nbsp;↓<br/>
+&nbsp;&nbsp;PiecesList.vue (watching board:changed)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ Re-render list<br/>
+&nbsp;&nbsp;↓<br/>
+&nbsp;&nbsp;Custom3DBoard (if enabled)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ render(pieces) // Update 3D scene<br/>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Keyboard Command Flow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. User types "pwk" in move input</strong><br/>
+&nbsp;&nbsp;↓<br/>
+<strong>2. Input handler detects command</strong><br/>
+&nbsp;&nbsp;const input = document.querySelector('.keyboard-move input')<br/>
+&nbsp;&nbsp;input.addEventListener('input', (e) => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (e.target.value.startsWith('p')) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handleButtonCommand(e.target.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else if (e.target.value.startsWith('-')) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;handleDrawCommand(e.target.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>3. Speech command handler</strong><br/>
+&nbsp;&nbsp;handleButtonCommand('pwk')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ speechManager.speakQuadrant('white-kingside')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ text = generateQuadrantText(pieces, 'wk')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ synthesizer.speak(text, settingsStore.get('speakRate'))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ input.value = '' // Clear input<br/>
+<br/>
+<strong>Drawing command example: "-e4"</strong><br/>
+&nbsp;&nbsp;handleDrawCommand('-e4')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ commands = parseDrawCommand('-e4') // [{circle: 'e4'}]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ drawingManager.draw(commands)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ input.value = ''<br/>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Page Navigation Flow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>User navigates from puzzle → game</strong><br/>
+&nbsp;&nbsp;↓<br/>
+<strong>Detect page change (URL change or full board DOM replacement)</strong><br/>
+&nbsp;&nbsp;↓<br/>
+<strong>Tear down current instance</strong><br/>
+&nbsp;&nbsp;boardManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ boardWatcher.stop()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ board3D.destroy() // Remove canvas<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;→ dividers.destroy() // Remove SVG<br/>
+&nbsp;&nbsp;flashManager.destroy() // Clear timers<br/>
+&nbsp;&nbsp;drawingManager.destroy() // Remove SVG<br/>
+&nbsp;&nbsp;app.unmount() // Vue cleanup<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>Wait for new page DOM</strong><br/>
+&nbsp;&nbsp;waitForElement('.keyboard-move')<br/>
+&nbsp;&nbsp;↓<br/>
+<strong>Reinitialize (same as startup)</strong><br/>
+&nbsp;&nbsp;Settings persist (already in localStorage)<br/>
+&nbsp;&nbsp;Create new managers, mount Vue, apply settings<br/>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem;">
+  <h3>State Management Details</h3>
+  <div class="mockup">
+    <div class="mockup-header">SettingsStore Implementation</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+interface Settings {<br/>
+&nbsp;&nbsp;speakRate: number // 0.2, 0.5, 0.7, 1.0, 1.1, 1.2<br/>
+&nbsp;&nbsp;piecesListEnabled: boolean<br/>
+&nbsp;&nbsp;dividersEnabled: boolean<br/>
+&nbsp;&nbsp;customBoardEnabled: boolean<br/>
+&nbsp;&nbsp;obfuscationsEnabled: boolean<br/>
+&nbsp;&nbsp;parallax: number // 0, 20, 30, 40, 50, 60, 65, 70, 80<br/>
+&nbsp;&nbsp;hoverMode: string // 'off', 'small', 'large', 'super'<br/>
+&nbsp;&nbsp;pieceStyle: string // 'icons', '3d', 'checker', 'checker-grey', 'blindfold'<br/>
+&nbsp;&nbsp;blur: number // 0, 1, 2, 3, 4, 6, 8<br/>
+&nbsp;&nbsp;blackSegments: string // 'none', '1/4', '1/2', '3/4', '4/4'<br/>
+&nbsp;&nbsp;blackSegmentsTiming: string // 'rotate-10s', 'rotate-30s', 'rotate-60s', 'dont-rotate'<br/>
+&nbsp;&nbsp;flashModeEnabled: boolean<br/>
+&nbsp;&nbsp;flashDuration: number // 0.3, 0.5, 1, 2 (seconds)<br/>
+&nbsp;&nbsp;flashInterval: number // 1, 3, 5, 10, 30, 60 (seconds)<br/>
+}<br/>
+<br/>
+const STORAGE_KEY = 'lichess-board-speaker-settings'<br/>
+<br/>
+class SettingsStore extends EventEmitter {<br/>
+&nbsp;&nbsp;private settings: Settings<br/>
+<br/>
+&nbsp;&nbsp;constructor() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;super()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.settings = getDefaultSettings()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;load() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const stored = localStorage.getItem(STORAGE_KEY)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (stored) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.settings = { ...this.settings, ...JSON.parse(stored) }<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;save() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;localStorage.setItem(STORAGE_KEY, JSON.stringify(this.settings))<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;update(key: keyof Settings, value: any) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.settings[key] = value<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.save()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.emit('settings:changed', this.getAll())<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;get(key: keyof Settings) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return this.settings[key]<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;getAll(): Settings {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return { ...this.settings }<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key insight:</strong> The settings store is completely decoupled from managers. Managers don't modify settings, they only read and react. This makes the data flow unidirectional and predictable.</p>
+</div>

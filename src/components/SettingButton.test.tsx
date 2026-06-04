@@ -1,7 +1,7 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/preact'
 import { signal } from '@preact/signals'
+import { render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
+import { describe, expect, it } from 'vitest'
 import { SettingButton } from './SettingButton'
 
 describe('SettingButton', () => {
@@ -40,7 +40,7 @@ describe('SettingButton', () => {
     expect(screen.getByRole('button').textContent).toBe('Speed: 0.2')
   })
 
-  it('should work with string values', async () => {
+  it('cycles through string option values on click', async () => {
     const user = userEvent.setup()
     const setting = signal('off')
     const options = ['off', 'small', 'large'] as const
@@ -59,9 +59,7 @@ describe('SettingButton', () => {
     const setting = signal(0.2)
     const options = [0.2, 0.5, 1.0] as const
 
-    const { rerender } = render(
-      <SettingButton label="Speed" setting={setting} options={options} />
-    )
+    const { rerender } = render(<SettingButton label="Speed" setting={setting} options={options} />)
 
     expect(screen.getByRole('button').textContent).toBe('Speed: 0.2')
 

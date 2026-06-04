@@ -8,9 +8,6 @@ export function shouldFlash(
   return elapsedMs >= intervalMs
 }
 
-export function getNextFlashTime(
-  currentTime: number,
-  intervalSeconds: number
-): number {
+export function getNextFlashTime(currentTime: number, intervalSeconds: number): number {
   return currentTime + intervalSeconds * 1000
 }

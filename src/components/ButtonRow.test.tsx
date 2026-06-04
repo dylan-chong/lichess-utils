@@ -1,13 +1,13 @@
-import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/preact'
 import { signal } from '@preact/signals'
+import { render, screen } from '@testing-library/preact'
+import { describe, expect, it } from 'vitest'
 import { ButtonRow } from './ButtonRow'
 
 describe('ButtonRow', () => {
   it('should render children when no visible signal provided', () => {
     render(
       <ButtonRow>
-        <button>Test Button</button>
+        <button type="button">Test Button</button>
       </ButtonRow>
     )
 
@@ -19,7 +19,7 @@ describe('ButtonRow', () => {
 
     render(
       <ButtonRow visible={visible}>
-        <button>Test Button</button>
+        <button type="button">Test Button</button>
       </ButtonRow>
     )
 
@@ -31,7 +31,7 @@ describe('ButtonRow', () => {
 
     render(
       <ButtonRow visible={visible}>
-        <button>Test Button</button>
+        <button type="button">Test Button</button>
       </ButtonRow>
     )
 
@@ -43,7 +43,7 @@ describe('ButtonRow', () => {
 
     const { rerender } = render(
       <ButtonRow visible={visible}>
-        <button>Test Button</button>
+        <button type="button">Test Button</button>
       </ButtonRow>
     )
 
@@ -52,7 +52,7 @@ describe('ButtonRow', () => {
     visible.value = true
     rerender(
       <ButtonRow visible={visible}>
-        <button>Test Button</button>
+        <button type="button">Test Button</button>
       </ButtonRow>
     )
 
@@ -62,8 +62,8 @@ describe('ButtonRow', () => {
   it('should render multiple children', () => {
     render(
       <ButtonRow>
-        <button>Button 1</button>
-        <button>Button 2</button>
+        <button type="button">Button 1</button>
+        <button type="button">Button 2</button>
         <span>Text</span>
       </ButtonRow>
     )

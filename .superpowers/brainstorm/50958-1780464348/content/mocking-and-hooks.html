@@ -1,0 +1,304 @@
+<h2>Mocking with Simone & Pre-commit Hooks</h2>
+<p class="subtitle">Type-safe mocking and automated quality checks</p>
+
+<div class="section">
+  <h3>Simone - Type-Safe Mocking</h3>
+  <div class="mockup">
+    <div class="mockup-header">Why Simone over vi.mock()</div>
+    <div class="mockup-body">
+      <strong>Simone advantages:</strong><br/>
+      • Full TypeScript inference (args + return types checked)<br/>
+      • Sinon-style expectations (explicit, declarative)<br/>
+      • Strict by default (unexpected calls throw immediately)<br/>
+      • Sequential expectations (call order verified)<br/>
+      • Cleaner API than vi.mock() for function modules<br/>
+      <br/>
+      <strong>vs Vitest vi.mock():</strong><br/>
+      • vi.mock() - loose, manual setup, easy to break types<br/>
+      • Simone - strict, auto-typed, catches mistakes at compile + runtime
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Installation</h3>
+  <div class="mockup">
+    <div class="mockup-header">Local Package Install</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>Step 1: Pack simone locally</strong><br/>
+cd /Users/dylanchong/Development/Other/simone<br/>
+npm pack<br/>
+# Creates simone-0.0.0.tgz (or similar)<br/>
+<br/>
+<strong>Step 2: Install in lichess-utils</strong><br/>
+cd /Users/dylanchong/Development/Other/lichess-utils<br/>
+npm install -D /Users/dylanchong/Development/Other/simone/simone-0.0.0.tgz<br/>
+<br/>
+<strong>Step 3: Configure vitest</strong><br/>
+# Add simonePlugin to vitest.config.ts (see below)
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Configuration</h3>
+  <div class="mockup">
+    <div class="mockup-header">vitest.config.ts (updated with simonePlugin)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { defineConfig } from 'vitest/config'<br/>
+import swc from 'unplugin-swc'<br/>
+import { simonePlugin } from 'simone/vitest'<br/>
+<br/>
+export default defineConfig({<br/>
+&nbsp;&nbsp;plugins: [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;swc.vite({ /* ... */ }),<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;simonePlugin()<br/>
+&nbsp;&nbsp;],<br/>
+&nbsp;&nbsp;test: {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;environment: 'happy-dom',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;globals: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;coverage: { /* ... */ }<br/>
+&nbsp;&nbsp;}<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Testing Patterns with Simone</h3>
+
+  <div class="mockup">
+    <div class="mockup-header">handlers/ - Mocking Dependencies</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { mockModule } from 'simone'<br/>
+import { handleSpeechCommand } from './handleSpeechCommand'<br/>
+<br/>
+const boardReader = mockModule&lt;typeof import('../dom/boardReader')&gt;('../dom/boardReader')<br/>
+const synthesizer = mockModule&lt;typeof import('../browser/speechSynthesizer')&gt;('../browser/speechSynthesizer')<br/>
+<br/>
+it('speaks white kingside quadrant', () => {<br/>
+&nbsp;&nbsp;// Set up expectations in order<br/>
+&nbsp;&nbsp;boardReader.expects('readPiecePositions').returns([<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ color: 'white', type: 'pawn', square: 'e2' },<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;{ color: 'white', type: 'knight', square: 'g1' }<br/>
+&nbsp;&nbsp;])<br/>
+<br/>
+&nbsp;&nbsp;synthesizer.expects('speak')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;.withArgs('e2 white pawn. g1 white knight.', 0.5)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;.returns(undefined)<br/>
+<br/>
+&nbsp;&nbsp;// Call handler<br/>
+&nbsp;&nbsp;handleSpeechCommand('wk')<br/>
+<br/>
+&nbsp;&nbsp;// Simone automatically verifies all expectations consumed<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">effects/ - Mocking Handlers</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { mockModule } from 'simone'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { init, destroy } from './on3dBoard'<br/>
+<br/>
+const update3dBoard = mockModule&lt;typeof import('../handlers/update3dBoard')&gt;('../handlers/update3dBoard')<br/>
+<br/>
+it('calls handler when customBoardEnabled changes', () => {<br/>
+&nbsp;&nbsp;init()<br/>
+<br/>
+&nbsp;&nbsp;// Expect handler called with current settings<br/>
+&nbsp;&nbsp;update3dBoard.expects('default')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;.withArgs(expect.objectContaining({<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;customBoardEnabled: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;parallax: 0<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}))<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;.returns(undefined)<br/>
+<br/>
+&nbsp;&nbsp;// Trigger change<br/>
+&nbsp;&nbsp;settings.customBoardEnabled.value = true<br/>
+<br/>
+&nbsp;&nbsp;destroy()<br/>
+})
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">browser/ - Mocking Web APIs</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+// For Web APIs, still use vi.stubGlobal (Simone is for modules)<br/>
+import { vi } from 'vitest'<br/>
+<br/>
+it('calls speechSynthesis API', () => {<br/>
+&nbsp;&nbsp;const mockSpeak = vi.fn()<br/>
+&nbsp;&nbsp;vi.stubGlobal('speechSynthesis', {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;speak: mockSpeak,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;cancel: vi.fn()<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;synthesizer.speak('test', 1.0)<br/>
+<br/>
+&nbsp;&nbsp;expect(mockSpeak).toHaveBeenCalled()<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pre-commit Hooks</h3>
+  <div class="mockup">
+    <div class="mockup-header">Why Pre-commit Hooks</div>
+    <div class="mockup-body">
+      <strong>Prevent broken commits:</strong><br/>
+      • Compilation errors<br/>
+      • Failing tests<br/>
+      • Type errors<br/>
+      • Linting issues<br/>
+      • Unformatted code<br/>
+      <br/>
+      <strong>Tool: Husky</strong><br/>
+      • Standard Git hooks manager<br/>
+      • Runs scripts before git commit<br/>
+      • Fast (only checks staged files with lint-staged)
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Husky + lint-staged Setup</h3>
+  <div class="mockup">
+    <div class="mockup-header">package.json (updated)</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+{<br/>
+&nbsp;&nbsp;"scripts": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"dev": "vite build --watch",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"build": "vite build",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test": "vitest run",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:watch": "vitest",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"test:coverage": "vitest run --coverage",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"type-check": "tsc --noEmit",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"lint": "biome check src/",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"lint:fix": "biome check --write src/",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"format": "biome format --write src/",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"prepare": "husky"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"devDependencies": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@biomejs/biome": "^1.9.4",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@swc/core": "^1.7.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@testing-library/preact": "^3.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"@vitest/ui": "^1.2.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"happy-dom": "^12.10.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"husky": "^9.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"lint-staged": "^15.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"typescript": "^5.3.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"unplugin-swc": "^1.5.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vite": "^5.0.0",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"vitest": "^1.2.0"<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;"lint-staged": {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;"src/**/*.{ts,tsx}": [<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"biome check --write",<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"biome format --write"<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;]<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+
+  <div class="mockup">
+    <div class="mockup-header">.husky/pre-commit</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+#!/usr/bin/env sh<br/>
+<br/>
+# Lint and format staged files<br/>
+npx lint-staged<br/>
+<br/>
+# Type check<br/>
+npm run type-check<br/>
+<br/>
+# Run tests<br/>
+npm test<br/>
+<br/>
+# Build (ensure it compiles)<br/>
+npm run build
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Setup Instructions</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. Install dependencies:</strong><br/>
+npm install -D husky lint-staged<br/>
+<br/>
+<strong>2. Initialize husky:</strong><br/>
+npx husky init<br/>
+<br/>
+<strong>3. Create pre-commit hook:</strong><br/>
+# Edit .husky/pre-commit with content above<br/>
+<br/>
+<strong>4. Make executable:</strong><br/>
+chmod +x .husky/pre-commit<br/>
+<br/>
+<strong>5. Test it:</strong><br/>
+git add .<br/>
+git commit -m "test hooks"<br/>
+# Should run: lint-staged → type-check → tests → build
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Pre-commit Flow</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>When you run: git commit</strong><br/>
+<br/>
+1. lint-staged runs (on staged files only)<br/>
+&nbsp;&nbsp;&nbsp;→ Biome checks and fixes issues<br/>
+&nbsp;&nbsp;&nbsp;→ Biome formats code<br/>
+&nbsp;&nbsp;&nbsp;→ ~50ms (fast!)<br/>
+<br/>
+2. Type checking<br/>
+&nbsp;&nbsp;&nbsp;→ tsc --noEmit<br/>
+&nbsp;&nbsp;&nbsp;→ ~1-3s<br/>
+<br/>
+3. Tests<br/>
+&nbsp;&nbsp;&nbsp;→ vitest run<br/>
+&nbsp;&nbsp;&nbsp;→ ~1-2s (with SWC)<br/>
+<br/>
+4. Build<br/>
+&nbsp;&nbsp;&nbsp;→ vite build<br/>
+&nbsp;&nbsp;&nbsp;→ ~0.8s (with SWC)<br/>
+<br/>
+<strong>Total: ~3-7s</strong><br/>
+<br/>
+<strong>If any step fails → commit blocked</strong><br/>
+<strong>If all pass → commit proceeds</strong>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Bypassing Hooks (Emergency)</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>If you absolutely need to commit without checks:</strong><br/>
+git commit --no-verify -m "emergency fix"<br/>
+<br/>
+<strong>Use sparingly!</strong> Pre-commit hooks catch bugs before they enter history.
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Summary:</strong></p>
+  <ul>
+    <li><strong>Simone</strong> - Type-safe mocking with strict expectations (local install from pack)</li>
+    <li><strong>Husky</strong> - Pre-commit hooks ensure quality</li>
+    <li><strong>lint-staged</strong> - Only checks staged files (fast)</li>
+    <li><strong>Automated checks</strong> - lint, format, type-check, test, build</li>
+    <li><strong>Catches issues early</strong> - Before they enter git history</li>
+  </ul>
+</div>

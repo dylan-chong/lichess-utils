@@ -1,13 +1,18 @@
+import * as speechApi from './speechApi'
+
 let currentRate = 1.0
 
 export function speak(text: string, rate: number): void {
-  const utterance = new SpeechSynthesisUtterance(text)
+  const synthesis = speechApi.getSpeechSynthesis()
+  const UtteranceClass = speechApi.getSpeechSynthesisUtterance()
+  const utterance = speechApi.createUtterance(UtteranceClass, text)
   utterance.rate = rate
-  window.speechSynthesis.speak(utterance)
+  speechApi.speak(synthesis, utterance)
 }
 
 export function stopSpeaking(): void {
-  window.speechSynthesis.cancel()
+  const synthesis = speechApi.getSpeechSynthesis()
+  speechApi.cancel(synthesis)
 }
 
 export function setRate(rate: number): void {

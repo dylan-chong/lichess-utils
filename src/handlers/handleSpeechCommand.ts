@@ -1,9 +1,9 @@
+import { speak, stopSpeaking } from '../browser/speechSynthesizer'
+import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
 import { readPiecePositions } from '../dom/boardReader'
 import { filterQuadrant } from '../pure/pieceGrouping'
-import { generateQuadrantText, generateAllPiecesText, generateColorText } from '../pure/speechText'
-import { speak, stopSpeaking } from '../browser/speechSynthesizer'
+import { generateAllPiecesText, generateColorText, generateQuadrantText } from '../pure/speechText'
 import { settings } from '../settings/settingsStore'
-import { SpeechCommand, PlayerColor, Quadrant } from '../constants'
 
 export function handleSpeechCommand(command: string): void {
   if (command === SpeechCommand.STOP) {

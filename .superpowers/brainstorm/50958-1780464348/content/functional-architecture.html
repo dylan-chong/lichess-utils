@@ -1,0 +1,286 @@
+<h2>Functional Architecture (No Classes)</h2>
+<p class="subtitle">Pure functions, factory functions, and closures instead of classes</p>
+
+<div class="section">
+  <h3>Settings Store (Functions Only)</h3>
+  <div class="mockup">
+    <div class="mockup-header">settings/settingsStore.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { signal, effect } from '@preact/signals-core'<br/>
+<br/>
+// Exported signals - direct access<br/>
+export const settings = {<br/>
+&nbsp;&nbsp;speakRate: signal(0.5),<br/>
+&nbsp;&nbsp;piecesListEnabled: signal(false),<br/>
+&nbsp;&nbsp;dividersEnabled: signal(false),<br/>
+&nbsp;&nbsp;customBoardEnabled: signal(false),<br/>
+&nbsp;&nbsp;obfuscationsEnabled: signal(false),<br/>
+&nbsp;&nbsp;parallax: signal(0),<br/>
+&nbsp;&nbsp;hoverMode: signal('off'),<br/>
+&nbsp;&nbsp;pieceStyle: signal('icons'),<br/>
+&nbsp;&nbsp;blur: signal(0),<br/>
+&nbsp;&nbsp;blackSegments: signal('none'),<br/>
+&nbsp;&nbsp;blackSegmentsTiming: signal('rotate-10s'),<br/>
+&nbsp;&nbsp;flashModeEnabled: signal(false),<br/>
+&nbsp;&nbsp;flashDuration: signal(1),<br/>
+&nbsp;&nbsp;flashInterval: signal(3),<br/>
+}<br/>
+<br/>
+const STORAGE_KEY = 'lichess-board-speaker-settings'<br/>
+<br/>
+export function loadSettings() {<br/>
+&nbsp;&nbsp;const stored = localStorage.getItem(STORAGE_KEY)<br/>
+&nbsp;&nbsp;if (!stored) return<br/>
+<br/>
+&nbsp;&nbsp;const data = JSON.parse(stored)<br/>
+&nbsp;&nbsp;Object.keys(data).forEach(key => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings[key]) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings[key].value = data[key]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;})<br/>
+}<br/>
+<br/>
+export function saveSettings() {<br/>
+&nbsp;&nbsp;const data = {}<br/>
+&nbsp;&nbsp;Object.keys(settings).forEach(key => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;data[key] = settings[key].value<br/>
+&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;localStorage.setItem(STORAGE_KEY, JSON.stringify(data))<br/>
+}<br/>
+<br/>
+// Auto-save on any change<br/>
+effect(() => {<br/>
+&nbsp;&nbsp;Object.values(settings).forEach(s => s.value)<br/>
+&nbsp;&nbsp;saveSettings()<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>BoardReader (Pure Functions)</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/boardReader.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+interface Piece {<br/>
+&nbsp;&nbsp;color: 'white' | 'black'<br/>
+&nbsp;&nbsp;type: string<br/>
+&nbsp;&nbsp;square: string<br/>
+}<br/>
+<br/>
+export function getPlayerColor(): 'white' | 'black' {<br/>
+&nbsp;&nbsp;const coords = document.querySelector('coords')<br/>
+&nbsp;&nbsp;return coords?.classList.contains('black') ? 'black' : 'white'<br/>
+}<br/>
+<br/>
+export function readPiecePositions(): Piece[] {<br/>
+&nbsp;&nbsp;const pieces: Piece[] = []<br/>
+&nbsp;&nbsp;const board = document.querySelector('cg-board:not(.userscript-custom-board)')<br/>
+&nbsp;&nbsp;if (!board) return pieces<br/>
+<br/>
+&nbsp;&nbsp;const squareSize = board.offsetWidth / 8<br/>
+&nbsp;&nbsp;const isPlayingWhite = getPlayerColor() === 'white'<br/>
+<br/>
+&nbsp;&nbsp;board.querySelectorAll('piece').forEach(piece => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const classes = piece.className.split(' ')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const color = classes[0] as 'white' | 'black'<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const type = classes[1]<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const transform = piece.style.transform<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const match = transform.match(/translate\((.+?)px(?:,\s*(.+?)px)?\)/)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!match) return<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const x = parseFloat(match[1])<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const y = parseFloat(match[2] || match[1])<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const square = pixelsToSquare(x, y, squareSize, isPlayingWhite)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;pieces.push({ color, type, square })<br/>
+&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;return pieces<br/>
+}<br/>
+<br/>
+function pixelsToSquare(<br/>
+&nbsp;&nbsp;x: number, <br/>
+&nbsp;&nbsp;y: number, <br/>
+&nbsp;&nbsp;squareSize: number, <br/>
+&nbsp;&nbsp;isPlayingWhite: boolean<br/>
+): string {<br/>
+&nbsp;&nbsp;let col = Math.round(x / squareSize)<br/>
+&nbsp;&nbsp;let row = Math.round(y / squareSize)<br/>
+<br/>
+&nbsp;&nbsp;if (isPlayingWhite) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;row = 7 - row<br/>
+&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;col = 7 - col<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;const file = 'abcdefgh'[col]<br/>
+&nbsp;&nbsp;const rank = row + 1<br/>
+&nbsp;&nbsp;return `${file}${rank}`<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>BoardWatcher (Factory Function)</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/boardWatcher.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+export function createBoardWatcher() {<br/>
+&nbsp;&nbsp;let observer: MutationObserver | null = null<br/>
+&nbsp;&nbsp;let listeners: Array&lt;() => void&gt; = []<br/>
+<br/>
+&nbsp;&nbsp;function notifyListeners() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;listeners.forEach(cb => cb())<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function onChange(callback: () => void): () => void {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;listeners.push(callback)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;listeners = listeners.filter(cb => cb !== callback)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function start() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const board = document.querySelector('cg-board')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!board) return<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;observer = new MutationObserver(notifyListeners)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;observer.observe(board, {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;childList: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;attributes: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subtree: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function stop() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;observer?.disconnect()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;observer = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;listeners = []<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { start, stop, onChange }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Custom3DBoard (Factory Function)</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/custom3DBoard.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import * as THREE from 'three'<br/>
+<br/>
+export function createCustom3DBoard() {<br/>
+&nbsp;&nbsp;let canvas: HTMLCanvasElement | null = null<br/>
+&nbsp;&nbsp;let scene: THREE.Scene | null = null<br/>
+&nbsp;&nbsp;let camera: THREE.Camera | null = null<br/>
+&nbsp;&nbsp;let renderer: THREE.Renderer | null = null<br/>
+&nbsp;&nbsp;let currentParallax = 0<br/>
+&nbsp;&nbsp;let currentHoverMode = 'off'<br/>
+&nbsp;&nbsp;let animationFrame: number | null = null<br/>
+<br/>
+&nbsp;&nbsp;function init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const container = document.querySelector('cg-container')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!container) return<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;canvas = document.createElement('canvas')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;scene = new THREE.Scene()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// ... Three.js setup<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;container.appendChild(canvas)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function updateParallax(angle: number) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;currentParallax = angle<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Update camera angle<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function updateHoverMode(mode: string) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;currentHoverMode = mode<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Start/stop animation<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function updatePieceStyle(style: string) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Update piece meshes<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function updateBlur(amount: number) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Apply blur filter<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function updateBlackSegments(segments: string, timing: string) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Add/update overlay geometry<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function render(pieces: Piece[]) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Update piece positions and render<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (animationFrame) cancelAnimationFrame(animationFrame)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;canvas?.remove()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;scene = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;camera = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;renderer = null<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;init,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updateParallax,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updateHoverMode,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updatePieceStyle,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updateBlur,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updateBlackSegments,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;render,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;destroy<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Dividers (Factory Function)</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/dividers.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+export function createDividers() {<br/>
+&nbsp;&nbsp;let svg: SVGElement | null = null<br/>
+<br/>
+&nbsp;&nbsp;function render(is3DMode: boolean) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!svg) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;svg.classList.add('userscript-dividers')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// ... setup<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const parent = is3DMode <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;? document.querySelector('cg-container')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;: document.querySelector('cg-board')<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;parent?.appendChild(svg)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;svg.style.display = 'block'<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Draw lines...<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function hide() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (svg) svg.style.display = 'none'<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;function destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;svg?.remove()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;svg = null<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;return { render, hide, destroy }<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Pattern:</strong> Factory functions return objects with public methods. Internal state lives in closure scope. No <code>this</code>, no <code>class</code>, no <code>new</code>.</p>
+</div>

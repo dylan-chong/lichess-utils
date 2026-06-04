@@ -1,7 +1,7 @@
+import { CssClass, DomSelector, type PieceType, PlayerColor } from '../constants'
 import { pixelsToSquare } from '../pure/coordinates'
 import type { PiecePosition } from '../pure/pieceGrouping'
-import { DomSelector, CssClass, PlayerColor, PieceType } from '../constants'
-import { querySelector } from './dom'
+import { getBoundingClientRect, querySelector } from './dom'
 
 export function getPlayerColor(): PlayerColor {
   const coords = querySelector(DomSelector.COORDS)
@@ -15,7 +15,9 @@ export function readPiecePositions(): PiecePosition[] {
   // Parse width from style attribute since getBoundingClientRect may not work in test environments
   const boardElement = board as HTMLElement
   const widthMatch = boardElement.style.cssText.match(/width:\s*([0-9.]+)px/)
-  const boardWidth = widthMatch ? parseFloat(widthMatch[1]) : board.getBoundingClientRect().width
+  const boardWidth = widthMatch
+    ? Number.parseFloat(widthMatch[1])
+    : getBoundingClientRect(board).width
   const squareSize = boardWidth / 8
   const playerColor = getPlayerColor()
 
@@ -38,8 +40,8 @@ export function readPiecePositions(): PiecePosition[] {
     if (!match) continue
 
     // Transform gives bottom-left corner, convert to center
-    const x = parseFloat(match[1]) + squareSize / 2
-    const y = parseFloat(match[2]) - squareSize / 2
+    const x = Number.parseFloat(match[1]) + squareSize / 2
+    const y = Number.parseFloat(match[2]) - squareSize / 2
 
     const square = pixelsToSquare({ x, y }, squareSize, playerColor)
     positions.push({ square, color, type })

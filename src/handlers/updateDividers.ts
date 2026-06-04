@@ -1,4 +1,4 @@
-import { showDividers, hideDividers, type DividersState } from '../dom/overlays/dividers'
+import { type DividersState, hideDividers, showDividers } from '../dom/overlays/dividers'
 import { settings } from '../settings/settingsStore'
 
 export function updateDividers(state: DividersState): void {

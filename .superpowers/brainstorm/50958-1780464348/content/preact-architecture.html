@@ -1,0 +1,125 @@
+<h2>Redesigned Architecture with Preact</h2>
+<p class="subtitle">Lightweight (~3kb), reactive, with signals for state management</p>
+
+<div class="section">
+  <h3>Why Preact Changes the Design</h3>
+  <div class="mockup">
+    <div class="mockup-body">
+      <p><strong>Preact Signals</strong> provide fine-grained reactivity without manual callbacks:</p>
+      <ul>
+        <li>Settings become signals - components auto-update when they change</li>
+        <li>No manual listener management (no <code>onChange()</code> callbacks)</li>
+        <li>Simpler than the callback pattern we had before</li>
+        <li>Tiny runtime (~3kb for Preact + ~2kb for signals)</li>
+      </ul>
+      <p><strong>Hooks</strong> simplify side effects and lifecycle:</p>
+      <ul>
+        <li><code>useEffect()</code> for reacting to setting changes in managers</li>
+        <li><code>useComputed()</code> for derived state (e.g., which buttons to show)</li>
+        <li>No component lifecycle methods needed</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>High-Level Architecture (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-header">System Components</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+<strong>1. Entry Point Layer</strong> (main.ts)<br/>
+- Initializes application<br/>
+- Creates signal-based settings store<br/>
+- Sets up managers with effect() to watch settings<br/>
+- Mounts Preact root component<br/>
+<br/>
+<strong>2. State Management Layer</strong> (settings/)<br/>
+- Settings as Preact signals (reactive primitives)<br/>
+- localStorage persistence<br/>
+- No manual event emitters needed<br/>
+<br/>
+<strong>3. UI Layer</strong> (components/ - Preact TSX)<br/>
+- Functional components with hooks<br/>
+- Auto-react to signal changes<br/>
+- JSX for declarative rendering<br/>
+<br/>
+<strong>4. Board Interaction Layer</strong> (feature modules)<br/>
+- Same as before: board/, speech/, drawing/, flash/<br/>
+- Use effect() to watch settings signals<br/>
+- Reapply when signals change
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Preact Signals Pattern</h3>
+  <div class="mockup">
+    <div class="mockup-header">How Signals Work</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { signal, effect, computed } from '@preact/signals-core'<br/>
+<br/>
+// Create a reactive signal<br/>
+const count = signal(0)<br/>
+<br/>
+// Read value<br/>
+console.log(count.value) // 0<br/>
+<br/>
+// Update value (triggers reactions)<br/>
+count.value = 5<br/>
+<br/>
+// React to changes<br/>
+effect(() => {<br/>
+&nbsp;&nbsp;console.log('Count changed:', count.value)<br/>
+})<br/>
+<br/>
+// Derived state<br/>
+const doubled = computed(() => count.value * 2)<br/>
+<br/>
+<strong>In Preact components:</strong><br/>
+function Counter() {<br/>
+&nbsp;&nbsp;// Component auto-re-renders when count changes<br/>
+&nbsp;&nbsp;return &lt;div&gt;Count: {count}&lt;/div&gt;<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>New Event Flow with Signals</h3>
+  <div class="mockup">
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+┌─────────────────┐<br/>
+│  User clicks    │ (clicks button)<br/>
+│     button      │<br/>
+└────────┬────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌─────────────────┐<br/>
+│SettingButton.tsx│ onClick={() => settings.blur.value = 1}<br/>
+└────────┬────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼ (signal update - automatic propagation)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;┌────┴────┬──────────┬──────────┬──────────┐<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+┌────────┐&nbsp;&nbsp;┌─────┐&nbsp;&nbsp;┌─────────┐&nbsp;&nbsp;┌───────┐&nbsp;&nbsp;┌─────────┐<br/>
+│ Board  │&nbsp;&nbsp;│Flash│&nbsp;&nbsp;│ Speech  │&nbsp;&nbsp;│Drawing│&nbsp;&nbsp;│ Preact  │<br/>
+│Manager │&nbsp;&nbsp;│Mgr  │&nbsp;&nbsp;│ Manager │&nbsp;&nbsp;│ Mgr   │&nbsp;&nbsp;│Components│<br/>
+│effect()│&nbsp;&nbsp;│effect()│&nbsp;&nbsp;│effect() │&nbsp;&nbsp;│effect()│&nbsp;&nbsp;│(auto)   │<br/>
+└────────┘&nbsp;&nbsp;└─────┘&nbsp;&nbsp;└─────────┘&nbsp;&nbsp;└───────┘&nbsp;&nbsp;└─────────┘<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;│<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;▼<br/>
+reapply()&nbsp;&nbsp;reapply()&nbsp;&nbsp;reapply()&nbsp;&nbsp;reapply()&nbsp;&nbsp;re-render<br/>
+<br/>
+<strong>Key difference from callback pattern:</strong><br/>
+- No manual listener registration<br/>
+- No notifyListeners() calls<br/>
+- Signals automatically track dependencies<br/>
+- Less boilerplate code
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Result:</strong> Simpler than the callback pattern, more reactive than manual updates, tiny bundle size (~5kb total for Preact + signals).</p>
+</div>

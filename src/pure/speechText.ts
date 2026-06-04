@@ -1,4 +1,4 @@
-import { groupByColorAndType, type PiecePosition } from './pieceGrouping'
+import { type PiecePosition, groupByColorAndType } from './pieceGrouping'
 
 export function generateQuadrantText(pieces: PiecePosition[]): string {
   if (pieces.length === 0) return ''
@@ -20,17 +20,14 @@ export function generateQuadrantText(pieces: PiecePosition[]): string {
     }
   }
 
-  return sentences.join('. ') + '.'
+  return `${sentences.join('. ')}.`
 }
 
 export function generateAllPiecesText(pieces: PiecePosition[]): string {
   return generateQuadrantText(pieces)
 }
 
-export function generateColorText(
-  pieces: PiecePosition[],
-  color: 'white' | 'black'
-): string {
+export function generateColorText(pieces: PiecePosition[], color: 'white' | 'black'): string {
   const filtered = pieces.filter((p) => p.color === color)
   return generateQuadrantText(filtered)
 }

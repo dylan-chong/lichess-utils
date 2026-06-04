@@ -1,5 +1,5 @@
-import { render } from 'preact'
 import type { Signal } from '@preact/signals-core'
+import { render } from 'preact'
 import { ControlPanel } from './ControlPanel'
 
 export function createRoot(boardChanged: Signal<number>, mountPoint: HTMLElement): void {

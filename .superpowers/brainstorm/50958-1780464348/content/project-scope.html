@@ -1,0 +1,84 @@
+<h2>Let's clarify the project scope</h2>
+<p class="subtitle">Understanding what you want to migrate from the current userscript</p>
+
+<div class="section">
+  <p>You want to migrate the existing userscript to a TypeScript + Vue.js + Node test architecture. First, I need to understand the scope:</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="full-rewrite" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Full Feature Rewrite</h3>
+      <p>Rebuild all features from the spec in the new architecture</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Clean slate, best practices from the start</li>
+            <li>Full unit test coverage</li>
+            <li>Easier to maintain long-term</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Large upfront effort</li>
+            <li>Need to rebuild all 14+ features</li>
+            <li>Longer time to first working version</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="incremental" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Incremental Migration</h3>
+      <p>Set up architecture, migrate features one by one over time</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Working version sooner</li>
+            <li>Can test architecture with a subset first</li>
+            <li>Spread out the work</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>May maintain both versions temporarily</li>
+            <li>Architecture constraints learned late</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="architecture-only" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Architecture Design Only</h3>
+      <p>Just design the architecture and component structure, implement later</p>
+      <div class="pros-cons">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Quick to get design feedback</li>
+            <li>Can validate approach before committing</li>
+            <li>Minimal upfront time investment</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>Architecture not validated by implementation</li>
+            <li>May need adjustments when building</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

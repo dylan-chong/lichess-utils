@@ -1,0 +1,127 @@
+<h2>Project file structure</h2>
+<p class="subtitle">How should the TypeScript source code be organized?</p>
+
+<div class="section">
+  <p>Given the decisions so far (Vue for controls, vanilla JS for board overlays, central settings store), how should the source files be organized?</p>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="by-feature" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>By Feature/Domain</h3>
+      <p>Group files by what they do (settings, board, speech, drawing, etc.)</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; line-height: 1.4;">
+src/<br/>
+├── main.ts<br/>
+├── settings/<br/>
+│   ├── SettingsStore.ts<br/>
+│   ├── types.ts<br/>
+│   └── defaults.ts<br/>
+├── board/<br/>
+│   ├── BoardReader.ts<br/>
+│   ├── BoardWatcher.ts<br/>
+│   ├── Custom3DBoard.ts<br/>
+│   ├── Dividers.ts<br/>
+│   └── coordinateUtils.ts<br/>
+├── speech/<br/>
+│   ├── SpeechSynthesizer.ts<br/>
+│   └── textGenerators.ts<br/>
+├── drawing/<br/>
+│   ├── DrawingsOverlay.ts<br/>
+│   └── commandParser.ts<br/>
+├── flash/<br/>
+│   ├── FlashOverlay.ts<br/>
+│   └── flashManager.ts<br/>
+├── components/ (Vue)<br/>
+│   ├── ControlPanel.vue<br/>
+│   ├── ButtonRow.vue<br/>
+│   ├── PiecesList.vue<br/>
+│   └── SettingButton.vue<br/>
+└── __tests__/<br/>
+    ├── settings.test.ts<br/>
+    ├── boardReader.test.ts<br/>
+    └── speech.test.ts
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Related code grouped together</li>
+            <li>Easy to find feature implementation</li>
+            <li>Natural for feature additions</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>More directories</li>
+            <li>Potentially deeper nesting</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="by-type" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>By Type (Flat)</h3>
+      <p>Group by technical type (components, services, utils)</p>
+      <div style="margin-top: 1rem;">
+        <div class="mock-content" style="font-family: monospace; font-size: 0.85rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 4px; line-height: 1.4;">
+src/<br/>
+├── main.ts<br/>
+├── components/<br/>
+│   ├── ControlPanel.vue<br/>
+│   ├── ButtonRow.vue<br/>
+│   ├── PiecesList.vue<br/>
+│   └── SettingButton.vue<br/>
+├── services/<br/>
+│   ├── SettingsStore.ts<br/>
+│   ├── BoardReader.ts<br/>
+│   ├── BoardWatcher.ts<br/>
+│   ├── Custom3DBoard.ts<br/>
+│   ├── SpeechSynthesizer.ts<br/>
+│   ├── DrawingsOverlay.ts<br/>
+│   ├── FlashOverlay.ts<br/>
+│   └── Dividers.ts<br/>
+├── utils/<br/>
+│   ├── coordinateUtils.ts<br/>
+│   ├── commandParser.ts<br/>
+│   └── textGenerators.ts<br/>
+├── types/<br/>
+│   └── settings.ts<br/>
+└── __tests__/<br/>
+    ├── settings.test.ts<br/>
+    ├── boardReader.test.ts<br/>
+    └── speech.test.ts
+        </div>
+      </div>
+      <div class="pros-cons" style="margin-top: 1rem;">
+        <div class="pros">
+          <h4>Pros</h4>
+          <ul>
+            <li>Simpler, flatter structure</li>
+            <li>Fewer directories</li>
+            <li>See all services/components at once</li>
+          </ul>
+        </div>
+        <div class="cons">
+          <h4>Cons</h4>
+          <ul>
+            <li>services/ becomes large</li>
+            <li>Harder to find related files</li>
+            <li>Less semantic organization</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>My recommendation:</strong> Option A (by feature/domain). With 14+ settings and multiple subsystems, feature-based organization makes it easier to navigate and maintain.</p>
+</div>

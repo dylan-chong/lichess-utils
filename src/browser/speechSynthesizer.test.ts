@@ -1,44 +1,49 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { speak, stopSpeaking, getRate, setRate } from './speechSynthesizer'
+import { mockModule } from 'simone'
+import { describe, expect, it } from 'vitest'
+
+const speechApi = mockModule(import('./speechApi'))
+const { getRate, setRate, speak, stopSpeaking } = await import('./speechSynthesizer')
 
 describe('speechSynthesizer', () => {
-  beforeEach(() => {
-    const mockSpeak = vi.fn()
-    const mockCancel = vi.fn()
-
-    vi.stubGlobal('speechSynthesis', {
-      speak: mockSpeak,
-      cancel: mockCancel,
-    })
-
-    vi.stubGlobal('SpeechSynthesisUtterance', class {
-      text = ''
-      rate = 1
-      constructor(text: string) {
-        this.text = text
-      }
-    })
-  })
-
   it('calls speechSynthesis.speak with correct text', () => {
-    speak('test message', 1.0)
+    const mockSynthesis = {} as SpeechSynthesis
+    const mockUtteranceClass = {} as typeof SpeechSynthesisUtterance
+    const mockUtterance = { text: '', rate: 1 } as SpeechSynthesisUtterance
 
-    expect(window.speechSynthesis.speak).toHaveBeenCalledWith(
-      expect.objectContaining({ text: 'test message' })
-    )
+    speechApi.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    speechApi.expects('getSpeechSynthesisUtterance').withArgs().returns(mockUtteranceClass)
+    speechApi
+      .expects('createUtterance')
+      .withArgs(mockUtteranceClass, 'test message')
+      .returns(mockUtterance)
+    speechApi.expects('speak').withArgs(mockSynthesis, mockUtterance).returns(undefined)
+
+    speak('test message', 1.0)
   })
 
   it('applies rate to utterance', () => {
-    speak('test', 0.5)
+    const mockSynthesis = {} as SpeechSynthesis
+    const mockUtteranceClass = {} as typeof SpeechSynthesisUtterance
+    const mockUtterance = { text: '', rate: 1 } as SpeechSynthesisUtterance
 
-    expect(window.speechSynthesis.speak).toHaveBeenCalledWith(
-      expect.objectContaining({ rate: 0.5 })
-    )
+    speechApi.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    speechApi.expects('getSpeechSynthesisUtterance').withArgs().returns(mockUtteranceClass)
+    speechApi.expects('createUtterance').withArgs(mockUtteranceClass, 'test').returns(mockUtterance)
+    speechApi
+      .expects('speak')
+      .withArgs(mockSynthesis, { text: '', rate: 0.5 } as SpeechSynthesisUtterance)
+      .returns(undefined)
+
+    speak('test', 0.5)
   })
 
   it('stopSpeaking calls cancel', () => {
+    const mockSynthesis = {} as SpeechSynthesis
+
+    speechApi.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    speechApi.expects('cancel').withArgs(mockSynthesis).returns(undefined)
+
     stopSpeaking()
-    expect(window.speechSynthesis.cancel).toHaveBeenCalled()
   })
 
   it('setRate stores the rate value', () => {

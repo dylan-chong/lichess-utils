@@ -50,14 +50,14 @@ export function squareToPixels(
 
   // Parse square notation
   const file = square[0]
-  const rank = parseInt(square[1], 10)
+  const rank = Number.parseInt(square[1], 10)
 
   // Validate file and rank
   const col = FILES.indexOf(file)
   if (col === -1) {
     throw new Error(`Invalid file: ${file}`)
   }
-  if (rank < 1 || rank > 8 || isNaN(rank)) {
+  if (rank < 1 || rank > 8 || Number.isNaN(rank)) {
     throw new Error(`Invalid rank: ${rank}`)
   }
 

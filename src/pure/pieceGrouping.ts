@@ -1,4 +1,4 @@
-import { PlayerColor, PieceType, Quadrant } from '../constants'
+import { type PieceType, PlayerColor, Quadrant } from '../constants'
 
 export interface PiecePosition {
   square: string
@@ -6,10 +6,7 @@ export interface PiecePosition {
   type: PieceType
 }
 
-export function filterQuadrant(
-  pieces: PiecePosition[],
-  quadrant: Quadrant
-): PiecePosition[] {
+export function filterQuadrant(pieces: PiecePosition[], quadrant: Quadrant): PiecePosition[] {
   return pieces.filter((piece) => {
     // Validate square format
     if (!piece.square || piece.square.length < 2) {
@@ -17,13 +14,13 @@ export function filterQuadrant(
     }
 
     const file = piece.square[0]
-    const rank = parseInt(piece.square[1], 10)
+    const rank = Number.parseInt(piece.square[1], 10)
 
     // Validate file and rank
     if (file < 'a' || file > 'h') {
       throw new Error(`Invalid file: ${file}`)
     }
-    if (isNaN(rank) || rank < 1 || rank > 8) {
+    if (Number.isNaN(rank) || rank < 1 || rank > 8) {
       throw new Error(`Invalid rank: ${rank}`)
     }
 
@@ -49,9 +46,7 @@ export interface GroupedPieces {
   squares: string[]
 }
 
-export function groupByColorAndType(
-  pieces: PiecePosition[]
-): GroupedPieces[] {
+export function groupByColorAndType(pieces: PiecePosition[]): GroupedPieces[] {
   const groups = new Map<string, GroupedPieces>()
 
   for (const piece of pieces) {
@@ -76,7 +71,7 @@ export function groupByColorAndType(
       })
     }
 
-    groups.get(key)!.squares.push(piece.square)
+    groups.get(key)?.squares.push(piece.square)
   }
 
   // Sort groups by color (white first) then type

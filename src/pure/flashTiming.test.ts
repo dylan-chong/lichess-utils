@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest'
-import { shouldFlash, getNextFlashTime } from './flashTiming'
+import { describe, expect, it } from 'vitest'
+import { getNextFlashTime, shouldFlash } from './flashTiming'
 
 describe('shouldFlash', () => {
   it('returns true when interval has elapsed', () => {
@@ -20,7 +20,7 @@ describe('shouldFlash', () => {
     expect(result).toBe(false)
   })
 
-  it('handles exact boundary', () => {
+  it('returns true when interval has exactly elapsed', () => {
     const lastFlash = 1000
     const now = 4000
     const interval = 3

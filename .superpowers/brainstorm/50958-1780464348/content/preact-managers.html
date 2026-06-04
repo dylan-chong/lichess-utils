@@ -1,0 +1,309 @@
+<h2>Managers with Signal Effects</h2>
+<p class="subtitle">How board/speech/flash managers react to settings changes</p>
+
+<div class="section">
+  <h3>BoardManager with Signals</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/BoardManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { BoardReader } from './BoardReader'<br/>
+import { BoardWatcher } from './BoardWatcher'<br/>
+import { Custom3DBoard } from './Custom3DBoard'<br/>
+import { Dividers } from './Dividers'<br/>
+<br/>
+export class BoardManager {<br/>
+&nbsp;&nbsp;reader: BoardReader<br/>
+&nbsp;&nbsp;watcher: BoardWatcher<br/>
+&nbsp;&nbsp;board3D: Custom3DBoard | null = null<br/>
+&nbsp;&nbsp;dividers: Dividers<br/>
+&nbsp;&nbsp;private cleanupEffect: () => void<br/>
+<br/>
+&nbsp;&nbsp;constructor() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.reader = new BoardReader()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.watcher = new BoardWatcher()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.dividers = new Dividers()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.watcher.start()<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to board changes - update 3D board<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.watcher.onChange(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const pieces = this.reader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.render(pieces)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to settings changes - reapply everything<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reapplyAll()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private reapplyAll() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Custom board<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.customBoardEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (!this.board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D = new Custom3DBoard()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.init()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.updateParallax(settings.parallax.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.updateHoverMode(settings.hoverMode.value)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (settings.obfuscationsEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.updatePieceStyle(settings.pieceStyle.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.updateBlur(settings.blur.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.updateBlackSegments(<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.blackSegments.value,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.blackSegmentsTiming.value<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;// Clean up 3D board<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (this.board3D) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.board3D = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Dividers<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.dividersEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const is3DMode = settings.customBoardEnabled.value<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dividers.render(is3DMode)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.dividers.hide()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.watcher.stop()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.board3D?.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.dividers.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect() // Stop watching signals<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>FlashManager with Signals</h3>
+  <div class="mockup">
+    <div class="mockup-header">flash/FlashManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { FlashOverlay } from './FlashOverlay'<br/>
+import { boardWatcher } from '../board/BoardWatcher'<br/>
+<br/>
+export class FlashManager {<br/>
+&nbsp;&nbsp;private overlay: FlashOverlay<br/>
+&nbsp;&nbsp;private durationTimer: number | null = null<br/>
+&nbsp;&nbsp;private intervalTimer: number | null = null<br/>
+&nbsp;&nbsp;private cleanupEffect: () => void<br/>
+&nbsp;&nbsp;private cleanupWatcher: () => void<br/>
+<br/>
+&nbsp;&nbsp;constructor() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.overlay = new FlashOverlay()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to board changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupWatcher = boardWatcher.onChange(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (settings.flashModeEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onBoardChange()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to settings changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.reapply()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private reapply() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (settings.flashModeEnabled.value) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.overlay.show()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.startIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;} else {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.overlay.hide()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private onBoardChange() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Show board briefly<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.overlay.hide()<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Clear existing timer<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (this.durationTimer) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearTimeout(this.durationTimer)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Hide after duration<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const duration = settings.flashDuration.value * 1000<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.durationTimer = setTimeout(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.overlay.show()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}, duration)<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// Reset interval timer<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.startIntervalFlash()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private startIntervalFlash() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const interval = settings.flashInterval.value * 1000<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.intervalTimer = setInterval(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.onBoardChange()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}, interval)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private stopIntervalFlash() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (this.intervalTimer) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;clearInterval(this.intervalTimer)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.intervalTimer = null<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (this.durationTimer) clearTimeout(this.durationTimer)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.stopIntervalFlash()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.overlay.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupWatcher()<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>SpeechManager with Signals</h3>
+  <div class="mockup">
+    <div class="mockup-header">speech/SpeechManager.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { effect } from '@preact/signals-core'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { SpeechSynthesizer } from './SpeechSynthesizer'<br/>
+import { boardReader } from '../board/BoardReader'<br/>
+import * as textGen from './textGenerators'<br/>
+<br/>
+export class SpeechManager {<br/>
+&nbsp;&nbsp;private synthesizer: SpeechSynthesizer<br/>
+&nbsp;&nbsp;private cleanupEffect: () => void<br/>
+<br/>
+&nbsp;&nbsp;constructor() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer = new SpeechSynthesizer()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;init() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;// React to speak rate changes<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect = effect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer.setRate(settings.speakRate.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;speakQuadrant(quadrant: 'wk' | 'wq' | 'bk' | 'bq') {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateQuadrantText(pieces, quadrant)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;speakAll() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateAllPiecesText(pieces)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;speakColor(color: 'white' | 'black') {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const pieces = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const text = textGen.generateColorText(pieces, color)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer.speak(text)<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;stop() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.synthesizer.stop()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;destroy() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.cleanupEffect()<br/>
+&nbsp;&nbsp;}<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Main Entry Point (Revised)</h3>
+  <div class="mockup">
+    <div class="mockup-header">main.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { render } from 'preact'<br/>
+import { loadSettings } from './settings/settingsStore'<br/>
+import { ControlPanel } from './components/ControlPanel'<br/>
+import { BoardManager } from './board/BoardManager'<br/>
+import { SpeechManager } from './speech/SpeechManager'<br/>
+import { DrawingManager } from './drawing/DrawingManager'<br/>
+import { FlashManager } from './flash/FlashManager'<br/>
+import { setupCommandHandler } from './commands/commandHandler'<br/>
+<br/>
+async function waitForElement(selector: string) {<br/>
+&nbsp;&nbsp;// ... implementation<br/>
+}<br/>
+<br/>
+async function init() {<br/>
+&nbsp;&nbsp;// Wait for lichess DOM<br/>
+&nbsp;&nbsp;await waitForElement('.keyboard-move')<br/>
+<br/>
+&nbsp;&nbsp;// Load settings from localStorage<br/>
+&nbsp;&nbsp;loadSettings()<br/>
+<br/>
+&nbsp;&nbsp;// Initialize managers<br/>
+&nbsp;&nbsp;const boardManager = new BoardManager()<br/>
+&nbsp;&nbsp;const speechManager = new SpeechManager()<br/>
+&nbsp;&nbsp;const drawingManager = new DrawingManager()<br/>
+&nbsp;&nbsp;const flashManager = new FlashManager()<br/>
+<br/>
+&nbsp;&nbsp;boardManager.init()<br/>
+&nbsp;&nbsp;speechManager.init()<br/>
+&nbsp;&nbsp;flashManager.init()<br/>
+<br/>
+&nbsp;&nbsp;// Set up keyboard commands<br/>
+&nbsp;&nbsp;setupCommandHandler(speechManager, drawingManager)<br/>
+<br/>
+&nbsp;&nbsp;// Mount Preact UI<br/>
+&nbsp;&nbsp;const mountPoint = document.createElement('div')<br/>
+&nbsp;&nbsp;document.querySelector('.keyboard-move')?.appendChild(mountPoint)<br/>
+&nbsp;&nbsp;render(&lt;ControlPanel /&gt;, mountPoint)<br/>
+<br/>
+&nbsp;&nbsp;// Return cleanup function for page navigation<br/>
+&nbsp;&nbsp;return () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;boardManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;speechManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;drawingManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;flashManager.destroy()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;render(null, mountPoint)<br/>
+&nbsp;&nbsp;}<br/>
+}<br/>
+<br/>
+// Initialize on load<br/>
+init()<br/>
+<br/>
+// TODO: Handle page navigation (detect URL changes, cleanup, reinit)
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key differences from callback pattern:</strong></p>
+  <ul>
+    <li>Managers use <code>effect(() => { ... })</code> instead of <code>onChange(callback)</code></li>
+    <li>effect() automatically tracks which signals are read inside it</li>
+    <li>When any tracked signal changes, effect runs again</li>
+    <li>Cleanup functions returned from effect() for proper teardown</li>
+    <li>Simpler code - no manual listener arrays or notifyListeners()</li>
+  </ul>
+</div>

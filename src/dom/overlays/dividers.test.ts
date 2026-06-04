@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { createDividers, showDividers, hideDividers, destroyDividers } from './dividers'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createDividers, destroyDividers, hideDividers, showDividers } from './dividers'
 
 describe('dividers', () => {
   beforeEach(() => {

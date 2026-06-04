@@ -1,0 +1,302 @@
+<h2>Preact Component Structure</h2>
+<p class="subtitle">Detailed component implementations with signals and hooks</p>
+
+<div class="section">
+  <h3>Settings Store with Signals</h3>
+  <div class="mockup">
+    <div class="mockup-header">settings/settingsStore.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { signal, effect } from '@preact/signals-core'<br/>
+<br/>
+export interface Settings {<br/>
+&nbsp;&nbsp;speakRate: number<br/>
+&nbsp;&nbsp;piecesListEnabled: boolean<br/>
+&nbsp;&nbsp;dividersEnabled: boolean<br/>
+&nbsp;&nbsp;customBoardEnabled: boolean<br/>
+&nbsp;&nbsp;obfuscationsEnabled: boolean<br/>
+&nbsp;&nbsp;parallax: number<br/>
+&nbsp;&nbsp;hoverMode: string<br/>
+&nbsp;&nbsp;pieceStyle: string<br/>
+&nbsp;&nbsp;blur: number<br/>
+&nbsp;&nbsp;blackSegments: string<br/>
+&nbsp;&nbsp;blackSegmentsTiming: string<br/>
+&nbsp;&nbsp;flashModeEnabled: boolean<br/>
+&nbsp;&nbsp;flashDuration: number<br/>
+&nbsp;&nbsp;flashInterval: number<br/>
+}<br/>
+<br/>
+// Each setting is its own signal<br/>
+export const settings = {<br/>
+&nbsp;&nbsp;speakRate: signal(0.5),<br/>
+&nbsp;&nbsp;piecesListEnabled: signal(false),<br/>
+&nbsp;&nbsp;dividersEnabled: signal(false),<br/>
+&nbsp;&nbsp;customBoardEnabled: signal(false),<br/>
+&nbsp;&nbsp;obfuscationsEnabled: signal(false),<br/>
+&nbsp;&nbsp;parallax: signal(0),<br/>
+&nbsp;&nbsp;hoverMode: signal('off'),<br/>
+&nbsp;&nbsp;pieceStyle: signal('icons'),<br/>
+&nbsp;&nbsp;blur: signal(0),<br/>
+&nbsp;&nbsp;blackSegments: signal('none'),<br/>
+&nbsp;&nbsp;blackSegmentsTiming: signal('rotate-10s'),<br/>
+&nbsp;&nbsp;flashModeEnabled: signal(false),<br/>
+&nbsp;&nbsp;flashDuration: signal(1),<br/>
+&nbsp;&nbsp;flashInterval: signal(3),<br/>
+}<br/>
+<br/>
+const STORAGE_KEY = 'lichess-board-speaker-settings'<br/>
+<br/>
+export function loadSettings() {<br/>
+&nbsp;&nbsp;const stored = localStorage.getItem(STORAGE_KEY)<br/>
+&nbsp;&nbsp;if (stored) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const data = JSON.parse(stored)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;Object.keys(data).forEach(key => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (settings[key]) {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings[key].value = data[key]<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+}<br/>
+<br/>
+export function saveSettings() {<br/>
+&nbsp;&nbsp;const data = {}<br/>
+&nbsp;&nbsp;Object.keys(settings).forEach(key => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;data[key] = settings[key].value<br/>
+&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;localStorage.setItem(STORAGE_KEY, JSON.stringify(data))<br/>
+}<br/>
+<br/>
+// Auto-save on any setting change<br/>
+effect(() => {<br/>
+&nbsp;&nbsp;// Read all signals to track dependencies<br/>
+&nbsp;&nbsp;Object.values(settings).forEach(s => s.value)<br/>
+&nbsp;&nbsp;saveSettings()<br/>
+})
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Preact Components</h3>
+  <div class="mockup">
+    <div class="mockup-header">components/ControlPanel.tsx</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { h } from 'preact'<br/>
+import { settings } from '../settings/settingsStore'<br/>
+import { ButtonRow } from './ButtonRow'<br/>
+import { PiecesList } from './PiecesList'<br/>
+<br/>
+export function ControlPanel() {<br/>
+&nbsp;&nbsp;return (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="userscript-controls"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Main controls - always visible */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow buttons={mainButtons} /&gt;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Custom board controls - conditional */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{settings.customBoardEnabled.value && (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow buttons={customBoardButtons} /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Obfuscation controls - nested conditional */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{settings.customBoardEnabled.value && settings.obfuscationsEnabled.value && (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow buttons={obfuscationButtons} /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Black segments timing - nested conditional */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{settings.customBoardEnabled.value && <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.obfuscationsEnabled.value && <br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;settings.blackSegments.value !== 'none' && (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow buttons={blackSegmentsTimingButtons} /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Flash mode controls - conditional */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{settings.flashModeEnabled.value && (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;ButtonRow buttons={flashModeButtons} /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)}<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{/* Pieces list - conditional */}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{settings.piecesListEnabled.value && &lt;PiecesList /&gt;}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;)<br/>
+}<br/>
+<br/>
+const mainButtons = [<br/>
+&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;label: 'Speak Rate',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;signal: settings.speakRate,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;options: [0.2, 0.5, 0.7, 1.0, 1.1, 1.2],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;format: (v) => `${v}x`<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;{<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;label: 'Pieces List',<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;signal: settings.piecesListEnabled,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;options: [false, true],<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;format: (v) => v ? 'ON' : 'OFF'<br/>
+&nbsp;&nbsp;},<br/>
+&nbsp;&nbsp;// ... more buttons<br/>
+]
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">components/ButtonRow.tsx</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { h } from 'preact'<br/>
+import { SettingButton } from './SettingButton'<br/>
+<br/>
+interface ButtonRowProps {<br/>
+&nbsp;&nbsp;buttons: ButtonConfig[]<br/>
+}<br/>
+<br/>
+export function ButtonRow({ buttons }: ButtonRowProps) {<br/>
+&nbsp;&nbsp;return (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="button-row"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{buttons.map(btn => (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;SettingButton key={btn.label} {...btn} /&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;)<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">components/SettingButton.tsx</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { h } from 'preact'<br/>
+import { Signal } from '@preact/signals-core'<br/>
+<br/>
+interface SettingButtonProps {<br/>
+&nbsp;&nbsp;label: string<br/>
+&nbsp;&nbsp;signal: Signal&lt;any&gt;<br/>
+&nbsp;&nbsp;options: any[]<br/>
+&nbsp;&nbsp;format?: (value: any) => string<br/>
+}<br/>
+<br/>
+export function SettingButton({ label, signal, options, format }: SettingButtonProps) {<br/>
+&nbsp;&nbsp;const handleClick = () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const currentIndex = options.indexOf(signal.value)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const nextIndex = (currentIndex + 1) % options.length<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;signal.value = options[nextIndex]<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;const displayValue = format ? format(signal.value) : signal.value<br/>
+<br/>
+&nbsp;&nbsp;return (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;button onClick={handleClick} class="setting-button"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{label}: {displayValue}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/button&gt;<br/>
+&nbsp;&nbsp;)<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="mockup">
+    <div class="mockup-header">components/PiecesList.tsx</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+import { h } from 'preact'<br/>
+import { useSignal } from '@preact/signals'<br/>
+import { useEffect } from 'preact/hooks'<br/>
+import { boardWatcher } from '../board/BoardWatcher'<br/>
+import { boardReader } from '../board/BoardReader'<br/>
+<br/>
+export function PiecesList() {<br/>
+&nbsp;&nbsp;const pieces = useSignal([])<br/>
+<br/>
+&nbsp;&nbsp;const updatePieces = () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;pieces.value = boardReader.readPiecePositions()<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;useEffect(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;updatePieces() // Initial read<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const cleanup = boardWatcher.onChange(updatePieces)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return cleanup<br/>
+&nbsp;&nbsp;}, [])<br/>
+<br/>
+&nbsp;&nbsp;const grouped = groupPiecesByColorAndType(pieces.value)<br/>
+&nbsp;&nbsp;const playerColor = boardReader.getPlayerColor()<br/>
+<br/>
+&nbsp;&nbsp;return (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;div class="pieces-list-box"&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;You are: {playerColor}&lt;/div&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div&gt;Turn: {getCurrentTurn()}&lt;/div&gt;<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Object.entries(grouped).map(([color, piecesByType]) => (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div key={color}&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;strong&gt;{color}:&lt;/strong&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{Object.entries(piecesByType).map(([type, squares]) => (<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;div key={type}&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{type}: {squares.join(', ')}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;))}<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;/div&gt;<br/>
+&nbsp;&nbsp;)<br/>
+}
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Board Watcher (Simplified)</h3>
+  <div class="mockup">
+    <div class="mockup-header">board/BoardWatcher.ts</div>
+    <div class="mockup-body" style="font-family: monospace; font-size: 0.85rem; line-height: 1.6;">
+export class BoardWatcher {<br/>
+&nbsp;&nbsp;private observer: MutationObserver | null = null<br/>
+&nbsp;&nbsp;private listeners: Array&lt;() => void&gt; = []<br/>
+<br/>
+&nbsp;&nbsp;onChange(callback: () => void): () => void {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.listeners.push(callback)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;return () => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;const index = this.listeners.indexOf(callback)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;if (index > -1) this.listeners.splice(index, 1)<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;}<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;private notifyListeners() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.listeners.forEach(cb => cb())<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;start() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;const board = document.querySelector('cg-board')<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;if (!board) return<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.observer = new MutationObserver(() => {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;this.notifyListeners()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.observer.observe(board, {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;childList: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;attributes: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;subtree: true,<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;})<br/>
+&nbsp;&nbsp;}<br/>
+<br/>
+&nbsp;&nbsp;stop() {<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.observer?.disconnect()<br/>
+&nbsp;&nbsp;&nbsp;&nbsp;this.observers = null<br/>
+&nbsp;&nbsp;}<br/>
+}<br/>
+<br/>
+export const boardWatcher = new BoardWatcher()
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 2rem; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 8px;">
+  <p><strong>Key patterns:</strong></p>
+  <ul>
+    <li>Settings are signals - components auto-update when values change</li>
+    <li>Conditional rendering with <code>{signal.value && &lt;Component /&gt;}</code></li>
+    <li>Button cycles through options array, updates signal directly</li>
+    <li>PiecesList uses <code>useEffect</code> to subscribe to board changes</li>
+    <li>BoardWatcher still uses callbacks (not everything needs signals)</li>
+  </ul>
+</div>

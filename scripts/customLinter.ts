@@ -17,9 +17,9 @@ const VAGUE_TEST_PATTERNS = [
 ]
 
 const DISALLOWED_MOCK_PATTERNS = [
-  { pattern: /\bvi\.stub/i, message: 'Use simone mockModule() instead of vi.stub. Wrap global interactions in modules like src/dom/dom.ts' },
-  { pattern: /\bvi\.mock/i, message: 'Use simone mockModule() instead of vi.mock. Wrap global interactions in modules like src/dom/dom.ts' },
-  { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap global interactions in modules like src/dom/dom.ts' },
+  { pattern: /\bvi\.stub/i, message: 'Use simone mockModule() instead of vi.stub. Wrap globals, object instance methods, and constructors in modules like src/dom/dom.ts' },
+  { pattern: /\bvi\.mock/i, message: 'Use simone mockModule() instead of vi.mock. Wrap globals, object instance methods, and constructors in modules like src/dom/dom.ts' },
+  { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap globals, object instance methods, and constructors in modules like src/dom/dom.ts' },
 ]
 
 function checkVagueTestDescriptions(content: string, filePath: string): LintError[] {

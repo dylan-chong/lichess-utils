@@ -1,14 +1,14 @@
 import { signal } from '@preact/signals-core'
-import { setupAutoSave, loadSettings } from './settings/settingsStore'
-import { waitForElement } from './dom/boardReader'
-import { createBoardObserver, startBoardObserver, stopBoardObserver } from './dom/boardObserver'
-import { createFlashOverlay, destroyFlashOverlay } from './dom/overlays/flash'
-import { createDividers, destroyDividers } from './dom/overlays/dividers'
-import { setupDividersEffect } from './effects/onDividers'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './commands/keyboardInput'
 import { createRoot, destroyRoot } from './components/root'
 import { DomSelector } from './constants'
-import { createDiv, querySelector, appendChild } from './dom/dom'
+import { createBoardObserver, startBoardObserver, stopBoardObserver } from './dom/boardObserver'
+import { waitForElement } from './dom/boardReader'
+import { appendChild, createDiv, querySelector } from './dom/dom'
+import { createDividers, destroyDividers } from './dom/overlays/dividers'
+import { createFlashOverlay, destroyFlashOverlay } from './dom/overlays/flash'
+import { setupDividersEffect } from './effects/onDividers'
+import { loadSettings, setupAutoSave } from './settings/settingsStore'
 
 export async function init() {
   // Wait for lichess to load the board

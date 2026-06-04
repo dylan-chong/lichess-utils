@@ -1,4 +1,4 @@
-import { Signal } from '@preact/signals'
+import type { Signal } from '@preact/signals'
 import { getPlayerColor, readPiecePositions } from '../dom/boardReader'
 import { groupByColorAndType } from '../pure/pieceGrouping'
 

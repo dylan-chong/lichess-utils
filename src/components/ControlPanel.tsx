@@ -1,7 +1,7 @@
-import { Signal } from '@preact/signals'
-import { SettingButton } from './SettingButton'
-import { ButtonRow } from './ButtonRow'
+import type { Signal } from '@preact/signals'
 import { settings } from '../settings/settingsStore'
+import { ButtonRow } from './ButtonRow'
+import { SettingButton } from './SettingButton'
 
 interface ControlPanelProps {
   boardChanged: Signal<number>

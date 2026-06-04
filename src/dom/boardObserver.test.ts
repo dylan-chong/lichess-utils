@@ -1,6 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { createBoardObserver, startBoardObserver, stopBoardObserver } from './boardObserver'
 import { signal } from '@preact/signals-core'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createBoardObserver, startBoardObserver, stopBoardObserver } from './boardObserver'
 
 describe('boardObserver', () => {
   beforeEach(() => {
@@ -12,7 +12,8 @@ describe('boardObserver', () => {
     const state = createBoardObserver(boardChanged)
     startBoardObserver(state)
 
-    const board = document.querySelector('cg-board')!
+    const board = document.querySelector('cg-board')
+    if (!board) throw new Error('Board element not found')
     const piece = document.createElement('piece')
     piece.className = 'white pawn'
     board.appendChild(piece)
@@ -30,7 +31,8 @@ describe('boardObserver', () => {
     startBoardObserver(state)
     stopBoardObserver(state)
 
-    const board = document.querySelector('cg-board')!
+    const board = document.querySelector('cg-board')
+    if (!board) throw new Error('Board element not found')
     const piece = document.createElement('piece')
     piece.className = 'white pawn'
     board.appendChild(piece)

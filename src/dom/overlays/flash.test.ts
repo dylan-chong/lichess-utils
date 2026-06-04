@@ -1,5 +1,5 @@
-import { describe, it, expect, beforeEach } from 'vitest'
-import { createFlashOverlay, showFlash, hideFlash, destroyFlashOverlay } from './flash'
+import { beforeEach, describe, expect, it } from 'vitest'
+import { createFlashOverlay, destroyFlashOverlay, hideFlash, showFlash } from './flash'
 
 describe('flash overlay', () => {
   beforeEach(() => {
