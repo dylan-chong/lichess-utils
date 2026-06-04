@@ -22,34 +22,51 @@ const DISALLOWED_MOCK_PATTERNS = [
   { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap global interactions in modules like src/dom/dom.ts' },
 ]
 
+function checkVagueTestDescriptions(line: string, lineNumber: number, filePath: string): LintError | null {
+  for (const pattern of VAGUE_TEST_PATTERNS) {
+    if (pattern.test(line)) {
+      return {
+        file: filePath,
+        line: lineNumber,
+        message: 'Tests should describe the expected observable behaviour, not implementation details or vague actions',
+      }
+    }
+  }
+  return null
+}
+
+function checkDisallowedMockingPatterns(line: string, lineNumber: number, filePath: string): LintError[] {
+  const errors: LintError[] = []
+
+  for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
+    if (pattern.test(line)) {
+      errors.push({
+        file: filePath,
+        line: lineNumber,
+        message,
+      })
+    }
+  }
+
+  return errors
+}
+
 function lintFile(filePath: string): LintError[] {
   const errors: LintError[] = []
   const content = fs.readFileSync(filePath, 'utf-8')
   const lines = content.split('\n')
 
   lines.forEach((line, index) => {
-    // Check for vague test descriptions
-    for (const pattern of VAGUE_TEST_PATTERNS) {
-      if (pattern.test(line)) {
-        errors.push({
-          file: filePath,
-          line: index + 1,
-          message: 'Tests should describe the expected observable behaviour, not implementation details or vague actions',
-        })
-        break
-      }
+    const lineNumber = index + 1
+
+    // Apply all lint rules
+    const vagueTestError = checkVagueTestDescriptions(line, lineNumber, filePath)
+    if (vagueTestError) {
+      errors.push(vagueTestError)
     }
 
-    // Check for disallowed mocking patterns
-    for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
-      if (pattern.test(line)) {
-        errors.push({
-          file: filePath,
-          line: index + 1,
-          message,
-        })
-      }
-    }
+    const mockingErrors = checkDisallowedMockingPatterns(line, lineNumber, filePath)
+    errors.push(...mockingErrors)
   })
 
   return errors
