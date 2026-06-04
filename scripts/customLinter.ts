@@ -66,6 +66,23 @@ function checkDisallowedMockingPatterns(content: string, filePath: string): Lint
   return errors
 }
 
+function checkAwaitImportAtTopLevel(content: string, filePath: string): LintError[] {
+  const errors: LintError[] = []
+  const lines = content.split('\n')
+
+  lines.forEach((line, index) => {
+    if (/^\b.*await\s+import\s*\(/.test(line)) {
+      errors.push({
+        file: filePath,
+        line: index + 1,
+        message: 'Use static import syntax instead of await import() at top level',
+      })
+    }
+  })
+
+  return errors
+}
+
 function checkLayerBoundaries(content: string, filePath: string): LintError[] {
   const errors: LintError[] = []
   const lines = content.split('\n')
@@ -127,6 +144,8 @@ async function main() {
   const allFiles = await glob('src/**/*.{ts,tsx}', { cwd: process.cwd() })
   // Lint test files for test-specific rules
   const testFiles = await glob('src/**/*.test.{ts,tsx}', { cwd: process.cwd() })
+  // Lint non-test files for await import
+  const nonTestFiles = allFiles.filter((file) => !file.includes('.test.'))
 
   let totalErrors = 0
   const allErrors: LintError[] = []
@@ -135,6 +154,12 @@ async function main() {
   for (const file of allFiles) {
     const content = fs.readFileSync(file, 'utf-8')
     allErrors.push(...checkLayerBoundaries(content, file))
+  }
+
+  // Check non-test files for await import
+  for (const file of nonTestFiles) {
+    const content = fs.readFileSync(file, 'utf-8')
+    allErrors.push(...checkAwaitImportAtTopLevel(content, file))
   }
 
   // Check test files for test-specific rules
