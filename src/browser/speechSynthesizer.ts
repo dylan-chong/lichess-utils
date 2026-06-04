@@ -1,4 +1,4 @@
-import * as speechApi from './speechApi'
+import * as speechApi from '../platform/speechApi'
 
 let currentRate = 1.0
 
