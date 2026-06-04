@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { AnnotationType } from '../constants'
+import { AnnotationType } from '../../constants'
 import { parseDrawCommand } from './commandParser'
 
 describe('parseDrawCommand', () => {
