@@ -1,6 +1,6 @@
 import { mockModule } from 'simone'
 import { describe, it } from 'vitest'
-import type { DividersState } from '../dom/overlays/dividers'
+import type { DividersState } from '../adapters-overlays/dividers'
 import { settings } from '../settings/settingsStore'
 
 const updateDividers = mockModule(import('../handlers/updateDividers'))
