@@ -6,7 +6,7 @@ import { describe, expect, it } from 'vitest'
 const settingsStore = mockModule(import('./settings/settingsStore'))
 const boardReader = mockModule(import('./dom/boardReader'))
 const boardObserver = mockModule(import('./dom/boardObserver'))
-const flashOverlay = mockModule(import('./dom/overlays/flash'))
+const flashOverlay = mockModule(import('./adapters-overlays/flash'))
 const dividersOverlay = mockModule(import('./adapters-overlays/dividers'))
 const onDividers = mockModule(import('./effects/onDividers'))
 const keyboardInput = mockModule(import('./commands/keyboardInput'))

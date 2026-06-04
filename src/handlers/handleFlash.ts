@@ -1,4 +1,4 @@
-import { type FlashOverlayState, hideFlash, showFlash } from '../dom/overlays/flash'
+import { type FlashOverlayState, hideFlash, showFlash } from '../adapters-overlays/flash'
 import { settings } from '../settings/settingsStore'
 
 export function handleFlash(state: FlashOverlayState): void {
