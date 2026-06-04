@@ -58,17 +58,41 @@ lichess-board-speaker adds blindfold chess training features to lichess.org:
 
 All keyboard commands are typed into the move input field and start with `p` (for buttons) or `-` (for drawings).
 
-### 2.1 Main Controls (Always Visible)
+### 2.1 Speech Buttons (Grouped Row)
 
-**Speak Rate** (`psr`)
-- Adjusts how fast piece positions are spoken
-- Options: 0.2x, 0.5x, 0.7x, 1.0x, 1.1x, 1.2x
-- Default: 0.5x
+These are clickable buttons rendered in the UI, grouped into rows:
+
+**Row 1 — Quadrant Speech:**
+| Button | Command | What it speaks |
+|--------|---------|----------------|
+| 🔊 ♔ side | `pwk` | White's king-side pieces (files e-h, ranks 1-4) |
+| 🔊 ♕ side | `pwq` | White's queen-side pieces (files a-d, ranks 1-4) |
+| 🔊 ♚ side | `pbk` | Black's king-side pieces (files e-h, ranks 5-8) |
+| 🔊 ♛ side | `pbq` | Black's queen-side pieces (files a-d, ranks 5-8) |
+
+**Row 2 — All/Color Speech:**
+| Button | Command | What it speaks |
+|--------|---------|----------------|
+| 🔊 all pieces | `pa` | All pieces on the board |
+| 🔊 w's pieces | `pww` | All white pieces |
+| 🔊 b's pieces | `pbb` | All black pieces |
+
+**Row 3 — Speak Rate & Stop:**
+| Element | Command | Description |
+|---------|---------|-------------|
+| 🔊 rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
+| 🔊 Stop (button) | `pss` | Stop speaking immediately |
+
+### 2.2 Main Controls (Always Visible)
 
 **Pieces List** (`pl`)
 - Shows/hides a list of all pieces on the board
 - Updates live as pieces move
 - Shows which color you're playing and whose turn it is
+
+**Annotate Board** (`p-annotate`)
+- Opens annotation mode for drawing circles and arrows on the board
+- See section 2.7 for drawing command syntax
 
 **Dividers** (`pdiv`)
 - Shows/hides lines that divide the board into four quadrants
@@ -144,18 +168,18 @@ All keyboard commands are typed into the move input field and start with `p` (fo
 
 **Flash Duration** (`pfd`)
 - How long the board stays visible after a move
-- Options: 0.3s, 0.5s, 1s, 2s
-- Default: 1s
+- Options: 100ms, 300ms, 500ms, 1000ms, 2000ms
+- Default: 1000ms
 
 **Flash Interval** (`pfi`)
 - Time between automatic flashes
-- Options: 1s, 3s, 5s, 10s, 30s, 60s
+- Options: 0.3s, 0.5s, 1s, 3s, 5s, 10s, 30s, 60s
 - Default: 3s
 - Board will flash at this interval even if no moves are made
 
-### 2.6 Speech Commands (Keyboard Only)
+### 2.6 Speech Commands
 
-These commands speak piece positions aloud:
+These commands speak piece positions aloud. They can be triggered by typing the command into the move input field OR by clicking the corresponding button in the UI (see section 2.1).
 
 | Command | What it speaks |
 |---------|----------------|
@@ -192,21 +216,26 @@ To clear drawings, type any new drawing command.
 The controls appear in a nested hierarchy - some controls only show up when their parent feature is enabled:
 
 ```
+Speech Buttons (always visible)
+├─ Row: 🔊 ♔ side, 🔊 ♕ side, 🔊 ♚ side, 🔊 ♛ side
+├─ Row: 🔊 all pieces, 🔊 w's pieces, 🔊 b's pieces
+├─ Row: 🔊 rate (dropdown), 🔊 Stop (button)
+
 Main Controls (always visible)
-├─ Speak Rate
 ├─ Pieces List
+├─ Annotate Board
 ├─ Dividers
 ├─ Custom Board
-│  ├─ When Custom Board is ON:
-│  │  ├─ Obfuscations
-│  │  │  └─ When Obfuscations is ON:
-│  │  │     ├─ Piece Style
-│  │  │     ├─ Blur
-│  │  │     └─ Black Segments
-│  │  │        └─ When Black Segments is not None:
-│  │  │           └─ Timing
-│  │  ├─ Parallax
-│  │  └─ Hover Mode
+│  └─ When Custom Board is ON:
+│     ├─ Obfuscations
+│     │  └─ When Obfuscations is ON:
+│     │     ├─ Piece Style
+│     │     ├─ Blur
+│     │     └─ Black Segments
+│     │        └─ When Black Segments is not None:
+│     │           └─ Timing
+│     ├─ Parallax
+│     └─ Hover Mode
 └─ Flash Mode
    └─ When Flash Mode is ON:
       ├─ Flash Duration
@@ -651,26 +680,27 @@ All your settings are saved automatically:
 
 ## 11. Summary of All Controls
 
-| Feature | Command | Type | Purpose |
-|---------|---------|------|---------|
-| Speak Rate | `psr` | Setting | Speed of speech |
-| Pieces List | `pl` | Toggle | Show/hide piece positions |
-| Dividers | `pdiv` | Toggle | Show/hide quadrant lines |
-| Custom Board | `pcb` | Toggle | Enable 3D rendering |
-| Flash Mode | `pfm` | Toggle | Enable memory training |
-| Obfuscations | `pob` | Toggle | Enable training obfuscations |
-| Parallax | `ppx` | Setting | 3D viewing angle |
-| Hover Mode | `phv` | Setting | Board animation |
-| Piece Style | `pps` | Setting | Visual piece appearance |
-| Blur | `pblur` | Setting | Board blur amount |
-| Black Segments | `pbs` | Setting | Quadrant coverage |
-| BS Timing | `pbst` | Setting | Rotation frequency |
-| Flash Duration | `pfd` | Setting | Visibility time |
-| Flash Interval | `pfi` | Setting | Flash frequency |
-| Speak Quadrants | `pwk`, `pwq`, `pbk`, `pbq` | Action | Speak board sections |
-| Speak All/Color | `pa`, `pww`, `pbb` | Action | Speak pieces |
-| Stop Speech | `pss` | Action | Cancel speaking |
-| Draw | `-<squares>` | Action | Annotate board |
+| Feature | Command | Type | UI Element | Visible When | Purpose |
+|---------|---------|------|------------|--------------|---------|
+| Speak Quadrants | `pwk`, `pwq`, `pbk`, `pbq` | Action | Buttons (row) | Always | Speaks aloud piece positions in one quadrant of the board (king-side or queen-side for white or black) |
+| Speak All/Color | `pa`, `pww`, `pbb` | Action | Buttons (row) | Always | Speaks aloud all pieces, or all pieces of one color |
+| Speak Rate | `psr` | Setting | Dropdown (inline) | Always | Controls how fast piece positions are spoken (0.2x to 1.2x) |
+| Stop Speech | `pss` | Action | Button (inline) | Always | Immediately stops any in-progress speech |
+| Pieces List | `pl` | Toggle | Button | Always | Shows/hides a text list of all pieces and their positions below the controls |
+| Annotate Board | `p-annotate` | Action | Button | Always | Draws circles and arrows on the board to mark squares and show relationships |
+| Dividers | `pdiv` | Toggle | Button | Always | Shows/hides lines dividing the board into four quadrants for visualization |
+| Custom Board | `pcb` | Toggle | Button | Always | Replaces the standard 2D board with a 3D rendered version using Three.js |
+| Obfuscations | `pob` | Toggle | Button (nested) | Custom Board ON | Enables piece style, blur, and black segment controls for blindfold training |
+| Piece Style | `pps` | Setting | Dropdown (nested) | Obfuscations ON | Changes piece appearance: icons, 3d, checker, checker-grey, or blindfold (invisible) |
+| Blur | `pblur` | Setting | Dropdown (nested) | Obfuscations ON | Applies gaussian blur to the entire board (0px to 8px) |
+| Black Segments | `pbs` | Setting | Dropdown (nested) | Obfuscations ON | Covers 1-4 quadrants of the board with dark overlays to hide portions |
+| BS Timing | `pbst` | Setting | Dropdown (nested) | Black Segments ≠ None | Controls how often covered quadrants rotate (10s, 30s, 60s, or fixed) |
+| Parallax | `ppx` | Setting | Dropdown (nested) | Custom Board ON | Tilts the 3D board viewing angle from 0° (overhead) to 80° (steep perspective) |
+| Hover Mode | `phv` | Setting | Dropdown (nested) | Custom Board ON | Makes the 3D board gently oscillate/rotate (off, small, large, super) |
+| Flash Mode | `pfm` | Toggle | Button | Always | Hides the board behind a black overlay, briefly revealing it after each move |
+| Flash Duration | `pfd` | Setting | Dropdown (nested) | Flash Mode ON | How long the board stays visible during a flash (100ms to 2000ms) |
+| Flash Interval | `pfi` | Setting | Dropdown (nested) | Flash Mode ON | Time between automatic flashes even when no moves are made (0.3s to 60s) |
+| Draw | `-<squares>` | Action | Keyboard only | Always | Draws circles on squares and arrows between squares using `-e4` or `-e2e4` syntax |
 
 ---
 
