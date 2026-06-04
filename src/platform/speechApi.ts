@@ -22,8 +22,6 @@ export function createUtterance(
 }
 
 // Higher-level speech functions (merged from adapters-speech/speechSynthesizer)
-let currentRate = 1.0
-
 export function speakText(text: string, rate: number): void {
   const synthesis = getSpeechSynthesis()
   const UtteranceClass = getSpeechSynthesisUtterance()
@@ -35,12 +33,4 @@ export function speakText(text: string, rate: number): void {
 export function stopSpeaking(): void {
   const synthesis = getSpeechSynthesis()
   cancel(synthesis)
-}
-
-export function setRate(rate: number): void {
-  currentRate = rate
-}
-
-export function getRate(): number {
-  return currentRate
 }

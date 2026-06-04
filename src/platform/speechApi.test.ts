@@ -2,10 +2,8 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   cancel,
   createUtterance,
-  getRate,
   getSpeechSynthesis,
   getSpeechSynthesisUtterance,
-  setRate,
   speak,
   speakText,
   stopSpeaking,
@@ -104,16 +102,6 @@ describe('speechApi', () => {
 
       stopSpeaking()
       expect(cancelCalled).toBe(true)
-    })
-
-    it('setRate stores the rate value', () => {
-      setRate(1.5)
-      expect(getRate()).toBe(1.5)
-    })
-
-    it('getRate returns the current rate', () => {
-      setRate(2.0)
-      expect(getRate()).toBe(2.0)
     })
   })
 })
