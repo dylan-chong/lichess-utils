@@ -21,13 +21,13 @@ describe('dom', () => {
 
   it('createSvgElement returns an SVG element', () => {
     const svg = createSvgElement('svg')
-    expect(svg.tagName).toBe('SVG')
+    expect(svg.tagName).toBe('svg')
     expect(svg instanceof SVGElement).toBe(true)
   })
 
   it('createSvgElement creates different SVG element types', () => {
     const line = createSvgElement('line')
-    expect(line.tagName).toBe('LINE')
+    expect(line.tagName).toBe('line')
     expect(line instanceof SVGElement).toBe(true)
   })
 
