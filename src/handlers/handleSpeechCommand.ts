@@ -1,4 +1,4 @@
-import { speak, stopSpeaking } from '../browser/speechSynthesizer'
+import { speak, stopSpeaking } from '../adapters-speech/speechSynthesizer'
 import { PlayerColor, type Quadrant, SpeechCommand } from '../constants'
 import { readPiecePositions } from '../dom/boardReader'
 import { filterQuadrant } from '../pure/pieceGrouping'

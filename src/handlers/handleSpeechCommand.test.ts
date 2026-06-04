@@ -4,7 +4,7 @@ import { PieceType, PlayerColor, Quadrant, SpeechCommand } from '../constants'
 import { settings } from '../settings/settingsStore'
 
 const boardReader = mockModule(import('../dom/boardReader'))
-const speechSynthesizer = mockModule(import('../browser/speechSynthesizer'))
+const speechSynthesizer = mockModule(import('../adapters-speech/speechSynthesizer'))
 const pieceGrouping = mockModule(import('../pure/pieceGrouping'))
 const speechText = mockModule(import('../pure/speechText'))
 const { handleSpeechCommand } = await import('./handleSpeechCommand')
