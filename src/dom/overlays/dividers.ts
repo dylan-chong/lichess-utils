@@ -1,11 +1,11 @@
-import { DOM_SELECTORS, CssClass, CssDisplay } from '../../constants'
+import { DomSelector, CssClass, CssDisplay } from '../../constants'
 
 export interface DividersState {
   svg: SVGSVGElement
 }
 
 export function createDividers(): DividersState {
-  const board = document.querySelector(DOM_SELECTORS.BOARD)
+  const board = document.querySelector(DomSelector.BOARD)
   if (!board) {
     throw new Error('Board not found')
   }

@@ -1,14 +1,14 @@
 import { pixelsToSquare } from '../pure/coordinates'
 import type { PiecePosition } from '../pure/pieceGrouping'
-import { DOM_SELECTORS, CssClass, PlayerColor, PieceType } from '../constants'
+import { DomSelector, CssClass, PlayerColor, PieceType } from '../constants'
 
 export function getPlayerColor(): PlayerColor {
-  const coords = document.querySelector(DOM_SELECTORS.COORDS)
+  const coords = document.querySelector(DomSelector.COORDS)
   return coords?.classList.contains(CssClass.BLACK) ? PlayerColor.BLACK : PlayerColor.WHITE
 }
 
 export function readPiecePositions(): PiecePosition[] {
-  const board = document.querySelector(DOM_SELECTORS.BOARD_NO_CUSTOM)
+  const board = document.querySelector(DomSelector.BOARD_NO_CUSTOM)
   if (!board) return []
 
   // Parse width from style attribute since getBoundingClientRect may not work in test environments
@@ -18,7 +18,7 @@ export function readPiecePositions(): PiecePosition[] {
   const squareSize = boardWidth / 8
   const playerColor = getPlayerColor()
 
-  const pieces = board.querySelectorAll(DOM_SELECTORS.PIECE)
+  const pieces = board.querySelectorAll(DomSelector.PIECE)
   const positions: PiecePosition[] = []
 
   for (const piece of pieces) {

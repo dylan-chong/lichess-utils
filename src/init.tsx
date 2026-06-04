@@ -7,12 +7,12 @@ import { createDividers, destroyDividers } from './dom/overlays/dividers'
 import { setupDividersEffect } from './effects/onDividers'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './commands/keyboardInput'
 import { createRoot, destroyRoot } from './components/root'
-import { DOM_SELECTORS } from './constants'
+import { DomSelector } from './constants'
 import { createDiv, querySelector, appendChild } from './dom/dom'
 
 export async function init() {
   // Wait for lichess to load the board
-  await waitForElement(DOM_SELECTORS.KEYBOARD_MOVE)
+  await waitForElement(DomSelector.KEYBOARD_MOVE)
 
   // Initialize settings
   loadSettings()
@@ -37,7 +37,7 @@ export async function init() {
 
   // Mount Preact UI
   const mountPoint = createDiv()
-  const keyboardMove = querySelector(DOM_SELECTORS.KEYBOARD_MOVE)
+  const keyboardMove = querySelector(DomSelector.KEYBOARD_MOVE)
   if (keyboardMove) {
     appendChild(keyboardMove, mountPoint)
   }

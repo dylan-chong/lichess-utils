@@ -1,4 +1,4 @@
-import { DOM_SELECTORS, CssClass, CssDisplay } from '../../constants'
+import { DomSelector, CssClass, CssDisplay } from '../../constants'
 
 export interface FlashOverlayState {
   overlay: HTMLElement
@@ -18,7 +18,7 @@ export function createFlashOverlay(): FlashOverlayState {
     display: none;
   `
 
-  const container = document.querySelector(DOM_SELECTORS.CONTAINER)
+  const container = document.querySelector(DomSelector.CONTAINER)
   container?.appendChild(overlay)
 
   return { overlay }
