@@ -2,7 +2,7 @@ import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SpeechCommand } from '../constants'
 
-const handleSpeechCommand = mockModule(import('../handlers/handleSpeechCommand'))
+const handleSpeechCommand = mockModule(import('../application-handlers/handleSpeechCommand'))
 const { setupKeyboardCommands, teardownKeyboardCommands } = await import('./keyboardInput')
 
 describe('keyboardInput', () => {

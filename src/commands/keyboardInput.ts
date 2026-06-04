@@ -1,5 +1,5 @@
+import { handleSpeechCommand } from '../application-handlers/handleSpeechCommand'
 import { DomSelector, KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../constants'
-import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
 import { querySelector } from '../platform/dom'
 
 interface InputElementWithCleanup extends HTMLInputElement {
