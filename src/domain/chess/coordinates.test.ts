@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { PlayerColor } from '../constants'
+import { PlayerColor } from '../../constants'
 import { pixelsToSquare, squareToPixels } from './coordinates'
 
 describe('pixelsToSquare', () => {

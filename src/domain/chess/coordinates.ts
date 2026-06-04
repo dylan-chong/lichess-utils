@@ -1,4 +1,4 @@
-import { PlayerColor } from '../constants'
+import { PlayerColor } from '../../constants'
 
 export interface PixelPosition {
   x: number
