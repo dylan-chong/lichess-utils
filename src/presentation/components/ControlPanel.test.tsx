@@ -7,9 +7,6 @@ import { defaultSettings } from '../../constants/settings'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { ControlPanel } from './ControlPanel'
 
-// Helper to wait for signal subscriptions to update
-const waitForSignals = () => new Promise((resolve) => setTimeout(resolve, 10))
-
 describe('ControlPanel', () => {
   let settings: ReturnType<typeof createSettingsStore>
 
@@ -30,8 +27,6 @@ describe('ControlPanel', () => {
         <ControlPanel boardChanged={boardChanged} />
       </SettingsProvider>
     )
-
-    await waitForSignals()
 
     // Speech buttons
     expect(screen.getByText('🔊 rate: 0.5')).toBeTruthy()
@@ -56,7 +51,6 @@ describe('ControlPanel', () => {
     expect(screen.getByText('🔊 rate: 0.5')).toBeTruthy()
 
     await user.click(screen.getByText('🔊 rate: 0.5'))
-    await waitForSignals()
 
     expect(settings.speakRate.value).toBe(0.7)
     expect(screen.getByText('🔊 rate: 0.7')).toBeTruthy()
@@ -74,7 +68,6 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Pieces List: false')
     await user.click(button)
-    await waitForSignals()
 
     expect(settings.piecesListEnabled.value).toBe(true)
     expect(screen.getByText('Pieces List: true')).toBeTruthy()
@@ -92,7 +85,6 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Dividers: false')
     await user.click(button)
-    await waitForSignals()
 
     expect(settings.dividersEnabled.value).toBe(true)
     expect(screen.getByText('Dividers: true')).toBeTruthy()
@@ -110,7 +102,6 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Custom Board: false')
     await user.click(button)
-    await waitForSignals()
 
     expect(settings.customBoardEnabled.value).toBe(true)
     expect(screen.getByText('Custom Board: true')).toBeTruthy()
@@ -128,7 +119,6 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Flash Mode: false')
     await user.click(button)
-    await waitForSignals()
 
     expect(settings.flashModeEnabled.value).toBe(true)
     expect(screen.getByText('Flash Mode: true')).toBeTruthy()
@@ -149,12 +139,9 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      await waitForSignals()
-
       expect(screen.getByText('Obfuscations: false')).toBeTruthy()
 
       await user.click(screen.getByText('Obfuscations: false'))
-      await waitForSignals()
 
       expect(settings.obfuscationsEnabled.value).toBe(true)
       expect(screen.getByText('Obfuscations: true')).toBeTruthy()
@@ -173,7 +160,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Parallax: 0')).toBeTruthy()
 
       await user.click(screen.getByText('Parallax: 0'))
-      await waitForSignals()
 
       expect(settings.parallax.value).toBe(20)
       expect(screen.getByText('Parallax: 20')).toBeTruthy()
@@ -192,7 +178,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Hover Mode: off')).toBeTruthy()
 
       await user.click(screen.getByText('Hover Mode: off'))
-      await waitForSignals()
 
       expect(settings.hoverMode.value).toBe('small')
       expect(screen.getByText('Hover Mode: small')).toBeTruthy()
@@ -218,7 +203,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Piece Style: icons')).toBeTruthy()
 
       await user.click(screen.getByText('Piece Style: icons'))
-      await waitForSignals()
 
       expect(settings.pieceStyle.value).toBe('3d')
       expect(screen.getByText('Piece Style: 3d')).toBeTruthy()
@@ -237,7 +221,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Blur: 0')).toBeTruthy()
 
       await user.click(screen.getByText('Blur: 0'))
-      await waitForSignals()
 
       expect(settings.blur.value).toBe(1)
       expect(screen.getByText('Blur: 1')).toBeTruthy()
@@ -256,7 +239,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Black Segments: none')).toBeTruthy()
 
       await user.click(screen.getByText('Black Segments: none'))
-      await waitForSignals()
 
       expect(settings.blackSegments.value).toBe('1/4')
       expect(screen.getByText('Black Segments: 1/4')).toBeTruthy()
@@ -276,7 +258,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Timing: rotate-10s')).toBeTruthy()
 
       await user.click(screen.getByText('Timing: rotate-10s'))
-      await waitForSignals()
 
       expect(settings.blackSegmentsTiming.value).toBe('rotate-30s')
       expect(screen.getByText('Timing: rotate-30s')).toBeTruthy()
@@ -284,11 +265,8 @@ describe('ControlPanel', () => {
   })
 
   describe('Flash Mode nested controls', () => {
-    beforeEach(() => {
-      settings.flashModeEnabled.value = true
-    })
-
     it('displays and updates flash duration button', async () => {
+      settings.flashModeEnabled.value = true
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -298,16 +276,16 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Flash Duration: 1000')).toBeTruthy()
+      expect(screen.getByText('Flash Duration: 1')).toBeTruthy()
 
-      await user.click(screen.getByText('Flash Duration: 1000'))
-      await waitForSignals()
+      await user.click(screen.getByText('Flash Duration: 1'))
 
-      expect(settings.flashDuration.value).toBe(2000)
-      expect(screen.getByText('Flash Duration: 2000')).toBeTruthy()
+      expect(settings.flashDuration.value).toBe(100)
+      expect(screen.getByText('Flash Duration: 100')).toBeTruthy()
     })
 
     it('displays and updates flash interval button', async () => {
+      settings.flashModeEnabled.value = true
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -320,7 +298,6 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Flash Interval: 3')).toBeTruthy()
 
       await user.click(screen.getByText('Flash Interval: 3'))
-      await waitForSignals()
 
       expect(settings.flashInterval.value).toBe(5)
       expect(screen.getByText('Flash Interval: 5')).toBeTruthy()
