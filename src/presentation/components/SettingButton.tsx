@@ -1,4 +1,6 @@
 import type { Signal } from '@preact/signals'
+import { useSignal } from '@preact/signals'
+import { useEffect } from 'preact/hooks'
 
 interface SettingButtonProps<T> {
   label: string
@@ -18,6 +20,17 @@ const buttonStyle = {
 }
 
 export function SettingButton<T>({ label, setting, options }: SettingButtonProps<T>) {
+  // Create a local signal that mirrors the external signal
+  const localValue = useSignal(setting.value)
+
+  // Subscribe to signal changes using effect with setting as dependency
+  useEffect(() => {
+    const unsubscribe = setting.subscribe((value) => {
+      localValue.value = value
+    })
+    return unsubscribe
+  }, [setting, localValue])
+
   const handleClick = (e: Event) => {
     e.preventDefault()
     e.stopPropagation()
@@ -29,10 +42,10 @@ export function SettingButton<T>({ label, setting, options }: SettingButtonProps
     setting.value = newValue
   }
 
-  // Access signal.value in JSX for auto-reactivity
+  // Use local signal for display (this will auto-update)
   return (
     <button onClick={handleClick} type="button" style={buttonStyle}>
-      {label}: {setting.value}
+      {label}: {localValue.value}
     </button>
   )
 }

@@ -35,7 +35,11 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
 
       {/* Main Controls - Always Visible */}
       <ButtonRow>
-        <SettingButton label="Pieces List" setting={settings.piecesListEnabled} options={TOGGLE_OPTIONS} />
+        <SettingButton
+          label="Pieces List"
+          setting={settings.piecesListEnabled}
+          options={TOGGLE_OPTIONS}
+        />
         <ActionButton
           label="Annotate Board"
           onClick={() => {
@@ -43,13 +47,21 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
             console.log('Annotate Board clicked')
           }}
         />
-        <SettingButton label="Dividers" setting={settings.dividersEnabled} options={TOGGLE_OPTIONS} />
+        <SettingButton
+          label="Dividers"
+          setting={settings.dividersEnabled}
+          options={TOGGLE_OPTIONS}
+        />
         <SettingButton
           label="Custom Board"
           setting={settings.customBoardEnabled}
           options={TOGGLE_OPTIONS}
         />
-        <SettingButton label="Flash Mode" setting={settings.flashModeEnabled} options={TOGGLE_OPTIONS} />
+        <SettingButton
+          label="Flash Mode"
+          setting={settings.flashModeEnabled}
+          options={TOGGLE_OPTIONS}
+        />
       </ButtonRow>
 
       {/* Custom Board Nested Controls */}
@@ -61,13 +73,21 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
             options={TOGGLE_OPTIONS}
           />
           <SettingButton label="Parallax" setting={settings.parallax} options={PARALLAX_OPTIONS} />
-          <SettingButton label="Hover Mode" setting={settings.hoverMode} options={HOVER_MODE_OPTIONS} />
+          <SettingButton
+            label="Hover Mode"
+            setting={settings.hoverMode}
+            options={HOVER_MODE_OPTIONS}
+          />
         </ButtonRow>
 
         {/* Obfuscations Nested Controls */}
         <ConditionalControls condition={settings.obfuscationsEnabled.value}>
           <ButtonRow>
-            <SettingButton label="Piece Style" setting={settings.pieceStyle} options={PIECE_STYLE_OPTIONS} />
+            <SettingButton
+              label="Piece Style"
+              setting={settings.pieceStyle}
+              options={PIECE_STYLE_OPTIONS}
+            />
             <SettingButton label="Blur" setting={settings.blur} options={BLUR_OPTIONS} />
             <SettingButton
               label="Black Segments"
@@ -97,7 +117,11 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
             setting={settings.flashDuration}
             options={FLASH_DURATION_OPTIONS}
           />
-          <SettingButton label="Flash Interval" setting={settings.flashInterval} options={FLASH_INTERVAL_OPTIONS} />
+          <SettingButton
+            label="Flash Interval"
+            setting={settings.flashInterval}
+            options={FLASH_INTERVAL_OPTIONS}
+          />
         </ButtonRow>
       </ConditionalControls>
     </div>
