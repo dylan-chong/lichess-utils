@@ -7,6 +7,9 @@ import { defaultSettings } from '../../constants/settings'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { ControlPanel } from './ControlPanel'
 
+// Helper to wait for signal subscriptions to update
+const waitForSignals = () => new Promise((resolve) => setTimeout(resolve, 10))
+
 describe('ControlPanel', () => {
   let settings: ReturnType<typeof createSettingsStore>
 
@@ -20,7 +23,7 @@ describe('ControlPanel', () => {
     settings.flashModeEnabled.value = defaultSettings.flashModeEnabled
   })
 
-  it('should render all main control buttons', () => {
+  it('should render all main control buttons', async () => {
     const boardChanged = signal(0)
     render(
       <SettingsProvider settings={settings}>
@@ -28,14 +31,19 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    expect(screen.getByText('Speak Rate: 0.5')).toBeTruthy()
+    await waitForSignals()
+
+    // Speech buttons
+    expect(screen.getByText('🔊 rate: 0.5')).toBeTruthy()
+
+    // Main controls
     expect(screen.getByText('Pieces List: false')).toBeTruthy()
     expect(screen.getByText('Dividers: false')).toBeTruthy()
     expect(screen.getByText('Custom Board: false')).toBeTruthy()
     expect(screen.getByText('Flash Mode: false')).toBeTruthy()
   })
 
-  it('should update speak rate when button clicked', async () => {
+  it('displays and updates speak rate button from SpeechButtons', async () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
@@ -45,11 +53,13 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Speak Rate: 0.5')
-    await user.click(button)
+    expect(screen.getByText('🔊 rate: 0.5')).toBeTruthy()
+
+    await user.click(screen.getByText('🔊 rate: 0.5'))
+    await waitForSignals()
 
     expect(settings.speakRate.value).toBe(0.7)
-    expect(screen.getByText('Speak Rate: 0.7')).toBeTruthy()
+    expect(screen.getByText('🔊 rate: 0.7')).toBeTruthy()
   })
 
   it('should toggle pieces list when button clicked', async () => {
@@ -64,6 +74,7 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Pieces List: false')
     await user.click(button)
+    await waitForSignals()
 
     expect(settings.piecesListEnabled.value).toBe(true)
     expect(screen.getByText('Pieces List: true')).toBeTruthy()
@@ -81,6 +92,7 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Dividers: false')
     await user.click(button)
+    await waitForSignals()
 
     expect(settings.dividersEnabled.value).toBe(true)
     expect(screen.getByText('Dividers: true')).toBeTruthy()
@@ -98,6 +110,7 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Custom Board: false')
     await user.click(button)
+    await waitForSignals()
 
     expect(settings.customBoardEnabled.value).toBe(true)
     expect(screen.getByText('Custom Board: true')).toBeTruthy()
@@ -115,8 +128,202 @@ describe('ControlPanel', () => {
 
     const button = screen.getByText('Flash Mode: false')
     await user.click(button)
+    await waitForSignals()
 
     expect(settings.flashModeEnabled.value).toBe(true)
     expect(screen.getByText('Flash Mode: true')).toBeTruthy()
+  })
+
+  describe('Custom Board nested controls', () => {
+    beforeEach(() => {
+      settings.customBoardEnabled.value = true
+    })
+
+    it('displays and updates obfuscations button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      await waitForSignals()
+
+      expect(screen.getByText('Obfuscations: false')).toBeTruthy()
+
+      await user.click(screen.getByText('Obfuscations: false'))
+      await waitForSignals()
+
+      expect(settings.obfuscationsEnabled.value).toBe(true)
+      expect(screen.getByText('Obfuscations: true')).toBeTruthy()
+    })
+
+    it('displays and updates parallax button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Parallax: 0')).toBeTruthy()
+
+      await user.click(screen.getByText('Parallax: 0'))
+      await waitForSignals()
+
+      expect(settings.parallax.value).toBe(20)
+      expect(screen.getByText('Parallax: 20')).toBeTruthy()
+    })
+
+    it('displays and updates hover mode button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Hover Mode: off')).toBeTruthy()
+
+      await user.click(screen.getByText('Hover Mode: off'))
+      await waitForSignals()
+
+      expect(settings.hoverMode.value).toBe('small')
+      expect(screen.getByText('Hover Mode: small')).toBeTruthy()
+    })
+  })
+
+  describe('Obfuscations nested controls', () => {
+    beforeEach(() => {
+      settings.customBoardEnabled.value = true
+      settings.obfuscationsEnabled.value = true
+    })
+
+    it('displays and updates piece style button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Piece Style: icons')).toBeTruthy()
+
+      await user.click(screen.getByText('Piece Style: icons'))
+      await waitForSignals()
+
+      expect(settings.pieceStyle.value).toBe('3d')
+      expect(screen.getByText('Piece Style: 3d')).toBeTruthy()
+    })
+
+    it('displays and updates blur button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Blur: 0')).toBeTruthy()
+
+      await user.click(screen.getByText('Blur: 0'))
+      await waitForSignals()
+
+      expect(settings.blur.value).toBe(1)
+      expect(screen.getByText('Blur: 1')).toBeTruthy()
+    })
+
+    it('displays and updates black segments button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Black Segments: none')).toBeTruthy()
+
+      await user.click(screen.getByText('Black Segments: none'))
+      await waitForSignals()
+
+      expect(settings.blackSegments.value).toBe('1/4')
+      expect(screen.getByText('Black Segments: 1/4')).toBeTruthy()
+    })
+
+    it('displays and updates timing button when black segments is not none', async () => {
+      const user = userEvent.setup()
+      settings.blackSegments.value = '1/4'
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Timing: rotate-10s')).toBeTruthy()
+
+      await user.click(screen.getByText('Timing: rotate-10s'))
+      await waitForSignals()
+
+      expect(settings.blackSegmentsTiming.value).toBe('rotate-30s')
+      expect(screen.getByText('Timing: rotate-30s')).toBeTruthy()
+    })
+  })
+
+  describe('Flash Mode nested controls', () => {
+    beforeEach(() => {
+      settings.flashModeEnabled.value = true
+    })
+
+    it('displays and updates flash duration button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Flash Duration: 1000')).toBeTruthy()
+
+      await user.click(screen.getByText('Flash Duration: 1000'))
+      await waitForSignals()
+
+      expect(settings.flashDuration.value).toBe(2000)
+      expect(screen.getByText('Flash Duration: 2000')).toBeTruthy()
+    })
+
+    it('displays and updates flash interval button', async () => {
+      const user = userEvent.setup()
+      const boardChanged = signal(0)
+
+      render(
+        <SettingsProvider settings={settings}>
+          <ControlPanel boardChanged={boardChanged} />
+        </SettingsProvider>
+      )
+
+      expect(screen.getByText('Flash Interval: 3')).toBeTruthy()
+
+      await user.click(screen.getByText('Flash Interval: 3'))
+      await waitForSignals()
+
+      expect(settings.flashInterval.value).toBe(5)
+      expect(screen.getByText('Flash Interval: 5')).toBeTruthy()
+    })
   })
 })
