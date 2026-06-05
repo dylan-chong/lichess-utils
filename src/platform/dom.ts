@@ -18,6 +18,10 @@ export function appendChild(parent: Element, child: Element): void {
   parent.appendChild(child)
 }
 
+export function removeElement(element: Element): void {
+  element.remove()
+}
+
 export function getBoundingClientRect(element: Element): DOMRect {
   return element.getBoundingClientRect()
 }

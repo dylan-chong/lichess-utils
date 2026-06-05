@@ -13,6 +13,7 @@ export enum DomSelector {
 export enum CssClass {
   BLACK = 'black',
   USERSCRIPT_DIVIDERS = 'userscript-dividers',
+  USERSCRIPT_DRAWINGS = 'userscript-drawings',
   USERSCRIPT_FLASH = 'userscript-flash-overlay',
 }
 
