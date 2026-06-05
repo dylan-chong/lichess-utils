@@ -1,6 +1,6 @@
 {
   "name": "lichess-board-speaker",
-  "version": "3.4.7",
+  "version": "4.0.0",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
