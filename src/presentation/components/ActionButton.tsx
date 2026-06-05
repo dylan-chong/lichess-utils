@@ -15,8 +15,14 @@ const buttonStyle = {
 }
 
 export function ActionButton({ label, onClick }: ActionButtonProps) {
+  const handleClick = (e: Event) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onClick()
+  }
+
   return (
-    <button onClick={onClick} type="button" style={buttonStyle}>
+    <button onClick={handleClick} type="button" style={buttonStyle}>
       {label}
     </button>
   )

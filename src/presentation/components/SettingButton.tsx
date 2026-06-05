@@ -18,10 +18,15 @@ const buttonStyle = {
 }
 
 export function SettingButton<T>({ label, setting, options }: SettingButtonProps<T>) {
-  const handleClick = () => {
+  const handleClick = (e: Event) => {
+    e.preventDefault()
+    e.stopPropagation()
+
     const currentIndex = options.indexOf(setting.value)
     const nextIndex = (currentIndex + 1) % options.length
-    setting.value = options[nextIndex]
+    const newValue = options[nextIndex]
+    console.log(`[SettingButton] ${label}: ${setting.value} -> ${newValue}`)
+    setting.value = newValue
   }
 
   return (
