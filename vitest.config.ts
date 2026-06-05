@@ -37,7 +37,7 @@ export default defineConfig({
       thresholds: {
         lines: 100,
         functions: 100,
-        branches: 99, // 99.32% actual - missing branch is unreachable (else-if with exhaustive union type)
+        branches: 100,
         statements: 100,
       },
     },

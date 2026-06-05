@@ -153,6 +153,20 @@ describe('annotations', () => {
       const circles = state.svg.querySelectorAll('circle')
       expect(circles.length).toBe(0)
     })
+
+    it('ignores annotations with invalid type', () => {
+      const state = createAnnotations()
+      // Create an invalid annotation to test the else branch
+      const invalidAnnotation = { type: 'invalid', square: 'e4' } as any
+
+      drawAnnotations(state, [invalidAnnotation])
+
+      // Should not draw anything for invalid type
+      const circles = state.svg.querySelectorAll('circle')
+      const lines = state.svg.querySelectorAll('line')
+      expect(circles.length).toBe(0)
+      expect(lines.length).toBe(0)
+    })
   })
 
   describe('clearAnnotations', () => {
