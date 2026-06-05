@@ -33,6 +33,18 @@ describe('annotations', () => {
       expect(container?.contains(state.svg)).toBe(true)
     })
 
+    it('throws error when container element is not found', () => {
+      document.body.innerHTML = '<cg-board></cg-board>' // Missing container
+
+      expect(() => createAnnotations()).toThrow('Container not found')
+    })
+
+    it('throws error when board element is not found', () => {
+      document.body.innerHTML = '<cg-container></cg-container>' // Missing board
+
+      expect(() => createAnnotations()).toThrow('Board not found')
+    })
+
     it('sets correct SVG dimensions based on board size', () => {
       const state = createAnnotations()
 
@@ -114,6 +126,32 @@ describe('annotations', () => {
 
       const defs = state.svg.querySelector('defs')
       expect(defs).toBeTruthy()
+    })
+
+    it('draws nothing when given empty annotations array', () => {
+      const state = createAnnotations()
+
+      drawAnnotations(state, [])
+
+      const circles = state.svg.querySelectorAll('circle')
+      const lines = state.svg.querySelectorAll('line')
+      expect(circles.length).toBe(0)
+      expect(lines.length).toBe(0)
+    })
+
+    it('skips drawing when board element is missing', () => {
+      const state = createAnnotations()
+
+      // Remove board element
+      const board = document.querySelector('cg-board')
+      board?.remove()
+
+      // Should not throw
+      drawAnnotations(state, [{ type: AnnotationType.CIRCLE as const, square: 'e4' }])
+
+      // No circles should be drawn
+      const circles = state.svg.querySelectorAll('circle')
+      expect(circles.length).toBe(0)
     })
   })
 

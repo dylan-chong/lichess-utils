@@ -97,4 +97,84 @@ describe('SpeechButtons', () => {
 
     await user.click(screen.getByText('🔊 Stop'))
   })
+
+  it('calls handleSpeechCommand with WQ when white queen side button is clicked', async () => {
+    const user = userEvent.setup()
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.WQ, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ♕ side'))
+  })
+
+  it('calls handleSpeechCommand with BK when black king side button is clicked', async () => {
+    const user = userEvent.setup()
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.BK, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ♚ side'))
+  })
+
+  it('calls handleSpeechCommand with BQ when black queen side button is clicked', async () => {
+    const user = userEvent.setup()
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.BQ, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ♛ side'))
+  })
+
+  it('calls handleSpeechCommand with WHITE when white pieces button is clicked', async () => {
+    const user = userEvent.setup()
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.WHITE, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText("🔊 w's pieces"))
+  })
+
+  it('calls handleSpeechCommand with BLACK when black pieces button is clicked', async () => {
+    const user = userEvent.setup()
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.BLACK, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText("🔊 b's pieces"))
+  })
 })

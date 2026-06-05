@@ -124,6 +124,25 @@ describe('ControlPanel', () => {
     expect(screen.getByText('Flash Mode: true')).toBeTruthy()
   })
 
+  it('clicking Annotate Board button executes its handler', async () => {
+    const user = userEvent.setup()
+    const boardChanged = signal(0)
+
+    render(
+      <SettingsProvider settings={settings}>
+        <ControlPanel boardChanged={boardChanged} />
+      </SettingsProvider>
+    )
+
+    const button = screen.getByText('Annotate Board')
+
+    // Click the button to execute the onClick handler (currently a TODO placeholder)
+    await user.click(button)
+
+    // Button should still be present after clicking
+    expect(screen.getByText('Annotate Board')).toBeTruthy()
+  })
+
   describe('Custom Board nested controls', () => {
     beforeEach(() => {
       settings.customBoardEnabled.value = true
