@@ -1,6 +1,4 @@
-import type { Signal } from '@preact/signals'
-import { useSignal } from '@preact/signals'
-import { useEffect } from 'preact/hooks'
+import { type Signal, useComputed } from '@preact/signals'
 
 interface SettingButtonProps<T> {
   label: string
@@ -20,16 +18,8 @@ const buttonStyle = {
 }
 
 export function SettingButton<T>({ label, setting, options }: SettingButtonProps<T>) {
-  // Create a local signal that mirrors the external signal
-  const localValue = useSignal(setting.value)
-
-  // Subscribe to signal changes using effect with setting as dependency
-  useEffect(() => {
-    const unsubscribe = setting.subscribe((value) => {
-      localValue.value = value
-    })
-    return unsubscribe
-  }, [setting, localValue])
+  // Use computed to create a reactive derived value
+  const displayText = useComputed(() => `${label}: ${setting.value}`)
 
   const handleClick = (e: Event) => {
     e.preventDefault()
@@ -38,14 +28,13 @@ export function SettingButton<T>({ label, setting, options }: SettingButtonProps
     const currentIndex = options.indexOf(setting.value)
     const nextIndex = (currentIndex + 1) % options.length
     const newValue = options[nextIndex]
-    console.log(`[SettingButton] ${label}: ${setting.value} -> ${newValue}`)
     setting.value = newValue
   }
 
-  // Use local signal for display (this will auto-update)
+  // Render the computed signal directly
   return (
     <button onClick={handleClick} type="button" style={buttonStyle}>
-      {label}: {localValue.value}
+      {displayText}
     </button>
   )
 }
