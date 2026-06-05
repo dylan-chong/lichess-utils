@@ -1,6 +1,6 @@
 # lichess-board-speaker Specification
 
-**Version:** 4.0.0  
+**Version:** 4.0.1  
 **Purpose:** Blindfold chess training tool for lichess.org  
 **Platform:** Browser extension (Tampermonkey/Userscripts)
 
