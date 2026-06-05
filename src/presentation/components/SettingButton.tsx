@@ -18,9 +18,6 @@ const buttonStyle = {
 }
 
 export function SettingButton<T>({ label, setting, options }: SettingButtonProps<T>) {
-  // Access .value directly in render to establish reactive subscription
-  const currentValue = setting.value
-
   const handleClick = (e: Event) => {
     e.preventDefault()
     e.stopPropagation()
@@ -32,9 +29,10 @@ export function SettingButton<T>({ label, setting, options }: SettingButtonProps
     setting.value = newValue
   }
 
+  // Use signal directly in JSX for auto-reactivity
   return (
     <button onClick={handleClick} type="button" style={buttonStyle}>
-      {label}: {String(currentValue)}
+      {label}: {setting}
     </button>
   )
 }
