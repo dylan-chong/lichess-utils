@@ -29,10 +29,10 @@ export function SettingButton<T>({ label, setting, options }: SettingButtonProps
     setting.value = newValue
   }
 
-  // Use signal directly in JSX for auto-reactivity
+  // Access signal.value in JSX for auto-reactivity
   return (
     <button onClick={handleClick} type="button" style={buttonStyle}>
-      {label}: {setting}
+      {label}: {setting.value}
     </button>
   )
 }
