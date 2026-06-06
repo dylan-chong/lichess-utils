@@ -33,13 +33,17 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
       {/* Speech Buttons - Always Visible */}
       <SpeechButtons />
 
-      {/* Main Controls - Always Visible */}
+      {/* Row: Pieces List */}
       <ButtonRow>
         <SettingButton
           label="Pieces List"
           setting={settings.piecesListEnabled}
           options={TOGGLE_OPTIONS}
         />
+      </ButtonRow>
+
+      {/* Row: Annotate Board */}
+      <ButtonRow>
         <ActionButton
           label="Annotate Board"
           onClick={() => {
@@ -47,6 +51,10 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
             console.log('Annotate Board clicked')
           }}
         />
+      </ButtonRow>
+
+      {/* Row: Dividers and Custom Board */}
+      <ButtonRow>
         <SettingButton
           label="Dividers"
           setting={settings.dividersEnabled}
@@ -55,11 +63,6 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
         <SettingButton
           label="Custom Board"
           setting={settings.customBoardEnabled}
-          options={TOGGLE_OPTIONS}
-        />
-        <SettingButton
-          label="Flash Mode"
-          setting={settings.flashModeEnabled}
           options={TOGGLE_OPTIONS}
         />
       </ButtonRow>
@@ -108,6 +111,15 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
           </ConditionalControls>
         </ConditionalControls>
       </ConditionalControls>
+
+      {/* Row: Flash Mode */}
+      <ButtonRow>
+        <SettingButton
+          label="Flash Mode"
+          setting={settings.flashModeEnabled}
+          options={TOGGLE_OPTIONS}
+        />
+      </ButtonRow>
 
       {/* Flash Mode Nested Controls */}
       <ConditionalControls condition={settings.flashModeEnabled.value}>
