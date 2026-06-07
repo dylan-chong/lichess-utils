@@ -14,6 +14,10 @@ import {
 import { DomSelector } from './constants/dom'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createRoot, destroyRoot } from './presentation/components/root'
+import {
+  createAnnotations,
+  destroyAnnotations,
+} from './presentation/non-preact-components/annotations'
 import { createDividers, destroyDividers } from './presentation/non-preact-components/dividers'
 import { createFlashOverlay, destroyFlashOverlay } from './presentation/non-preact-components/flash'
 
@@ -32,6 +36,7 @@ export async function init() {
   // Create DOM state
   const flashState = createFlashOverlay()
   const dividersState = createDividers()
+  const annotationsState = createAnnotations()
   const boardObserverState = createBoardObserver(boardChanged)
 
   // Start observer
@@ -41,7 +46,7 @@ export async function init() {
   const cleanupDividers = setupDividersEffect(dividersState, settings)
 
   // Set up commands
-  setupKeyboardCommands(settings)
+  setupKeyboardCommands(settings, annotationsState)
 
   // Mount Preact UI
   const mountPoint = createDiv()
@@ -57,6 +62,7 @@ export async function init() {
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)
     destroyDividers(dividersState)
+    destroyAnnotations(annotationsState)
     teardownKeyboardCommands()
     destroyRoot(mountPoint)
   }

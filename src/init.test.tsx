@@ -10,6 +10,7 @@ const dom = mockModule(import('./platform/dom'))
 const boardObserver = mockModule(import('./application/observers/observerState'))
 const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
 const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
+const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
 const onDividers = mockModule(import('./application/effects/onDividers'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
@@ -22,6 +23,9 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockAnnotationsState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+    }
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
@@ -38,6 +42,7 @@ describe('init', () => {
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
+    annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
       .expects('createBoardObserver')
       .withArgs(mockBoardChanged)
@@ -47,7 +52,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
+    keyboardInput
+      .expects('setupKeyboardCommands')
+      .withArgs(mockSettings, mockAnnotationsState)
+      .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
@@ -68,6 +76,9 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockAnnotationsState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+    }
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
@@ -84,6 +95,7 @@ describe('init', () => {
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
+    annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
       .expects('createBoardObserver')
       .withArgs(mockBoardChanged)
@@ -93,7 +105,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
+    keyboardInput
+      .expects('setupKeyboardCommands')
+      .withArgs(mockSettings, mockAnnotationsState)
+      .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
@@ -108,6 +123,7 @@ describe('init', () => {
     boardObserver.expects('stopBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     flashOverlay.expects('destroyFlashOverlay').withArgs(mockFlashState).returns(undefined)
     dividersOverlay.expects('destroyDividers').withArgs(mockDividersState).returns(undefined)
+    annotations.expects('destroyAnnotations').withArgs(mockAnnotationsState).returns(undefined)
     keyboardInput.expects('teardownKeyboardCommands').withArgs().returns(undefined)
     root.expects('destroyRoot').withArgs(mockMountPoint).returns(undefined)
 
@@ -120,6 +136,9 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockAnnotationsState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+    }
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
@@ -136,6 +155,7 @@ describe('init', () => {
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
+    annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
       .expects('createBoardObserver')
       .withArgs(mockBoardChanged)
@@ -145,7 +165,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
-    keyboardInput.expects('setupKeyboardCommands').withArgs(mockSettings).returns(undefined)
+    keyboardInput
+      .expects('setupKeyboardCommands')
+      .withArgs(mockSettings, mockAnnotationsState)
+      .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(null) // Simulate missing element
     // appendChild should NOT be called when keyboardMove is null

@@ -1,6 +1,8 @@
 import { KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants/commands'
 import { DomSelector } from '../../constants/dom'
 import { querySelector } from '../../platform/dom'
+import type { AnnotationsState } from '../../presentation/non-preact-components/annotations'
+import { handleDrawCommand } from '../handlers/handleDrawCommand'
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
 import type { SettingsStore } from '../settings/settingsStore'
 
@@ -8,7 +10,10 @@ interface InputElementWithCleanup extends HTMLInputElement {
   __keyboardCommandCleanup?: () => void
 }
 
-export function setupKeyboardCommands(settings: SettingsStore): void {
+export function setupKeyboardCommands(
+  settings: SettingsStore,
+  annotationsState: AnnotationsState
+): void {
   const input = querySelector(DomSelector.KEYBOARD_INPUT) as InputElementWithCleanup | null
   if (!input) return
 
@@ -24,9 +29,9 @@ export function setupKeyboardCommands(settings: SettingsStore): void {
       return
     }
 
-    // Check for drawing commands (handled elsewhere)
+    // Check for drawing commands
     if (value.startsWith('-')) {
-      // Will be handled by drawing handler
+      handleDrawCommand(value, annotationsState)
       return
     }
   }
