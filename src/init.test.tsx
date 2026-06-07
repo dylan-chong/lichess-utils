@@ -10,11 +10,13 @@ const dom = mockModule(import('./platform/dom'))
 const boardObserver = mockModule(import('./application/observers/observerState'))
 const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
 const handleFlash = mockModule(import('./application/handlers/handleFlash'))
+const handleCustomBoard = mockModule(import('./application/handlers/handleCustomBoard'))
 const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
 const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
 const onDividers = mockModule(import('./application/effects/onDividers'))
 const onFlash = mockModule(import('./application/effects/onFlash'))
 const onBlur = mockModule(import('./application/effects/onBlur'))
+const onCustomBoard = mockModule(import('./application/effects/onCustomBoard'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -37,6 +39,12 @@ describe('init', () => {
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
+    const mockCleanupCustomBoard = () => {}
+    const mockCustomBoardState = {
+      canvas: null,
+      pieceManager: { meshes: [], meshMap: new Map() },
+      boardPlaneName: 'boardPlane',
+    }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -64,6 +72,11 @@ describe('init', () => {
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
     onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
+    handleCustomBoard.expects('createCustomBoardState').withArgs().returns(mockCustomBoardState)
+    onCustomBoard
+      .expects('setupCustomBoardEffect')
+      .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupCustomBoard)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -99,6 +112,12 @@ describe('init', () => {
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
+    const mockCleanupCustomBoard = () => {}
+    const mockCustomBoardState = {
+      canvas: null,
+      pieceManager: { meshes: [], meshMap: new Map() },
+      boardPlaneName: 'boardPlane',
+    }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -126,6 +145,11 @@ describe('init', () => {
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
     onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
+    handleCustomBoard.expects('createCustomBoardState').withArgs().returns(mockCustomBoardState)
+    onCustomBoard
+      .expects('setupCustomBoardEffect')
+      .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupCustomBoard)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -168,6 +192,12 @@ describe('init', () => {
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
+    const mockCleanupCustomBoard = () => {}
+    const mockCustomBoardState = {
+      canvas: null,
+      pieceManager: { meshes: [], meshMap: new Map() },
+      boardPlaneName: 'boardPlane',
+    }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -195,6 +225,11 @@ describe('init', () => {
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
     onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
+    handleCustomBoard.expects('createCustomBoardState').withArgs().returns(mockCustomBoardState)
+    onCustomBoard
+      .expects('setupCustomBoardEffect')
+      .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupCustomBoard)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
