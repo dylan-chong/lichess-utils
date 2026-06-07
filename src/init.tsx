@@ -3,6 +3,7 @@ import { setupBlurEffect } from './application/effects/onBlur'
 import { setupCustomBoardEffect } from './application/effects/onCustomBoard'
 import { setupDividersEffect } from './application/effects/onDividers'
 import { setupFlashEffect } from './application/effects/onFlash'
+import { setupHoverModeEffect } from './application/effects/onHoverMode'
 import { setupParallaxEffect } from './application/effects/onParallax'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
@@ -19,6 +20,7 @@ import {
 } from './application/settings/settingsStore'
 import { DomSelector } from './constants/dom'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
+import { createHoverAnimationState, stopHoverAnimation } from './presentation/3d/hoverAnimation'
 import { createRoot, destroyRoot } from './presentation/components/root'
 import {
   createAnnotations,
@@ -56,6 +58,8 @@ export async function init() {
   const customBoardState = createCustomBoardState()
   const cleanupCustomBoard = setupCustomBoardEffect(customBoardState, settings, boardChanged)
   const cleanupParallax = setupParallaxEffect(customBoardState, settings)
+  const hoverState = createHoverAnimationState()
+  const cleanupHover = setupHoverModeEffect(customBoardState, hoverState, settings)
 
   // Set up commands
   setupKeyboardCommands(settings, annotationsState)
@@ -75,6 +79,8 @@ export async function init() {
     cleanupBlur()
     cleanupCustomBoard()
     cleanupParallax()
+    cleanupHover()
+    stopHoverAnimation(hoverState)
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)
     destroyDividers(dividersState)
