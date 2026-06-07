@@ -14,6 +14,7 @@ const dividersOverlay = mockModule(import('./presentation/non-preact-components/
 const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
 const onDividers = mockModule(import('./application/effects/onDividers'))
 const onFlash = mockModule(import('./application/effects/onFlash'))
+const onBlur = mockModule(import('./application/effects/onBlur'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -35,6 +36,7 @@ describe('init', () => {
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
+    const mockCleanupBlur = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -61,6 +63,7 @@ describe('init', () => {
       .expects('setupFlashEffect')
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
+    onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -95,6 +98,7 @@ describe('init', () => {
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
+    const mockCleanupBlur = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -121,6 +125,7 @@ describe('init', () => {
       .expects('setupFlashEffect')
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
+    onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -162,6 +167,7 @@ describe('init', () => {
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
+    const mockCleanupBlur = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -188,6 +194,7 @@ describe('init', () => {
       .expects('setupFlashEffect')
       .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
       .returns(mockCleanupFlash)
+    onBlur.expects('setupBlurEffect').withArgs(mockSettings).returns(mockCleanupBlur)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
