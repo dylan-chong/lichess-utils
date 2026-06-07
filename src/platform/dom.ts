@@ -2,6 +2,14 @@ export function createDiv(): HTMLDivElement {
   return document.createElement('div')
 }
 
+export function createCanvas(): HTMLCanvasElement {
+  return document.createElement('canvas')
+}
+
+export function createImage(): HTMLImageElement {
+  return new Image()
+}
+
 export function createSvgElement(tag: string): SVGElement {
   return document.createElementNS('http://www.w3.org/2000/svg', tag)
 }

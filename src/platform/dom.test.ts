@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from 'vitest'
 import {
   appendChild,
+  createCanvas,
   createDiv,
+  createImage,
   createSvgElement,
   getBoundingClientRect,
   querySelector,
@@ -18,6 +20,17 @@ describe('dom', () => {
     const div = createDiv()
     expect(div.tagName).toBe('DIV')
     expect(div instanceof HTMLDivElement).toBe(true)
+  })
+
+  it('createCanvas returns a canvas element', () => {
+    const canvas = createCanvas()
+    expect(canvas.tagName).toBe('CANVAS')
+    expect(canvas instanceof HTMLCanvasElement).toBe(true)
+  })
+
+  it('createImage returns an image element', () => {
+    const img = createImage()
+    expect(img instanceof HTMLImageElement).toBe(true)
   })
 
   it('createSvgElement returns an SVG element', () => {
