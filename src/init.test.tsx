@@ -19,6 +19,7 @@ const onBlur = mockModule(import('./application/effects/onBlur'))
 const onCustomBoard = mockModule(import('./application/effects/onCustomBoard'))
 const onParallax = mockModule(import('./application/effects/onParallax'))
 const onHoverMode = mockModule(import('./application/effects/onHoverMode'))
+const onPieceStyle = mockModule(import('./application/effects/onPieceStyle'))
 const hoverAnimation = mockModule(import('./presentation/3d/hoverAnimation'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
@@ -45,6 +46,7 @@ describe('init', () => {
     const mockCleanupCustomBoard = () => {}
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
+    const mockCleanupPieceStyle = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -92,6 +94,10 @@ describe('init', () => {
       .expects('setupHoverModeEffect')
       .withArgs(mockCustomBoardState, mockHoverState, mockSettings)
       .returns(mockCleanupHover)
+    onPieceStyle
+      .expects('setupPieceStyleEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupPieceStyle)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -130,6 +136,7 @@ describe('init', () => {
     const mockCleanupCustomBoard = () => {}
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
+    const mockCleanupPieceStyle = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -177,6 +184,10 @@ describe('init', () => {
       .expects('setupHoverModeEffect')
       .withArgs(mockCustomBoardState, mockHoverState, mockSettings)
       .returns(mockCleanupHover)
+    onPieceStyle
+      .expects('setupPieceStyleEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupPieceStyle)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -223,6 +234,7 @@ describe('init', () => {
     const mockCleanupCustomBoard = () => {}
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
+    const mockCleanupPieceStyle = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -270,6 +282,10 @@ describe('init', () => {
       .expects('setupHoverModeEffect')
       .withArgs(mockCustomBoardState, mockHoverState, mockSettings)
       .returns(mockCleanupHover)
+    onPieceStyle
+      .expects('setupPieceStyleEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupPieceStyle)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)

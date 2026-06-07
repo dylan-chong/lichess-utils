@@ -5,6 +5,7 @@ import { setupDividersEffect } from './application/effects/onDividers'
 import { setupFlashEffect } from './application/effects/onFlash'
 import { setupHoverModeEffect } from './application/effects/onHoverMode'
 import { setupParallaxEffect } from './application/effects/onParallax'
+import { setupPieceStyleEffect } from './application/effects/onPieceStyle'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
@@ -60,6 +61,7 @@ export async function init() {
   const cleanupParallax = setupParallaxEffect(customBoardState, settings)
   const hoverState = createHoverAnimationState()
   const cleanupHover = setupHoverModeEffect(customBoardState, hoverState, settings)
+  const cleanupPieceStyle = setupPieceStyleEffect(customBoardState, settings)
 
   // Set up commands
   setupKeyboardCommands(settings, annotationsState)
@@ -80,6 +82,7 @@ export async function init() {
     cleanupCustomBoard()
     cleanupParallax()
     cleanupHover()
+    cleanupPieceStyle()
     stopHoverAnimation(hoverState)
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)
