@@ -3,6 +3,7 @@ import { setupBlurEffect } from './application/effects/onBlur'
 import { setupCustomBoardEffect } from './application/effects/onCustomBoard'
 import { setupDividersEffect } from './application/effects/onDividers'
 import { setupFlashEffect } from './application/effects/onFlash'
+import { setupParallaxEffect } from './application/effects/onParallax'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
@@ -54,6 +55,7 @@ export async function init() {
   const cleanupBlur = setupBlurEffect(settings)
   const customBoardState = createCustomBoardState()
   const cleanupCustomBoard = setupCustomBoardEffect(customBoardState, settings, boardChanged)
+  const cleanupParallax = setupParallaxEffect(customBoardState, settings)
 
   // Set up commands
   setupKeyboardCommands(settings, annotationsState)
@@ -72,6 +74,7 @@ export async function init() {
     cleanupFlash()
     cleanupBlur()
     cleanupCustomBoard()
+    cleanupParallax()
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)
     destroyDividers(dividersState)

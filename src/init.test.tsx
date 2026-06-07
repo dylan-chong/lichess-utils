@@ -17,6 +17,7 @@ const onDividers = mockModule(import('./application/effects/onDividers'))
 const onFlash = mockModule(import('./application/effects/onFlash'))
 const onBlur = mockModule(import('./application/effects/onBlur'))
 const onCustomBoard = mockModule(import('./application/effects/onCustomBoard'))
+const onParallax = mockModule(import('./application/effects/onParallax'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -40,6 +41,7 @@ describe('init', () => {
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
     const mockCleanupCustomBoard = () => {}
+    const mockCleanupParallax = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -77,6 +79,10 @@ describe('init', () => {
       .expects('setupCustomBoardEffect')
       .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
       .returns(mockCleanupCustomBoard)
+    onParallax
+      .expects('setupParallaxEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupParallax)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -113,6 +119,7 @@ describe('init', () => {
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
     const mockCleanupCustomBoard = () => {}
+    const mockCleanupParallax = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -150,6 +157,10 @@ describe('init', () => {
       .expects('setupCustomBoardEffect')
       .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
       .returns(mockCleanupCustomBoard)
+    onParallax
+      .expects('setupParallaxEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupParallax)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -193,6 +204,7 @@ describe('init', () => {
     const mockCleanupFlash = () => {}
     const mockCleanupBlur = () => {}
     const mockCleanupCustomBoard = () => {}
+    const mockCleanupParallax = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
@@ -230,6 +242,10 @@ describe('init', () => {
       .expects('setupCustomBoardEffect')
       .withArgs(mockCustomBoardState, mockSettings, mockBoardChanged)
       .returns(mockCleanupCustomBoard)
+    onParallax
+      .expects('setupParallaxEffect')
+      .withArgs(mockCustomBoardState, mockSettings)
+      .returns(mockCleanupParallax)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
