@@ -1,5 +1,7 @@
 import { signal } from '@preact/signals-core'
 import { setupDividersEffect } from './application/effects/onDividers'
+import { setupFlashEffect } from './application/effects/onFlash'
+import { createFlashLoopState } from './application/handlers/handleFlash'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
 import {
   createBoardObserver,
@@ -35,6 +37,7 @@ export async function init() {
 
   // Create DOM state
   const flashState = createFlashOverlay()
+  const flashLoopState = createFlashLoopState()
   const dividersState = createDividers()
   const annotationsState = createAnnotations()
   const boardObserverState = createBoardObserver(boardChanged)
@@ -44,6 +47,7 @@ export async function init() {
 
   // Set up effects
   const cleanupDividers = setupDividersEffect(dividersState, settings)
+  const cleanupFlash = setupFlashEffect(flashState, flashLoopState, settings, boardChanged)
 
   // Set up commands
   setupKeyboardCommands(settings, annotationsState)
@@ -59,6 +63,7 @@ export async function init() {
   // Return cleanup function
   return () => {
     cleanupDividers()
+    cleanupFlash()
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)
     destroyDividers(dividersState)

@@ -1,8 +1,8 @@
 import { mockModule } from 'simone'
-import { beforeEach, describe, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { FlashOverlayState } from '../../presentation/non-preact-components/flash'
 import { createSettingsStore } from '../settings/settingsStore'
-import { handleFlash } from './handleFlash'
+import { createFlashLoopState, startFlashLoop, stopFlashLoop, triggerFlash } from './handleFlash'
 
 const flash = mockModule(import('../../presentation/non-preact-components/flash'))
 
@@ -15,26 +15,134 @@ describe('handleFlash', () => {
       overlay: document.createElement('div'),
     }
     settings = createSettingsStore()
-    settings.flashDuration.value = 1
+    settings.flashDuration.value = 500
+    settings.flashInterval.value = 1
     vi.useFakeTimers()
   })
 
-  it('hides flash immediately then shows after duration', () => {
-    flash.expects('hideFlash').withArgs(mockState).returns(undefined)
-
-    handleFlash(mockState, settings)
-
-    flash.expects('showFlash').withArgs(mockState).returns(undefined)
-    vi.advanceTimersByTime(1000)
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
-  it('uses flash duration from settings', () => {
-    settings.flashDuration.value = 2
+  describe('createFlashLoopState', () => {
+    it('returns state with null intervals and timeouts', () => {
+      const state = createFlashLoopState()
+      expect(state.intervalId).toBe(null)
+      expect(state.timeoutId).toBe(null)
+    })
+  })
 
-    flash.expects('hideFlash').withArgs(mockState).returns(undefined)
-    handleFlash(mockState, settings)
+  describe('triggerFlash', () => {
+    it('calls hideFlash immediately then showFlash after duration', () => {
+      const loopState = createFlashLoopState()
 
-    flash.expects('showFlash').withArgs(mockState).returns(undefined)
-    vi.advanceTimersByTime(2000)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      triggerFlash(mockState, loopState, settings)
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(500)
+      expect(loopState.timeoutId).toBe(null)
+    })
+
+    it('uses flash duration from settings', () => {
+      const loopState = createFlashLoopState()
+      settings.flashDuration.value = 300
+
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      triggerFlash(mockState, loopState, settings)
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(300)
+    })
+
+    it('clears existing timeout before setting new one', () => {
+      const loopState = createFlashLoopState()
+
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      triggerFlash(mockState, loopState, settings)
+
+      const firstTimeoutId = loopState.timeoutId
+
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      triggerFlash(mockState, loopState, settings)
+
+      expect(loopState.timeoutId).not.toBe(firstTimeoutId)
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(500)
+    })
+  })
+
+  describe('startFlashLoop', () => {
+    it('calls showFlash initially and hideFlash for first trigger', () => {
+      const loopState = createFlashLoopState()
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      startFlashLoop(mockState, loopState, settings)
+
+      expect(loopState.intervalId).not.toBe(null)
+    })
+
+    it('sets up interval with correct timing', () => {
+      const loopState = createFlashLoopState()
+      settings.flashInterval.value = 2
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      startFlashLoop(mockState, loopState, settings)
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(500)
+
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(1500)
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      vi.advanceTimersByTime(500)
+    })
+
+    it('stops existing flash loop before starting new one', () => {
+      const loopState = createFlashLoopState()
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      startFlashLoop(mockState, loopState, settings)
+
+      const firstIntervalId = loopState.intervalId
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      startFlashLoop(mockState, loopState, settings)
+
+      expect(loopState.intervalId).not.toBe(firstIntervalId)
+    })
+  })
+
+  describe('stopFlashLoop', () => {
+    it('clears interval and timeout and sets to null', () => {
+      const loopState = createFlashLoopState()
+
+      flash.expects('showFlash').withArgs(mockState).returns(undefined)
+      flash.expects('hideFlash').withArgs(mockState).returns(undefined)
+      startFlashLoop(mockState, loopState, settings)
+
+      expect(loopState.intervalId).not.toBe(null)
+      expect(loopState.timeoutId).not.toBe(null)
+
+      stopFlashLoop(loopState)
+
+      expect(loopState.intervalId).toBe(null)
+      expect(loopState.timeoutId).toBe(null)
+    })
+
+    it('does nothing when both are already null', () => {
+      const loopState = createFlashLoopState()
+
+      stopFlashLoop(loopState)
+
+      expect(loopState.intervalId).toBe(null)
+      expect(loopState.timeoutId).toBe(null)
+    })
   })
 })

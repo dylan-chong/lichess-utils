@@ -9,9 +9,11 @@ const settingsStore = mockModule(import('./application/settings/settingsStore'))
 const dom = mockModule(import('./platform/dom'))
 const boardObserver = mockModule(import('./application/observers/observerState'))
 const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
+const handleFlash = mockModule(import('./application/handlers/handleFlash'))
 const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
 const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
 const onDividers = mockModule(import('./application/effects/onDividers'))
+const onFlash = mockModule(import('./application/effects/onFlash'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -22,6 +24,7 @@ describe('init', () => {
     const mockMountPoint = document.createElement('div')
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
+    const mockFlashLoopState = { intervalId: null, timeoutId: null }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
@@ -31,6 +34,7 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockCleanupFlash = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -41,6 +45,7 @@ describe('init', () => {
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
+    handleFlash.expects('createFlashLoopState').withArgs().returns(mockFlashLoopState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
@@ -52,6 +57,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
+    onFlash
+      .expects('setupFlashEffect')
+      .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupFlash)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -75,6 +84,7 @@ describe('init', () => {
     const mockMountPoint = document.createElement('div')
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
+    const mockFlashLoopState = { intervalId: null, timeoutId: null }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
@@ -84,6 +94,7 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockCleanupFlash = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -94,6 +105,7 @@ describe('init', () => {
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
+    handleFlash.expects('createFlashLoopState').withArgs().returns(mockFlashLoopState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
@@ -105,6 +117,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
+    onFlash
+      .expects('setupFlashEffect')
+      .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupFlash)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -135,6 +151,7 @@ describe('init', () => {
     const mockMountPoint = document.createElement('div')
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
+    const mockFlashLoopState = { intervalId: null, timeoutId: null }
     const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
@@ -144,6 +161,7 @@ describe('init', () => {
       boardChanged: mockBoardChanged,
     }
     const mockCleanupDividers = () => {}
+    const mockCleanupFlash = () => {}
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -154,6 +172,7 @@ describe('init', () => {
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
     flashOverlay.expects('createFlashOverlay').withArgs().returns(mockFlashState)
+    handleFlash.expects('createFlashLoopState').withArgs().returns(mockFlashLoopState)
     dividersOverlay.expects('createDividers').withArgs().returns(mockDividersState)
     annotations.expects('createAnnotations').withArgs().returns(mockAnnotationsState)
     boardObserver
@@ -165,6 +184,10 @@ describe('init', () => {
       .expects('setupDividersEffect')
       .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
+    onFlash
+      .expects('setupFlashEffect')
+      .withArgs(mockFlashState, mockFlashLoopState, mockSettings, mockBoardChanged)
+      .returns(mockCleanupFlash)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
