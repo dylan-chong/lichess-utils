@@ -1,4 +1,5 @@
 import { signal } from '@preact/signals-core'
+import { setupBlackSegmentsEffect } from './application/effects/onBlackSegments'
 import { setupBlurEffect } from './application/effects/onBlur'
 import { setupCustomBoardEffect } from './application/effects/onCustomBoard'
 import { setupDividersEffect } from './application/effects/onDividers'
@@ -6,6 +7,7 @@ import { setupFlashEffect } from './application/effects/onFlash'
 import { setupHoverModeEffect } from './application/effects/onHoverMode'
 import { setupParallaxEffect } from './application/effects/onParallax'
 import { setupPieceStyleEffect } from './application/effects/onPieceStyle'
+import { createBlackSegmentsState } from './application/handlers/handleBlackSegments'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
@@ -62,6 +64,12 @@ export async function init() {
   const hoverState = createHoverAnimationState()
   const cleanupHover = setupHoverModeEffect(customBoardState, hoverState, settings)
   const cleanupPieceStyle = setupPieceStyleEffect(customBoardState, settings)
+  const blackSegmentsState = createBlackSegmentsState()
+  const cleanupBlackSegments = setupBlackSegmentsEffect(
+    blackSegmentsState,
+    customBoardState,
+    settings
+  )
 
   // Set up commands
   setupKeyboardCommands(settings, annotationsState)
@@ -83,6 +91,7 @@ export async function init() {
     cleanupParallax()
     cleanupHover()
     cleanupPieceStyle()
+    cleanupBlackSegments()
     stopHoverAnimation(hoverState)
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)

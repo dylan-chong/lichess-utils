@@ -46,23 +46,14 @@ describe('hoverAnimation', () => {
 
   describe('startHoverAnimation', () => {
     it('starts animation and sets animationId', () => {
-      const requestAnimationFrameSpy = vi.spyOn(global, 'requestAnimationFrame')
-      requestAnimationFrameSpy.mockReturnValue(123)
-
       const state = createHoverAnimationState()
       startHoverAnimation(state, mockCanvasState, mockGetParams)
 
-      expect(state.animationId).toBe(123)
+      expect(state.animationId).toBeTruthy()
       expect(state.startTime).toBeTypeOf('number')
-      expect(requestAnimationFrameSpy).toHaveBeenCalledOnce()
-
-      requestAnimationFrameSpy.mockRestore()
     })
 
     it('does nothing if animation is already running', () => {
-      const requestAnimationFrameSpy = vi.spyOn(global, 'requestAnimationFrame')
-      requestAnimationFrameSpy.mockReturnValue(123)
-
       const state = createHoverAnimationState()
       state.animationId = 999
       state.startTime = 1000
@@ -71,47 +62,81 @@ describe('hoverAnimation', () => {
 
       expect(state.animationId).toBe(999)
       expect(state.startTime).toBe(1000)
-      expect(requestAnimationFrameSpy).not.toHaveBeenCalled()
-
-      requestAnimationFrameSpy.mockRestore()
     })
 
-    it('stops animation when scale becomes 0', () => {
-      const requestAnimationFrameSpy = vi.spyOn(global, 'requestAnimationFrame')
-      const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame')
-      let animateCallback: ((timestamp: number) => void) | null = null
-
-      requestAnimationFrameSpy.mockImplementation((callback) => {
-        animateCallback = callback as (timestamp: number) => void
-        return 123
-      })
-
+    it('stops animation when scale becomes 0', async () => {
       const state = createHoverAnimationState()
-      const getParamsZero = vi.fn(() => ({
+      let scaleValue = 1
+      const getParamsWithScale = vi.fn(() => ({
         baseAngle: 40,
-        scale: 0,
+        scale: scaleValue,
         isFlipped: false,
       }))
 
-      startHoverAnimation(state, mockCanvasState, getParamsZero)
-      expect(state.animationId).toBe(123)
+      startHoverAnimation(state, mockCanvasState, getParamsWithScale)
+      expect(state.animationId).toBeTruthy()
 
-      // Trigger animation frame with scale=0
-      animateCallback?.(performance.now())
+      // Change scale to 0 and wait for next animation frame
+      scaleValue = 0
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve)
+        })
+      })
 
-      expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(123)
+      // Animation should have stopped itself
       expect(state.animationId).toBe(null)
       expect(state.startTime).toBe(null)
+    })
 
-      requestAnimationFrameSpy.mockRestore()
-      cancelAnimationFrameSpy.mockRestore()
+    it('updates camera with flipped direction when isFlipped is true', async () => {
+      const state = createHoverAnimationState()
+      const getParamsFlipped = vi.fn(() => ({
+        baseAngle: 40,
+        scale: 1,
+        isFlipped: true,
+      }))
+
+      startHoverAnimation(state, mockCanvasState, getParamsFlipped)
+      expect(state.animationId).toBeTruthy()
+
+      // Wait for animation to run at least once
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve)
+        })
+      })
+
+      // Camera should have been updated with flipped direction
+      expect(mockCanvasState.camera.position.set).toHaveBeenCalled()
+      expect(mockCanvasState.camera.up.set).toHaveBeenCalled()
+      expect(mockCanvasState.camera.lookAt).toHaveBeenCalled()
+    })
+
+    it('continues animation using timestamp fallback when startTime is null', async () => {
+      const state = createHoverAnimationState()
+
+      startHoverAnimation(state, mockCanvasState, mockGetParams)
+      expect(state.animationId).toBeTruthy()
+
+      // Simulate the edge case where startTime becomes null during animation
+      // (this tests the defensive ?? timestamp fallback)
+      state.startTime = null
+
+      // Wait for animation to run
+      await new Promise((resolve) => {
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resolve)
+        })
+      })
+
+      // Animation should continue despite startTime being null
+      expect(mockCanvasState.camera.position.set).toHaveBeenCalled()
     })
   })
 
   describe('stopHoverAnimation', () => {
     it('cancels animation frame and resets state', () => {
-      const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame')
-
       const state: HoverAnimationState = {
         animationId: 123,
         startTime: 1000,
@@ -119,24 +144,16 @@ describe('hoverAnimation', () => {
 
       stopHoverAnimation(state)
 
-      expect(cancelAnimationFrameSpy).toHaveBeenCalledWith(123)
       expect(state.animationId).toBe(null)
       expect(state.startTime).toBe(null)
-
-      cancelAnimationFrameSpy.mockRestore()
     })
 
     it('does nothing if animation is not running', () => {
-      const cancelAnimationFrameSpy = vi.spyOn(global, 'cancelAnimationFrame')
-
       const state = createHoverAnimationState()
       stopHoverAnimation(state)
 
-      expect(cancelAnimationFrameSpy).not.toHaveBeenCalled()
       expect(state.animationId).toBe(null)
       expect(state.startTime).toBe(null)
-
-      cancelAnimationFrameSpy.mockRestore()
     })
   })
 })

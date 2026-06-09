@@ -1,3 +1,4 @@
+import { cancelAnimation, requestAnimation } from '../../platform/animationFrame'
 import { type Canvas3DState, render3D } from './canvas'
 
 const OSCILLATION_ANGLE = 1.95
@@ -51,15 +52,15 @@ export function startHoverAnimation(
     canvasState.camera.lookAt(0, 0, 0)
 
     render3D(canvasState)
-    hoverState.animationId = requestAnimationFrame(animate)
+    hoverState.animationId = requestAnimation(animate)
   }
 
-  hoverState.animationId = requestAnimationFrame(animate)
+  hoverState.animationId = requestAnimation(animate)
 }
 
 export function stopHoverAnimation(hoverState: HoverAnimationState): void {
   if (hoverState.animationId !== null) {
-    cancelAnimationFrame(hoverState.animationId)
+    cancelAnimation(hoverState.animationId)
     hoverState.animationId = null
   }
   hoverState.startTime = null

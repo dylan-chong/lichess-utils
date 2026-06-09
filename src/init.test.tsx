@@ -10,6 +10,7 @@ const dom = mockModule(import('./platform/dom'))
 const boardObserver = mockModule(import('./application/observers/observerState'))
 const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
 const handleFlash = mockModule(import('./application/handlers/handleFlash'))
+const handleBlackSegments = mockModule(import('./application/handlers/handleBlackSegments'))
 const handleCustomBoard = mockModule(import('./application/handlers/handleCustomBoard'))
 const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
 const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
@@ -20,6 +21,7 @@ const onCustomBoard = mockModule(import('./application/effects/onCustomBoard'))
 const onParallax = mockModule(import('./application/effects/onParallax'))
 const onHoverMode = mockModule(import('./application/effects/onHoverMode'))
 const onPieceStyle = mockModule(import('./application/effects/onPieceStyle'))
+const onBlackSegments = mockModule(import('./application/effects/onBlackSegments'))
 const hoverAnimation = mockModule(import('./presentation/3d/hoverAnimation'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
@@ -47,12 +49,14 @@ describe('init', () => {
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
     const mockCleanupPieceStyle = () => {}
+    const mockCleanupBlackSegments = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
       boardPlaneName: 'boardPlane',
     }
     const mockHoverState = { animationId: null, startTime: null }
+    const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -98,6 +102,14 @@ describe('init', () => {
       .expects('setupPieceStyleEffect')
       .withArgs(mockCustomBoardState, mockSettings)
       .returns(mockCleanupPieceStyle)
+    handleBlackSegments
+      .expects('createBlackSegmentsState')
+      .withArgs()
+      .returns(mockBlackSegmentsState)
+    onBlackSegments
+      .expects('setupBlackSegmentsEffect')
+      .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
+      .returns(mockCleanupBlackSegments)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -137,12 +149,14 @@ describe('init', () => {
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
     const mockCleanupPieceStyle = () => {}
+    const mockCleanupBlackSegments = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
       boardPlaneName: 'boardPlane',
     }
     const mockHoverState = { animationId: null, startTime: null }
+    const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -188,6 +202,14 @@ describe('init', () => {
       .expects('setupPieceStyleEffect')
       .withArgs(mockCustomBoardState, mockSettings)
       .returns(mockCleanupPieceStyle)
+    handleBlackSegments
+      .expects('createBlackSegmentsState')
+      .withArgs()
+      .returns(mockBlackSegmentsState)
+    onBlackSegments
+      .expects('setupBlackSegmentsEffect')
+      .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
+      .returns(mockCleanupBlackSegments)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)
@@ -235,12 +257,14 @@ describe('init', () => {
     const mockCleanupParallax = () => {}
     const mockCleanupHover = () => {}
     const mockCleanupPieceStyle = () => {}
+    const mockCleanupBlackSegments = () => {}
     const mockCustomBoardState = {
       canvas: null,
       pieceManager: { meshes: [], meshMap: new Map() },
       boardPlaneName: 'boardPlane',
     }
     const mockHoverState = { animationId: null, startTime: null }
+    const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -286,6 +310,14 @@ describe('init', () => {
       .expects('setupPieceStyleEffect')
       .withArgs(mockCustomBoardState, mockSettings)
       .returns(mockCleanupPieceStyle)
+    handleBlackSegments
+      .expects('createBlackSegmentsState')
+      .withArgs()
+      .returns(mockBlackSegmentsState)
+    onBlackSegments
+      .expects('setupBlackSegmentsEffect')
+      .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
+      .returns(mockCleanupBlackSegments)
     keyboardInput
       .expects('setupKeyboardCommands')
       .withArgs(mockSettings, mockAnnotationsState)

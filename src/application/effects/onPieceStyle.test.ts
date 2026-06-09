@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals-core'
 import { mockModule } from 'simone'
 import { describe, expect, it } from 'vitest'
+import type { THREE } from '../../platform/three'
 import type { Canvas3DState } from '../../presentation/3d/canvas'
 import type { PieceManagerState } from '../../presentation/3d/pieceManager'
 import type { CustomBoardState } from '../handlers/handleCustomBoard'
