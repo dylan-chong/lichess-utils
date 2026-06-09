@@ -11,12 +11,20 @@ describe('keyboardInput', () => {
   let input: HTMLInputElement
   let settings: ReturnType<typeof createSettingsStore>
   let mockAnnotationsState: { svg: SVGSVGElement }
+  let mockCustomBoardState: { canvas: null; pieceManager: { meshes: []; meshMap: Map<string, never> }; boardPlaneName: string }
+  let mockDrawings3DState: { objects: [] }
 
   beforeEach(() => {
     settings = createSettingsStore()
     mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
     }
+    mockCustomBoardState = {
+      canvas: null,
+      pieceManager: { meshes: [], meshMap: new Map() },
+      boardPlaneName: 'boardPlane',
+    }
+    mockDrawings3DState = { objects: [] }
     document.body.innerHTML = `
       <div class="keyboard-move">
         <input type="text" />
@@ -28,7 +36,7 @@ describe('keyboardInput', () => {
   })
 
   it('executes speech command and clears input when command is entered', () => {
-    setupKeyboardCommands(settings, mockAnnotationsState)
+    setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
 
     handleSpeechCommand
       .expects('handleSpeechCommand')
@@ -42,7 +50,7 @@ describe('keyboardInput', () => {
   })
 
   it('executes stop command when pss is entered', () => {
-    setupKeyboardCommands(settings, mockAnnotationsState)
+    setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
 
     handleSpeechCommand
       .expects('handleSpeechCommand')
@@ -54,7 +62,7 @@ describe('keyboardInput', () => {
   })
 
   it('ignores non-command input', () => {
-    setupKeyboardCommands(settings, mockAnnotationsState)
+    setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
 
     input.value = 'e4'
     input.dispatchEvent(new Event('input'))
@@ -63,11 +71,11 @@ describe('keyboardInput', () => {
   })
 
   it('draws annotations when input starts with hyphen', () => {
-    setupKeyboardCommands(settings, mockAnnotationsState)
+    setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
 
     handleDrawCommand
       .expects('handleDrawCommand')
-      .withArgs('-e4', mockAnnotationsState)
+      .withArgs('-e4', mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
       .returns(undefined)
 
     input.value = '-e4'
@@ -75,7 +83,7 @@ describe('keyboardInput', () => {
   })
 
   it('stops listening after teardown', () => {
-    setupKeyboardCommands(settings, mockAnnotationsState)
+    setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
     teardownKeyboardCommands()
 
     input.value = 'pwk'
@@ -90,6 +98,6 @@ describe('keyboardInput', () => {
 
   it('returns early without error when input element is missing', () => {
     document.body.innerHTML = '' // No input element
-    expect(() => setupKeyboardCommands(settings, mockAnnotationsState)).not.toThrow()
+    expect(() => setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)).not.toThrow()
   })
 })

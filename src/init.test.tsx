@@ -23,6 +23,7 @@ const onHoverMode = mockModule(import('./application/effects/onHoverMode'))
 const onPieceStyle = mockModule(import('./application/effects/onPieceStyle'))
 const onBlackSegments = mockModule(import('./application/effects/onBlackSegments'))
 const hoverAnimation = mockModule(import('./presentation/3d/hoverAnimation'))
+const drawings3d = mockModule(import('./presentation/3d/drawings3d'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -110,9 +111,10 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
-      .withArgs(mockSettings, mockAnnotationsState)
+      .withArgs(mockSettings, mockAnnotationsState, mockCustomBoardState, { objects: [] })
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
@@ -210,9 +212,10 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
-      .withArgs(mockSettings, mockAnnotationsState)
+      .withArgs(mockSettings, mockAnnotationsState, mockCustomBoardState, { objects: [] })
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
@@ -318,9 +321,10 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
-      .withArgs(mockSettings, mockAnnotationsState)
+      .withArgs(mockSettings, mockAnnotationsState, mockCustomBoardState, { objects: [] })
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(null) // Simulate missing element

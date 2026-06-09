@@ -2,8 +2,10 @@ import { KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants/comm
 import { DomSelector } from '../../constants/dom'
 import { querySelector } from '../../platform/dom'
 import type { AnnotationsState } from '../../presentation/non-preact-components/annotations'
+import type { Drawings3DState } from '../../presentation/3d/drawings3d'
 import { handleDrawCommand } from '../handlers/handleDrawCommand'
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
+import type { CustomBoardState } from '../handlers/handleCustomBoard'
 import type { SettingsStore } from '../settings/settingsStore'
 
 interface InputElementWithCleanup extends HTMLInputElement {
@@ -12,7 +14,9 @@ interface InputElementWithCleanup extends HTMLInputElement {
 
 export function setupKeyboardCommands(
   settings: SettingsStore,
-  annotationsState: AnnotationsState
+  annotationsState: AnnotationsState,
+  customBoardState: CustomBoardState,
+  drawings3DState: Drawings3DState
 ): void {
   const input = querySelector(DomSelector.KEYBOARD_INPUT) as InputElementWithCleanup | null
   if (!input) return
@@ -31,7 +35,7 @@ export function setupKeyboardCommands(
 
     // Check for drawing commands
     if (value.startsWith('-')) {
-      handleDrawCommand(value, annotationsState)
+      handleDrawCommand(value, annotationsState, customBoardState, drawings3DState)
       return
     }
   }

@@ -23,6 +23,7 @@ import {
 } from './application/settings/settingsStore'
 import { DomSelector } from './constants/dom'
 import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
+import { createDrawings3DState } from './presentation/3d/drawings3d'
 import { createHoverAnimationState, stopHoverAnimation } from './presentation/3d/hoverAnimation'
 import { createRoot, destroyRoot } from './presentation/components/root'
 import {
@@ -71,8 +72,11 @@ export async function init() {
     settings
   )
 
+  // Create 3D drawings state
+  const drawings3DState = createDrawings3DState()
+
   // Set up commands
-  setupKeyboardCommands(settings, annotationsState)
+  setupKeyboardCommands(settings, annotationsState, customBoardState, drawings3DState)
 
   // Mount Preact UI
   const mountPoint = createDiv()
