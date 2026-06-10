@@ -10,7 +10,9 @@ const annotations = mockModule(import('../../presentation/non-preact-components/
 const drawings3d = mockModule(import('../../presentation/3d/drawings3d'))
 
 describe('handleDrawCommand', () => {
-  const mockAnnotationsState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+  const mockAnnotationsState = {
+    svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+  }
   const mockDrawings3DState = { objects: [] }
 
   function createMockRenderer(): THREE.WebGLRenderer {
@@ -33,7 +35,10 @@ describe('handleDrawCommand', () => {
 
     commandParser.expects('parseDrawCommand').withArgs('-e4,e2e4').returns(parsedAnnotations)
 
-    annotations.expects('drawAnnotations').withArgs(mockAnnotationsState, parsedAnnotations).returns(undefined)
+    annotations
+      .expects('drawAnnotations')
+      .withArgs(mockAnnotationsState, parsedAnnotations)
+      .returns(undefined)
 
     handleDrawCommand('-e4,e2e4', mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
   })
@@ -60,7 +65,10 @@ describe('handleDrawCommand', () => {
 
     commandParser.expects('parseDrawCommand').withArgs('-e4,e2e4').returns(parsedAnnotations)
 
-    drawings3d.expects('draw3DAnnotations').withArgs(mockCanvas3DState, mockDrawings3DState, parsedAnnotations).returns(undefined)
+    drawings3d
+      .expects('draw3DAnnotations')
+      .withArgs(mockCanvas3DState, mockDrawings3DState, parsedAnnotations)
+      .returns(undefined)
 
     handleDrawCommand('-e4,e2e4', mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
   })
@@ -96,7 +104,10 @@ describe('handleDrawCommand', () => {
 
     commandParser.expects('parseDrawCommand').withArgs('-').returns([])
 
-    drawings3d.expects('draw3DAnnotations').withArgs(mockCanvas3DState, mockDrawings3DState, []).returns(undefined)
+    drawings3d
+      .expects('draw3DAnnotations')
+      .withArgs(mockCanvas3DState, mockDrawings3DState, [])
+      .returns(undefined)
 
     handleDrawCommand('-', mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)
   })

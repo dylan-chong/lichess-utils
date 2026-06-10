@@ -1,11 +1,11 @@
 import { KEYBOARD_COMMAND_MAP, type KeyboardCommand } from '../../constants/commands'
 import { DomSelector } from '../../constants/dom'
 import { querySelector } from '../../platform/dom'
-import type { AnnotationsState } from '../../presentation/non-preact-components/annotations'
 import type { Drawings3DState } from '../../presentation/3d/drawings3d'
+import type { AnnotationsState } from '../../presentation/non-preact-components/annotations'
+import type { CustomBoardState } from '../handlers/handleCustomBoard'
 import { handleDrawCommand } from '../handlers/handleDrawCommand'
 import { handleSpeechCommand } from '../handlers/handleSpeechCommand'
-import type { CustomBoardState } from '../handlers/handleCustomBoard'
 import type { SettingsStore } from '../settings/settingsStore'
 
 interface InputElementWithCleanup extends HTMLInputElement {

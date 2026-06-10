@@ -1,6 +1,9 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { SpeechCommand } from '../../constants/commands'
+import type { Drawings3DState } from '../../presentation/3d/drawings3d'
+import type { AnnotationsState } from '../../presentation/non-preact-components/annotations'
+import type { CustomBoardState } from '../handlers/handleCustomBoard'
 import { createSettingsStore } from '../settings/settingsStore'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './keyboardInput'
 
@@ -10,9 +13,9 @@ const handleDrawCommand = mockModule(import('../handlers/handleDrawCommand'))
 describe('keyboardInput', () => {
   let input: HTMLInputElement
   let settings: ReturnType<typeof createSettingsStore>
-  let mockAnnotationsState: { svg: SVGSVGElement }
-  let mockCustomBoardState: { canvas: null; pieceManager: { meshes: []; meshMap: Map<string, never> }; boardPlaneName: string }
-  let mockDrawings3DState: { objects: [] }
+  let mockAnnotationsState: AnnotationsState
+  let mockCustomBoardState: CustomBoardState
+  let mockDrawings3DState: Drawings3DState
 
   beforeEach(() => {
     settings = createSettingsStore()
@@ -98,6 +101,13 @@ describe('keyboardInput', () => {
 
   it('returns early without error when input element is missing', () => {
     document.body.innerHTML = '' // No input element
-    expect(() => setupKeyboardCommands(settings, mockAnnotationsState, mockCustomBoardState, mockDrawings3DState)).not.toThrow()
+    expect(() =>
+      setupKeyboardCommands(
+        settings,
+        mockAnnotationsState,
+        mockCustomBoardState,
+        mockDrawings3DState
+      )
+    ).not.toThrow()
   })
 })

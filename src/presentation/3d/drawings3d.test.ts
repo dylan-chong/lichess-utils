@@ -1,6 +1,7 @@
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { AnnotationType } from '../../constants/annotations'
+import type { DrawAnnotation } from '../../domain/commands/commandParser'
 import { THREE } from '../../platform/three'
 import type { Canvas3DState } from './canvas'
 import { clear3DDrawings, createDrawings3DState, draw3DAnnotations } from './drawings3d'
@@ -39,7 +40,7 @@ describe('drawings3d', () => {
   describe('draw3DAnnotations', () => {
     it('should add circle mesh to scene for circle annotation', () => {
       const state = createDrawings3DState()
-      const annotations = [{ type: AnnotationType.CIRCLE, square: 'e4' }]
+      const annotations: DrawAnnotation[] = [{ type: AnnotationType.CIRCLE, square: 'e4' }]
 
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
 
@@ -52,7 +53,7 @@ describe('drawings3d', () => {
 
     it('should add arrow group to scene for arrow annotation', () => {
       const state = createDrawings3DState()
-      const annotations = [{ type: AnnotationType.ARROW, from: 'e2', to: 'e4' }]
+      const annotations: DrawAnnotation[] = [{ type: AnnotationType.ARROW, from: 'e2', to: 'e4' }]
 
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
 
@@ -68,19 +69,23 @@ describe('drawings3d', () => {
 
       // First draw
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
-      draw3DAnnotations(canvasState, state, [{ type: AnnotationType.CIRCLE, square: 'e4' }])
+      draw3DAnnotations(canvasState, state, [
+        { type: AnnotationType.CIRCLE, square: 'e4' },
+      ] as DrawAnnotation[])
       expect(state.objects.length).toBe(1)
 
       // Second draw should clear first
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
-      draw3DAnnotations(canvasState, state, [{ type: AnnotationType.CIRCLE, square: 'd4' }])
+      draw3DAnnotations(canvasState, state, [
+        { type: AnnotationType.CIRCLE, square: 'd4' },
+      ] as DrawAnnotation[])
       expect(state.objects.length).toBe(1)
       expect(scene.children.length).toBe(1)
     })
 
-    it('should handle multiple annotations', () => {
+    it('adds all objects to scene when given multiple annotations', () => {
       const state = createDrawings3DState()
-      const annotations = [
+      const annotations: DrawAnnotation[] = [
         { type: AnnotationType.CIRCLE, square: 'e4' },
         { type: AnnotationType.ARROW, from: 'e2', to: 'e4' },
         { type: AnnotationType.CIRCLE, square: 'd4' },
@@ -99,7 +104,9 @@ describe('drawings3d', () => {
 
       // First draw with annotation
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
-      draw3DAnnotations(canvasState, state, [{ type: AnnotationType.CIRCLE, square: 'e4' }])
+      draw3DAnnotations(canvasState, state, [
+        { type: AnnotationType.CIRCLE, square: 'e4' },
+      ] as DrawAnnotation[])
       expect(state.objects.length).toBe(1)
 
       // Clear with empty array
@@ -111,7 +118,7 @@ describe('drawings3d', () => {
 
     it('should call render3D after drawing', () => {
       const state = createDrawings3DState()
-      const annotations = [{ type: AnnotationType.CIRCLE, square: 'e4' }]
+      const annotations: DrawAnnotation[] = [{ type: AnnotationType.CIRCLE, square: 'e4' }]
 
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
 
@@ -153,7 +160,7 @@ describe('drawings3d', () => {
       expect(state.objects).toEqual([])
     })
 
-    it('should handle groups with child meshes', () => {
+    it('disposes child meshes within groups', () => {
       const state = createDrawings3DState()
       const group = new THREE.Group()
       const mesh1 = new THREE.Mesh(new THREE.CylinderGeometry(), new THREE.MeshStandardMaterial())
@@ -170,14 +177,14 @@ describe('drawings3d', () => {
       expect(state.objects).toEqual([])
     })
 
-    it('should handle empty objects array without error', () => {
+    it('does nothing when objects array is already empty', () => {
       const state = createDrawings3DState()
 
       expect(() => clear3DDrawings(canvasState, state)).not.toThrow()
       expect(state.objects).toEqual([])
     })
 
-    it('should handle mesh with array material', () => {
+    it('disposes all materials when mesh has array material', () => {
       const state = createDrawings3DState()
       const geometry = new THREE.TorusGeometry()
       const material1 = new THREE.MeshStandardMaterial()
@@ -193,7 +200,7 @@ describe('drawings3d', () => {
       expect(state.objects).toEqual([])
     })
 
-    it('should handle mesh without geometry', () => {
+    it('removes mesh from scene even when geometry is undefined', () => {
       const state = createDrawings3DState()
       const mesh = new THREE.Mesh()
 
@@ -210,9 +217,7 @@ describe('drawings3d', () => {
   describe('edge cases', () => {
     it('should ignore unknown annotation types', () => {
       const state = createDrawings3DState()
-      const annotations = [
-        { type: 'unknown' as any, square: 'e4' },
-      ]
+      const annotations = [{ type: 'unknown' as any, square: 'e4' }]
 
       canvas.expects('render3D').withArgs(canvasState).returns(undefined)
 

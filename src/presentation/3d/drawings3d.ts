@@ -1,7 +1,7 @@
-import { THREE } from '../../platform/three'
 import { AnnotationType } from '../../constants/annotations'
 import type { DrawAnnotation } from '../../domain/commands/commandParser'
-import { render3D, type Canvas3DState } from './canvas'
+import { THREE } from '../../platform/three'
+import { type Canvas3DState, render3D } from './canvas'
 
 const DRAWING_COLOR = 0xff6b6b
 
@@ -95,10 +95,7 @@ export function draw3DAnnotations(
   render3D(canvasState)
 }
 
-export function clear3DDrawings(
-  canvasState: Canvas3DState,
-  drawingsState: Drawings3DState
-): void {
+export function clear3DDrawings(canvasState: Canvas3DState, drawingsState: Drawings3DState): void {
   for (const obj of drawingsState.objects) {
     canvasState.scene.remove(obj)
     obj.traverse((child) => {
