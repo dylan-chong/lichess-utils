@@ -1,4 +1,4 @@
-import type { Signal } from '@preact/signals'
+import { type Signal, useComputed } from '@preact/signals'
 import {
   BLACK_SEGMENTS_OPTIONS,
   BLACK_SEGMENTS_TIMING_OPTIONS,
@@ -18,15 +18,18 @@ import { SpeechButtons } from './SpeechButtons'
 
 interface ControlPanelProps {
   boardChanged: Signal<number>
+  onAnnotate: () => void
 }
 
 const TOGGLE_OPTIONS = [false, true] as const
 
-export function ControlPanel({ boardChanged }: ControlPanelProps) {
+export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
   const settings = useSettings()
 
   // Use boardChanged to ensure component re-renders when board changes
   boardChanged.value
+
+  const blackSegmentsActive = useComputed(() => settings.blackSegments.value !== 'none')
 
   return (
     <div>
@@ -44,13 +47,7 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
 
       {/* Row: Annotate Board */}
       <ButtonRow>
-        <ActionButton
-          label="Annotate Board"
-          onClick={() => {
-            // TODO: Focus move input or trigger annotation mode
-            console.log('Annotate Board clicked')
-          }}
-        />
+        <ActionButton label="Annotate Board" onClick={onAnnotate} />
       </ButtonRow>
 
       {/* Row: Dividers and Custom Board */}
@@ -68,7 +65,7 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
       </ButtonRow>
 
       {/* Custom Board Nested Controls */}
-      <ConditionalControls condition={settings.customBoardEnabled.value}>
+      <ConditionalControls condition={settings.customBoardEnabled}>
         <ButtonRow>
           <SettingButton
             label="Obfuscations"
@@ -84,7 +81,7 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
         </ButtonRow>
 
         {/* Obfuscations Nested Controls */}
-        <ConditionalControls condition={settings.obfuscationsEnabled.value}>
+        <ConditionalControls condition={settings.obfuscationsEnabled}>
           <ButtonRow>
             <SettingButton
               label="Piece Style"
@@ -100,7 +97,7 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
           </ButtonRow>
 
           {/* Black Segments Timing - only when not 'none' */}
-          <ConditionalControls condition={settings.blackSegments.value !== 'none'}>
+          <ConditionalControls condition={blackSegmentsActive}>
             <ButtonRow>
               <SettingButton
                 label="Timing"
@@ -122,7 +119,7 @@ export function ControlPanel({ boardChanged }: ControlPanelProps) {
       </ButtonRow>
 
       {/* Flash Mode Nested Controls */}
-      <ConditionalControls condition={settings.flashModeEnabled.value}>
+      <ConditionalControls condition={settings.flashModeEnabled}>
         <ButtonRow>
           <SettingButton
             label="Flash Duration"

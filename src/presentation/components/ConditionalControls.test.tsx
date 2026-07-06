@@ -1,3 +1,4 @@
+import { signal } from '@preact/signals'
 import { render, screen } from '@testing-library/preact'
 import { describe, expect, it } from 'vitest'
 import { ConditionalControls } from './ConditionalControls'
@@ -5,7 +6,7 @@ import { ConditionalControls } from './ConditionalControls'
 describe('ConditionalControls', () => {
   it('renders children when condition is true', () => {
     render(
-      <ConditionalControls condition={true}>
+      <ConditionalControls condition={signal(true)}>
         <div>Test Content</div>
       </ConditionalControls>
     )
@@ -15,7 +16,7 @@ describe('ConditionalControls', () => {
 
   it('does not render children when condition is false', () => {
     render(
-      <ConditionalControls condition={false}>
+      <ConditionalControls condition={signal(false)}>
         <div>Hidden Content</div>
       </ConditionalControls>
     )
@@ -25,7 +26,7 @@ describe('ConditionalControls', () => {
 
   it('applies indentation style when rendered', () => {
     const { container } = render(
-      <ConditionalControls condition={true}>
+      <ConditionalControls condition={signal(true)}>
         <div>Indented Content</div>
       </ConditionalControls>
     )
@@ -37,7 +38,7 @@ describe('ConditionalControls', () => {
 
   it('returns null when condition is false', () => {
     const { container } = render(
-      <ConditionalControls condition={false}>
+      <ConditionalControls condition={signal(false)}>
         <div>Hidden</div>
       </ConditionalControls>
     )

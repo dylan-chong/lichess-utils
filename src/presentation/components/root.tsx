@@ -7,11 +7,12 @@ import { ControlPanel } from './ControlPanel'
 export function createRoot(
   boardChanged: Signal<number>,
   mountPoint: HTMLElement,
-  settings: SettingsStore
+  settings: SettingsStore,
+  onAnnotate: () => void
 ): void {
   render(
     <SettingsProvider settings={settings}>
-      <ControlPanel boardChanged={boardChanged} />
+      <ControlPanel boardChanged={boardChanged} onAnnotate={onAnnotate} />
     </SettingsProvider>,
     mountPoint
   )

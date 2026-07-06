@@ -1,12 +1,13 @@
+import type { ReadonlySignal, Signal } from '@preact/signals'
 import type { ComponentChildren } from 'preact'
 
 interface ConditionalControlsProps {
-  condition: boolean
+  condition: Signal<boolean> | ReadonlySignal<boolean>
   children: ComponentChildren
 }
 
 export function ConditionalControls({ condition, children }: ConditionalControlsProps) {
-  if (!condition) {
+  if (!condition.value) {
     return null
   }
 

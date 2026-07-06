@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals'
 import { render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSettingsStore } from '../../application/settings/settingsStore'
 import { defaultSettings } from '../../constants/settings'
 import { SettingsProvider } from '../contexts/SettingsContext'
@@ -24,7 +24,7 @@ describe('ControlPanel', () => {
     const boardChanged = signal(0)
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -44,7 +44,7 @@ describe('ControlPanel', () => {
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -62,7 +62,7 @@ describe('ControlPanel', () => {
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -79,7 +79,7 @@ describe('ControlPanel', () => {
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -96,7 +96,7 @@ describe('ControlPanel', () => {
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -113,7 +113,7 @@ describe('ControlPanel', () => {
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
       </SettingsProvider>
     )
 
@@ -124,23 +124,20 @@ describe('ControlPanel', () => {
     expect(screen.getByText('Flash Mode: true')).toBeTruthy()
   })
 
-  it('clicking Annotate Board button executes its handler', async () => {
+  it('clicking Annotate Board button calls onAnnotate', async () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
+    const onAnnotate = vi.fn()
 
     render(
       <SettingsProvider settings={settings}>
-        <ControlPanel boardChanged={boardChanged} />
+        <ControlPanel boardChanged={boardChanged} onAnnotate={onAnnotate} />
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Annotate Board')
+    await user.click(screen.getByText('Annotate Board'))
 
-    // Click the button to execute the onClick handler (currently a TODO placeholder)
-    await user.click(button)
-
-    // Button should still be present after clicking
-    expect(screen.getByText('Annotate Board')).toBeTruthy()
+    expect(onAnnotate).toHaveBeenCalledOnce()
   })
 
   describe('Custom Board nested controls', () => {
@@ -154,7 +151,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -172,7 +169,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -190,7 +187,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -215,7 +212,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -233,7 +230,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -251,7 +248,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -270,7 +267,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -291,7 +288,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 
@@ -310,7 +307,7 @@ describe('ControlPanel', () => {
 
       render(
         <SettingsProvider settings={settings}>
-          <ControlPanel boardChanged={boardChanged} />
+          <ControlPanel boardChanged={boardChanged} onAnnotate={() => {}} />
         </SettingsProvider>
       )
 

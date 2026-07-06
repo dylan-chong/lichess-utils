@@ -24,6 +24,7 @@ const onPieceStyle = mockModule(import('./application/effects/onPieceStyle'))
 const onBlackSegments = mockModule(import('./application/effects/onBlackSegments'))
 const hoverAnimation = mockModule(import('./presentation/3d/hoverAnimation'))
 const drawings3d = mockModule(import('./presentation/3d/drawings3d'))
+const handleAnnotateMock = mockModule(import('./application/handlers/handleAnnotate'))
 const keyboardInput = mockModule(import('./application/input/keyboardInput'))
 const root = mockModule(import('./presentation/components/root'))
 
@@ -121,7 +122,7 @@ describe('init', () => {
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
     root
       .expects('createRoot')
-      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
       .returns(undefined)
 
     const cleanup = await init()
@@ -222,7 +223,7 @@ describe('init', () => {
     dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
     root
       .expects('createRoot')
-      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
       .returns(undefined)
 
     const cleanup = await init()
@@ -331,7 +332,7 @@ describe('init', () => {
     // appendChild should NOT be called when keyboardMove is null
     root
       .expects('createRoot')
-      .withArgs(mockBoardChanged, mockMountPoint, mockSettings)
+      .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
       .returns(undefined)
 
     const cleanup = await init()

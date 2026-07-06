@@ -9,7 +9,7 @@ describe('root', () => {
     const mountPoint = document.createElement('div')
     const settings = createSettingsStore()
 
-    createRoot(boardChanged, mountPoint, settings)
+    createRoot(boardChanged, mountPoint, settings, () => {})
 
     expect(mountPoint.innerHTML).toContain('button')
     expect(mountPoint.innerHTML.length).toBeGreaterThan(0)
@@ -20,7 +20,7 @@ describe('root', () => {
     const mountPoint = document.createElement('div')
     const settings = createSettingsStore()
 
-    createRoot(boardChanged, mountPoint, settings)
+    createRoot(boardChanged, mountPoint, settings, () => {})
     expect(mountPoint.innerHTML).not.toBe('')
 
     destroyRoot(mountPoint)

@@ -7,6 +7,7 @@ import { setupFlashEffect } from './application/effects/onFlash'
 import { setupHoverModeEffect } from './application/effects/onHoverMode'
 import { setupParallaxEffect } from './application/effects/onParallax'
 import { setupPieceStyleEffect } from './application/effects/onPieceStyle'
+import { handleAnnotate } from './application/handlers/handleAnnotate'
 import { createBlackSegmentsState } from './application/handlers/handleBlackSegments'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
@@ -84,7 +85,8 @@ export async function init() {
   if (keyboardMove) {
     appendChild(keyboardMove, mountPoint)
   }
-  createRoot(boardChanged, mountPoint, settings)
+
+  createRoot(boardChanged, mountPoint, settings, handleAnnotate)
 
   // Return cleanup function
   return () => {
