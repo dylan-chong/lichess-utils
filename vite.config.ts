@@ -3,6 +3,20 @@ import swc from 'unplugin-swc'
 import { readFileSync, existsSync } from 'fs'
 import { execSync } from 'child_process'
 
+function userscriptBanner() {
+  const header = generateUserscriptHeader()
+  return {
+    name: 'userscript-banner',
+    generateBundle(_options, bundle) {
+      for (const chunk of Object.values(bundle)) {
+        if (chunk.type === 'chunk') {
+          chunk.code = header + '\n' + chunk.code
+        }
+      }
+    }
+  }
+}
+
 export default defineConfig({
   plugins: [
     swc.vite({
@@ -18,6 +32,7 @@ export default defineConfig({
         },
       },
     }),
+    userscriptBanner(),
   ],
   build: {
     lib: {
@@ -32,7 +47,6 @@ export default defineConfig({
     rollupOptions: {
       external: ['three'],
       output: {
-        banner: generateUserscriptHeader(),
         format: 'iife',
         globals: { three: 'THREE' },
         inlineDynamicImports: true
