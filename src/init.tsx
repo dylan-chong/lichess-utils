@@ -57,7 +57,7 @@ export async function init() {
   startBoardObserver(boardObserverState)
 
   // Set up effects
-  const cleanupDividers = setupDividersEffect(dividersState, settings)
+  const cleanupDividers = setupDividersEffect(dividersState, settings, boardChanged)
   const cleanupFlash = setupFlashEffect(flashState, flashLoopState, settings, boardChanged)
   const cleanupBlur = setupBlurEffect(settings)
   const customBoardState = createCustomBoardState()

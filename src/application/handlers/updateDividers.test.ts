@@ -9,6 +9,8 @@ const dividers = mockModule(import('../../presentation/non-preact-components/div
 describe('updateDividers', () => {
   const mockState: DividersState = {
     svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+    vLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+    hLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
   }
   const settings = createSettingsStore()
 

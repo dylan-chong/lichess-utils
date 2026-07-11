@@ -36,7 +36,11 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockFlashLoopState = { intervalId: null, timeoutId: null }
-    const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockDividersState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+      vLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+      hLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+    }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
     }
@@ -79,7 +83,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings)
+      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')
@@ -137,7 +141,11 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockFlashLoopState = { intervalId: null, timeoutId: null }
-    const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockDividersState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+      vLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+      hLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+    }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
     }
@@ -180,7 +188,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings)
+      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')
@@ -246,7 +254,11 @@ describe('init', () => {
     const mockBoardChanged = signal(0)
     const mockFlashState = { overlay: document.createElement('div') }
     const mockFlashLoopState = { intervalId: null, timeoutId: null }
-    const mockDividersState = { svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg') }
+    const mockDividersState = {
+      svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+      vLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+      hLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
+    }
     const mockAnnotationsState = {
       svg: document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
     }
@@ -289,7 +301,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings)
+      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')
