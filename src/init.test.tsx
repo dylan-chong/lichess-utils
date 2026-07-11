@@ -83,7 +83,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')
@@ -188,7 +188,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')
@@ -301,7 +301,7 @@ describe('init', () => {
     boardObserver.expects('startBoardObserver').withArgs(mockBoardObserverState).returns(undefined)
     onDividers
       .expects('setupDividersEffect')
-      .withArgs(mockDividersState, mockSettings, mockBoardChanged)
+      .withArgs(mockDividersState, mockSettings)
       .returns(mockCleanupDividers)
     onFlash
       .expects('setupFlashEffect')

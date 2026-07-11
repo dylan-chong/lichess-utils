@@ -1,4 +1,3 @@
-import { signal } from '@preact/signals-core'
 import { mockModule } from 'simone'
 import { afterEach, beforeEach, describe, it, vi } from 'vitest'
 import type { DividersState } from '../../presentation/non-preact-components/dividers'
@@ -15,7 +14,6 @@ describe('onDividers effect', () => {
     hLine: document.createElementNS('http://www.w3.org/2000/svg', 'line'),
   }
   const settings = createSettingsStore()
-  const boardChanged = signal(0)
 
   beforeEach(() => {
     vi.useFakeTimers()
@@ -28,7 +26,7 @@ describe('onDividers effect', () => {
   it('calls updateDividers when dividersEnabled changes', () => {
     updateDividers.expects('updateDividers').withArgs(mockState, settings).returns(undefined)
 
-    const cleanup = setupDividersEffect(mockState, settings, boardChanged)
+    const cleanup = setupDividersEffect(mockState, settings)
 
     dividers.expects('resizeDividers').withArgs(mockState).returns(undefined)
     updateDividers.expects('updateDividers').withArgs(mockState, settings).returns(undefined)
@@ -42,7 +40,7 @@ describe('onDividers effect', () => {
     dividers.expects('resizeDividers').withArgs(mockState).returns(undefined)
     updateDividers.expects('updateDividers').withArgs(mockState, settings).returns(undefined)
 
-    const cleanup = setupDividersEffect(mockState, settings, boardChanged)
+    const cleanup = setupDividersEffect(mockState, settings)
 
     updateDividers.expects('updateDividers').withArgs(mockState, settings).returns(undefined)
     settings.dividersEnabled.value = false
@@ -55,7 +53,7 @@ describe('onDividers effect', () => {
     dividers.expects('resizeDividers').withArgs(mockState).returns(undefined)
     updateDividers.expects('updateDividers').withArgs(mockState, settings).returns(undefined)
 
-    const cleanup = setupDividersEffect(mockState, settings, boardChanged)
+    const cleanup = setupDividersEffect(mockState, settings)
 
     dividers.expects('resizeDividers').withArgs(mockState).returns(undefined)
     vi.advanceTimersByTime(2000)

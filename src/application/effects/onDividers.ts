@@ -1,4 +1,3 @@
-import type { Signal } from '@preact/signals-core'
 import { effect } from '@preact/signals-core'
 import {
   type DividersState,
@@ -9,15 +8,10 @@ import type { SettingsStore } from '../settings/settingsStore'
 
 const RESIZE_INTERVAL_MS = 2000
 
-export function setupDividersEffect(
-  state: DividersState,
-  settings: SettingsStore,
-  boardChanged: Signal<number>
-): () => void {
+export function setupDividersEffect(state: DividersState, settings: SettingsStore): () => void {
   let intervalId: ReturnType<typeof setInterval> | null = null
 
   const cleanup = effect(() => {
-    boardChanged.value
     const enabled = settings.dividersEnabled.value
 
     if (intervalId !== null) {
