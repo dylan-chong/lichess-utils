@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name        lichess-board-speaker
 // @description Blindfold chess training tool for lichess.org
-// @version     4.0.7
+// @version     4.0.8
 // @match       *://lichess.org/*
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant       none
 // @inject-into content
-// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
-// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
+// @updateURL   https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
+// @downloadURL https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
 // ==/UserScript==
 (function(three) {
 	//#region \0rolldown/runtime.js

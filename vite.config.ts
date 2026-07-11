@@ -51,7 +51,7 @@ function generateUserscriptHeader() {
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant       none
 // @inject-into content
-// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
-// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
+// @updateURL   https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
+// @downloadURL https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js
 // ==/UserScript==`
 }
