@@ -13,6 +13,7 @@ import { useSettings } from '../contexts/SettingsContext'
 import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
 import { ConditionalControls } from './ConditionalControls'
+import { PiecesList } from './PiecesList'
 import { SettingButton } from './SettingButton'
 import { SpeechButtons } from './SpeechButtons'
 
@@ -44,6 +45,9 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           options={TOGGLE_OPTIONS}
         />
       </ButtonRow>
+      <ConditionalControls condition={settings.piecesListEnabled}>
+        <PiecesList boardChanged={boardChanged} />
+      </ConditionalControls>
 
       {/* Row: Annotate Board */}
       <ButtonRow>
