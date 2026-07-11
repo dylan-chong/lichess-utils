@@ -30,10 +30,11 @@ export default defineConfig({
     minify: false,
     sourcemap: 'inline',
     rollupOptions: {
-      external: [],
+      external: ['three'],
       output: {
         banner: generateUserscriptHeader(),
         format: 'iife',
+        globals: { three: 'THREE' },
         inlineDynamicImports: true
       }
     }
