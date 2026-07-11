@@ -28,7 +28,7 @@ export default defineConfig({
     },
     outDir: '.',
     minify: true,
-    sourcemap: 'inline',
+    sourcemap: false,
     rollupOptions: {
       external: ['three'],
       output: {
