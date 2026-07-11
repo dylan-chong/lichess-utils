@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import swc from 'unplugin-swc'
-import { readFileSync } from 'fs'
+import { readFileSync, existsSync } from 'fs'
+import { execSync } from 'child_process'
 
 export default defineConfig({
   plugins: [
@@ -49,7 +50,7 @@ function generateUserscriptHeader() {
 // @require     https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js
 // @grant       none
 // @inject-into content
-// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
-// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@main/lichess-board-speaker.user.js
+// @updateURL   https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@preact-migration/lichess-board-speaker.user.js
+// @downloadURL https://cdn.jsdelivr.net/gh/dylan-chong/lichess-utils@preact-migration/lichess-board-speaker.user.js
 // ==/UserScript==`
 }
