@@ -27,7 +27,7 @@ export default defineConfig({
       fileName: () => 'lichess-board-speaker.user.js'
     },
     outDir: '.',
-    minify: false,
+    minify: true,
     sourcemap: 'inline',
     rollupOptions: {
       external: ['three'],
