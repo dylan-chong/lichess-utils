@@ -2,6 +2,14 @@
 
 set -ex
 
+# Check version was bumped since last commit
+CURRENT_VERSION=$(node -p "require('./package.json').version")
+PREVIOUS_VERSION=$(git show HEAD:package.json | node -p "JSON.parse(require('fs').readFileSync('/dev/stdin','utf8')).version")
+if [ "$CURRENT_VERSION" = "$PREVIOUS_VERSION" ]; then
+  echo "ERROR: version in package.json has not been bumped (still $CURRENT_VERSION)"
+  exit 1
+fi
+
 # Run tests (includes type-check and coverage)
 npm test
 
