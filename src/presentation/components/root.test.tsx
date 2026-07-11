@@ -21,7 +21,7 @@ describe('root', () => {
     const settings = createSettingsStore()
 
     createRoot(boardChanged, mountPoint, settings, () => {})
-    expect(mountPoint.innerHTML).not.toBe('')
+    expect(mountPoint.innerHTML).toContain('button')
 
     destroyRoot(mountPoint)
     expect(mountPoint.innerHTML).toBe('')

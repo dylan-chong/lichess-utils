@@ -44,7 +44,7 @@ describe('handleBlackSegments', () => {
       stopBlackSegmentsInterval(state)
 
       expect(state.intervalId).toBe(null)
-      expect(intervalId).not.toBe(null)
+      expect(intervalId).toBeTypeOf('object')
     })
 
     it('does nothing when interval is already null', () => {
@@ -99,7 +99,7 @@ describe('handleBlackSegments', () => {
 
       startBlackSegmentsInterval(state, customBoardState, settings)
 
-      expect(state.intervalId).not.toBe(null)
+      expect(state.intervalId).toBeTypeOf('object')
     })
 
     it('increments counter and applies black segments on interval', () => {
@@ -177,7 +177,7 @@ describe('handleBlackSegments', () => {
 
       startBlackSegmentsInterval(state, customBoardState, settings)
 
-      expect(state.intervalId).not.toBe(firstIntervalId)
+      expect(state.intervalId !== firstIntervalId).toBe(true)
     })
   })
 

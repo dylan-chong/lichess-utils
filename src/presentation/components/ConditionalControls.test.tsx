@@ -11,7 +11,7 @@ describe('ConditionalControls', () => {
       </ConditionalControls>
     )
 
-    expect(screen.getByText('Test Content')).toBeTruthy()
+    expect(screen.getByText('Test Content')).toBeInstanceOf(HTMLElement)
   })
 
   it('does not render children when condition is false', () => {
@@ -32,7 +32,7 @@ describe('ConditionalControls', () => {
     )
 
     const wrapper = container.querySelector('div')
-    expect(wrapper).toBeTruthy()
+    expect(wrapper).toBeInstanceOf(HTMLElement)
     expect(wrapper?.style.marginLeft).toBe('16px')
   })
 

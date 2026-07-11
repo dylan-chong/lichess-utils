@@ -18,7 +18,7 @@ describe('extractBoardMetrics', () => {
 
     const result = extractBoardMetrics(board)
 
-    expect(result.boardWidth).toBeDefined()
+    expect(typeof result.boardWidth).toBe('number')
     expect(result.squareSize).toBe(result.boardWidth / 8)
   })
 })

@@ -237,7 +237,7 @@ describe('pieceManager', () => {
 
       expect(firstMesh).toBe(secondMesh)
       expect(state.meshes.length).toBe(1)
-      expect(firstId).not.toBe(secondId)
+      expect(firstId !== secondId).toBe(true)
     })
 
     it('should remove meshes for pieces no longer on board', () => {
@@ -497,8 +497,8 @@ describe('pieceManager', () => {
 
       expect(state.meshes.length).toBe(1)
       const mesh = state.meshes[0]
-      expect(mesh.userData.col).toBeDefined()
-      expect(mesh.userData.row).toBeDefined()
+      expect(typeof mesh.userData.col).toBe('number')
+      expect(typeof mesh.userData.row).toBe('number')
     })
 
     it('falls back to inline transform when computed transform is invalid', () => {

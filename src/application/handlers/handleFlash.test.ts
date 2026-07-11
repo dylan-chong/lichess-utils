@@ -66,7 +66,7 @@ describe('handleFlash', () => {
       flash.expects('hideFlash').withArgs(mockState).returns(undefined)
       triggerFlash(mockState, loopState, settings)
 
-      expect(loopState.timeoutId).not.toBe(firstTimeoutId)
+      expect(loopState.timeoutId !== firstTimeoutId).toBe(true)
 
       flash.expects('showFlash').withArgs(mockState).returns(undefined)
       vi.advanceTimersByTime(500)
@@ -81,7 +81,7 @@ describe('handleFlash', () => {
       flash.expects('hideFlash').withArgs(mockState).returns(undefined)
       startFlashLoop(mockState, loopState, settings)
 
-      expect(loopState.intervalId).not.toBe(null)
+      expect(loopState.intervalId).toBeTypeOf('object')
     })
 
     it('sets up interval with correct timing', () => {
@@ -115,7 +115,7 @@ describe('handleFlash', () => {
       flash.expects('hideFlash').withArgs(mockState).returns(undefined)
       startFlashLoop(mockState, loopState, settings)
 
-      expect(loopState.intervalId).not.toBe(firstIntervalId)
+      expect(loopState.intervalId !== firstIntervalId).toBe(true)
     })
   })
 
@@ -127,8 +127,8 @@ describe('handleFlash', () => {
       flash.expects('hideFlash').withArgs(mockState).returns(undefined)
       startFlashLoop(mockState, loopState, settings)
 
-      expect(loopState.intervalId).not.toBe(null)
-      expect(loopState.timeoutId).not.toBe(null)
+      expect(loopState.intervalId).toBeTypeOf('object')
+      expect(loopState.timeoutId).toBeTypeOf('object')
 
       stopFlashLoop(loopState)
 

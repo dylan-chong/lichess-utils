@@ -25,7 +25,7 @@ describe('annotations', () => {
     it('creates SVG element and appends to container', () => {
       const state = createAnnotations()
 
-      expect(state.svg).toBeTruthy()
+      expect(state.svg).toBeInstanceOf(SVGElement)
       expect(state.svg.tagName).toBe('svg')
       expect(state.svg.classList.contains(CssClass.USERSCRIPT_DRAWINGS)).toBe(true)
 
@@ -51,8 +51,8 @@ describe('annotations', () => {
       // getBoundingClientRect returns 0 in test environment
       const width = state.svg.getAttribute('width')
       const height = state.svg.getAttribute('height')
-      expect(width).toBeTruthy()
-      expect(height).toBeTruthy()
+      expect(typeof width).toBe('string')
+      expect(typeof height).toBe('string')
       expect(width).toBe(height) // should be square
     })
 
@@ -60,10 +60,10 @@ describe('annotations', () => {
       const state = createAnnotations()
 
       const defs = state.svg.querySelector('defs')
-      expect(defs).toBeTruthy()
+      expect(defs).toBeInstanceOf(SVGElement)
 
       const marker = defs?.querySelector('#arrowhead')
-      expect(marker).toBeTruthy()
+      expect(marker).toBeInstanceOf(SVGElement)
     })
   })
 
@@ -125,7 +125,7 @@ describe('annotations', () => {
       drawAnnotations(state, [{ type: AnnotationType.CIRCLE as const, square: 'a1' }])
 
       const defs = state.svg.querySelector('defs')
-      expect(defs).toBeTruthy()
+      expect(defs).toBeInstanceOf(SVGElement)
     })
 
     it('draws nothing when given empty annotations array', () => {
@@ -192,7 +192,7 @@ describe('annotations', () => {
       clearAnnotations(state)
 
       const defs = state.svg.querySelector('defs')
-      expect(defs).toBeTruthy()
+      expect(defs).toBeInstanceOf(SVGElement)
     })
   })
 

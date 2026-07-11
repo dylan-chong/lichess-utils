@@ -9,6 +9,6 @@ describe('main', () => {
     initMock.expects('init').withArgs().returns(Promise.resolve(mockCleanup))
 
     const mainModule = await import('./main')
-    expect(mainModule).toBeDefined()
+    expect(typeof mainModule).toBe('object')
   })
 })

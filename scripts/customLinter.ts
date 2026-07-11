@@ -27,6 +27,13 @@ const DISALLOWED_MOCK_PATTERNS = [
   { pattern: /\bvi\.spyOn/i, message: 'Use simone mockModule() instead of vi.spyOn. Wrap globals, object instance methods, and constructors in modules like src/dom/dom.ts' },
 ]
 
+const DISALLOWED_ASSERTION_PATTERNS = [
+  { pattern: /\.not\.toBeNull\(\)/, message: 'Avoid .not.toBeNull(). Use a more specific assertion (e.g. toBeInstanceOf(), assert a specific value, or check a property of the result)' },
+  { pattern: /\.not\.toBe\(/, message: 'Avoid .not.toBe(). Use a more specific assertion (e.g. toBeInstanceOf(), assert a specific value, or check a property of the result)' },
+  { pattern: /\.toBeTruthy\(\)/, message: 'Avoid .toBeTruthy(). Use a more specific assertion (e.g. toBe(true), toBeInstanceOf(), assert a specific value, or check a property of the result)' },
+  { pattern: /\.toBeDefined\(\)/, message: 'Avoid .toBeDefined(). Use a more specific assertion (e.g. toBeInstanceOf(), assert a specific value, or check a property of the result)' },
+]
+
 function checkVagueTestDescriptions(content: string, filePath: string): LintError[] {
   const errors: LintError[] = []
   const lines = content.split('\n')
@@ -53,6 +60,25 @@ function checkDisallowedMockingPatterns(content: string, filePath: string): Lint
 
   lines.forEach((line, index) => {
     for (const { pattern, message } of DISALLOWED_MOCK_PATTERNS) {
+      if (pattern.test(line)) {
+        errors.push({
+          file: filePath,
+          line: index + 1,
+          message,
+        })
+      }
+    }
+  })
+
+  return errors
+}
+
+function checkDisallowedAssertions(content: string, filePath: string): LintError[] {
+  const errors: LintError[] = []
+  const lines = content.split('\n')
+
+  lines.forEach((line, index) => {
+    for (const { pattern, message } of DISALLOWED_ASSERTION_PATTERNS) {
       if (pattern.test(line)) {
         errors.push({
           file: filePath,
@@ -160,6 +186,7 @@ async function main() {
     const content = fs.readFileSync(file, 'utf-8')
     allErrors.push(...checkVagueTestDescriptions(content, file))
     allErrors.push(...checkDisallowedMockingPatterns(content, file))
+    allErrors.push(...checkDisallowedAssertions(content, file))
   }
 
   totalErrors = allErrors.length

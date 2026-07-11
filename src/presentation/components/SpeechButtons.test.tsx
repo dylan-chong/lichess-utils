@@ -35,19 +35,19 @@ describe('SpeechButtons', () => {
     )
 
     // Row 1: Quadrant buttons
-    expect(screen.getByText('🔊 ♔ side')).toBeTruthy()
-    expect(screen.getByText('🔊 ♕ side')).toBeTruthy()
-    expect(screen.getByText('🔊 ♚ side')).toBeTruthy()
-    expect(screen.getByText('🔊 ♛ side')).toBeTruthy()
+    expect(screen.getByText('🔊 ♔ side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ♕ side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ♚ side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ♛ side')).toBeInstanceOf(HTMLElement)
 
     // Row 2: All/Color buttons
-    expect(screen.getByText('🔊 all pieces')).toBeTruthy()
-    expect(screen.getByText("🔊 w's pieces")).toBeTruthy()
-    expect(screen.getByText("🔊 b's pieces")).toBeTruthy()
+    expect(screen.getByText('🔊 all pieces')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText("🔊 w's pieces")).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText("🔊 b's pieces")).toBeInstanceOf(HTMLElement)
 
     // Row 3: Rate and Stop
-    expect(screen.getByText('🔊 rate: 0.5')).toBeTruthy()
-    expect(screen.getByText('🔊 Stop')).toBeTruthy()
+    expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 
   it('calls handleSpeechCommand with WK when white king side button is clicked', async () => {

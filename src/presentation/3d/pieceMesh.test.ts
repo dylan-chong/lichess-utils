@@ -9,69 +9,69 @@ describe('createPieceMesh', () => {
   describe('3d style', () => {
     it('creates 3d mesh for pawn', () => {
       const mesh = createPieceMesh('pawn', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates 3d mesh for rook', () => {
       const mesh = createPieceMesh('rook', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates 3d mesh for bishop', () => {
       const mesh = createPieceMesh('bishop', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates 3d mesh for queen', () => {
       const mesh = createPieceMesh('queen', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates 3d mesh for king as group with children', () => {
       const mesh = createPieceMesh('king', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
       expect(mesh?.children.length).toBeGreaterThan(0)
     })
 
     it('creates 3d knight with correct rotation for white', () => {
       const mesh = createPieceMesh('knight', true, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
       expect((mesh as any).rotation.y).toBe(0)
     })
 
     it('creates 3d knight with correct rotation for black', () => {
       const mesh = createPieceMesh('knight', false, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
       expect((mesh as any).rotation.y).toBeCloseTo(Math.PI)
     })
 
     it('creates 3d pieces for black color', () => {
       const mesh = createPieceMesh('pawn', false, '3d')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
   })
 
   describe('checker style', () => {
     it('creates checker mesh for white', () => {
       const mesh = createPieceMesh('rook', true, 'checker')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates checker mesh for black', () => {
       const mesh = createPieceMesh('rook', false, 'checker')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
   })
 
   describe('checker-grey style', () => {
     it('creates checker-grey mesh for white', () => {
       const mesh = createPieceMesh('rook', true, 'checker-grey')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates checker-grey mesh for black', () => {
       const mesh = createPieceMesh('rook', false, 'checker-grey')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
   })
 
@@ -92,7 +92,7 @@ describe('createPieceMesh', () => {
       dom.expects('createImage').withArgs().returns(mockImage)
 
       const mesh = createPieceMesh('queen', true, 'icons')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates icon mesh for white pieces', () => {
@@ -104,7 +104,7 @@ describe('createPieceMesh', () => {
       dom.expects('createImage').withArgs().returns(mockImage)
 
       const mesh = createPieceMesh('knight', true, 'icons')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('creates icon mesh for black pieces', () => {
@@ -116,7 +116,7 @@ describe('createPieceMesh', () => {
       dom.expects('createImage').withArgs().returns(mockImage)
 
       const mesh = createPieceMesh('knight', false, 'icons')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
 
     it('applies texture when image loads', () => {
@@ -149,7 +149,7 @@ describe('createPieceMesh', () => {
       dom.expects('createCanvas').withArgs().returns(mockCanvas)
 
       const mesh = createPieceMesh('pawn', true, 'icons')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
 
       const material = (mesh as any).material
       expect(material.map).toBeNull()
@@ -171,7 +171,7 @@ describe('createPieceMesh', () => {
       dom.expects('createImage').withArgs().returns(mockImage)
 
       const mesh = createPieceMesh('bishop', true, 'unknown-style')
-      expect(mesh).not.toBeNull()
+      expect(mesh).toBeInstanceOf(THREE.Object3D)
     })
   })
 
@@ -195,7 +195,6 @@ describe('createPieceMesh', () => {
       loadTextureFromImage(img, material)
 
       // Verify texture was created and assigned
-      expect(material.map).not.toBeNull()
       expect(material.map).toBeInstanceOf(THREE.Texture)
       expect(mockContext.drawImage).toHaveBeenCalledWith(img, 0, 0, 256, 256)
     })

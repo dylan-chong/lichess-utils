@@ -48,7 +48,7 @@ describe('dom', () => {
   it('querySelector returns element when found', () => {
     document.body.innerHTML = '<div class="test"></div>'
     const element = querySelector('.test')
-    expect(element).not.toBeNull()
+    expect(element).toBeInstanceOf(HTMLElement)
     expect(element?.className).toBe('test')
   })
 
@@ -84,7 +84,6 @@ describe('dom', () => {
 
     const rect = getBoundingClientRect(div)
 
-    expect(rect).toBeDefined()
     expect(typeof rect.width).toBe('number')
     expect(typeof rect.height).toBe('number')
   })

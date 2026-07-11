@@ -23,7 +23,7 @@ describe('PiecesList', () => {
 
     render(<PiecesList boardChanged={boardChanged} />)
 
-    expect(screen.getByText('You are: WHITE')).toBeTruthy()
+    expect(screen.getByText('You are: WHITE')).toBeInstanceOf(HTMLElement)
   })
 
   it('should display grouped pieces by color', () => {
@@ -44,10 +44,10 @@ describe('PiecesList', () => {
 
     render(<PiecesList boardChanged={boardChanged} />)
 
-    expect(screen.getByText('WHITE:')).toBeTruthy()
-    expect(screen.getByText('pawn: e2')).toBeTruthy()
-    expect(screen.getByText('BLACK:')).toBeTruthy()
-    expect(screen.getByText('pawn: e7')).toBeTruthy()
+    expect(screen.getByText('WHITE:')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('pawn: e2')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('BLACK:')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('pawn: e7')).toBeInstanceOf(HTMLElement)
   })
 
   it('should show "No pieces" when a color has no pieces', () => {
@@ -85,7 +85,7 @@ describe('PiecesList', () => {
     boardChanged.value = 1
     rerender(<PiecesList boardChanged={boardChanged} />)
 
-    expect(screen.getByText('pawn: e4')).toBeTruthy()
+    expect(screen.getByText('pawn: e4')).toBeInstanceOf(HTMLElement)
   })
 
   it('should display multiple pieces of same type', () => {
@@ -101,8 +101,8 @@ describe('PiecesList', () => {
 
     render(<PiecesList boardChanged={boardChanged} />)
 
-    expect(screen.getByText('pawn: a2, b2, c2')).toBeTruthy()
-    expect(screen.getByText('knight: b1, g1')).toBeTruthy()
+    expect(screen.getByText('pawn: a2, b2, c2')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('knight: b1, g1')).toBeInstanceOf(HTMLElement)
   })
 
   it('should show player as black', () => {
@@ -112,6 +112,6 @@ describe('PiecesList', () => {
 
     render(<PiecesList boardChanged={boardChanged} />)
 
-    expect(screen.getByText('You are: BLACK')).toBeTruthy()
+    expect(screen.getByText('You are: BLACK')).toBeInstanceOf(HTMLElement)
   })
 })

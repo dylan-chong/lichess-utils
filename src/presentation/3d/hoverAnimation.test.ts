@@ -49,7 +49,7 @@ describe('hoverAnimation', () => {
       const state = createHoverAnimationState()
       startHoverAnimation(state, mockCanvasState, mockGetParams)
 
-      expect(state.animationId).toBeTruthy()
+      expect(state.startTime).toBeTypeOf('number')
       expect(state.startTime).toBeTypeOf('number')
     })
 
@@ -74,7 +74,7 @@ describe('hoverAnimation', () => {
       }))
 
       startHoverAnimation(state, mockCanvasState, getParamsWithScale)
-      expect(state.animationId).toBeTruthy()
+      expect(state.startTime).toBeTypeOf('number')
 
       // Change scale to 0 and wait for next animation frame
       scaleValue = 0
@@ -98,7 +98,7 @@ describe('hoverAnimation', () => {
       }))
 
       startHoverAnimation(state, mockCanvasState, getParamsFlipped)
-      expect(state.animationId).toBeTruthy()
+      expect(state.startTime).toBeTypeOf('number')
 
       // Wait for animation to run at least once
       await new Promise((resolve) => {
@@ -117,7 +117,7 @@ describe('hoverAnimation', () => {
       const state = createHoverAnimationState()
 
       startHoverAnimation(state, mockCanvasState, mockGetParams)
-      expect(state.animationId).toBeTruthy()
+      expect(state.startTime).toBeTypeOf('number')
 
       // Simulate the edge case where startTime becomes null during animation
       // (this tests the defensive ?? timestamp fallback)

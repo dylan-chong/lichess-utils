@@ -26,7 +26,7 @@ describe('createBoardPlane', () => {
     for (const child of plane.children) {
       const mesh = child as THREE.Mesh
       const material = mesh.material as THREE.MeshBasicMaterial
-      expect(material.color.getHex()).not.toBe(0x000000)
+      expect([0xeeeed2, 0x769656]).toContain(material.color.getHex())
     }
   })
 
@@ -51,6 +51,6 @@ describe('createBoardPlane', () => {
     // Square at col=4, row=0 (quadrant 1, index = 4) should NOT be black
     const square = plane.children[4] as THREE.Mesh
     const material = square.material as THREE.MeshBasicMaterial
-    expect(material.color.getHex()).not.toBe(0x000000)
+    expect([0xeeeed2, 0x769656]).toContain(material.color.getHex())
   })
 })
