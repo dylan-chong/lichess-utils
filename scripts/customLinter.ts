@@ -19,6 +19,7 @@ const VAGUE_TEST_PATTERNS = [
   /it\s*\(\s*['"`].*\b(should handle|handles)\b/i,
   /it\s*\(\s*['"`].*\b(should work|works)\b/i,
   /it\s*\(\s*['"`].*\b(should process|processes)\b/i,
+  /it\s*\(\s*['"`].*\b(should proceed)\b/i,
 ]
 
 const DISALLOWED_MOCK_PATTERNS = [
