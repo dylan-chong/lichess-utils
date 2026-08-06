@@ -31,6 +31,8 @@ const dropdownContainerStyle = {
 }
 
 const selectStyle = {
+  marginLeft: '2px',
+  padding: '0',
   border: 'none',
   backgroundColor: 'transparent',
   color: 'inherit',
