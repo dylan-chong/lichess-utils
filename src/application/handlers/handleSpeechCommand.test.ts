@@ -27,7 +27,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength.value
+        settings.pauseLength
       )
       .returns(undefined)
 
@@ -47,7 +47,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength.value
+        settings.pauseLength
       )
       .returns(undefined)
 
@@ -70,7 +70,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength.value
+        settings.pauseLength
       )
       .returns(undefined)
 
@@ -93,7 +93,7 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are black.', 'e8 black king.'],
         settings.speakRate.value,
-        settings.pauseLength.value
+        settings.pauseLength
       )
       .returns(undefined)
 

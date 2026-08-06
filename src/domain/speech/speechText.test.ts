@@ -92,7 +92,7 @@ describe('generateQuadrantSegments', () => {
     ]
 
     const result = generateQuadrantSegments(pieces)
-    expect(result).toEqual(['white pawns on', 'a2', 'b2', 'and e4.', 'e1 white king.'])
+    expect(result).toEqual(['white pawns on a2', 'b2', 'and e4.', 'e1 white king.'])
   })
 
   it('returns empty array when given no pieces', () => {

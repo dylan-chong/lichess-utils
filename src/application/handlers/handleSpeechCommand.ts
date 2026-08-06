@@ -12,7 +12,7 @@ import type { SettingsStore } from '../settings/settingsStore'
 
 function speakWithAnnouncement(segments: string[], settings: SettingsStore): void {
   const announcement = `you are ${getPlayerColor()}.`
-  speakSegments([announcement, ...segments], settings.speakRate.value, settings.pauseLength.value)
+  speakSegments([announcement, ...segments], settings.speakRate.value, settings.pauseLength)
 }
 
 export function handleSpeechCommand(command: string, settings: SettingsStore): void {

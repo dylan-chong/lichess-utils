@@ -1,3 +1,4 @@
+import type { ReadonlySignal } from '@preact/signals-core'
 import * as core from './core'
 
 let pendingTimeoutId: ReturnType<typeof setTimeout> | undefined
@@ -11,7 +12,11 @@ export function speakText(text: string, rate: number): void {
   core.speak(synthesis, utterance)
 }
 
-export function speakSegments(segments: string[], rate: number, pauseSeconds: number): void {
+export function speakSegments(
+  segments: string[],
+  rate: number,
+  pauseSeconds: ReadonlySignal<number>
+): void {
   sequenceCancelled = false
 
   const speakNext = (index: number): void => {
@@ -23,7 +28,7 @@ export function speakSegments(segments: string[], rate: number, pauseSeconds: nu
     utterance.rate = rate
     utterance.onend = () => {
       if (sequenceCancelled) return
-      pendingTimeoutId = setTimeout(() => speakNext(index + 1), pauseSeconds * 1000)
+      pendingTimeoutId = setTimeout(() => speakNext(index + 1), pauseSeconds.value * 1000)
     }
     core.speak(synthesis, utterance)
   }

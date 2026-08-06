@@ -48,9 +48,9 @@ export function generateQuadrantSegments(pieces: PiecePosition[]): string[] {
     const typeName = group.squares.length > 1 ? `${group.type}s` : group.type
 
     if (group.squares.length > 1) {
-      // Multiple pieces: "white pawns on" / "a2" / "b2" / "and c2."
-      segments.push(`${colorName} ${typeName} on`)
-      for (const square of group.squares.slice(0, -1)) {
+      // Multiple pieces: "white pawns on a2" / "b2" / "and c2."
+      segments.push(`${colorName} ${typeName} on ${group.squares[0]}`)
+      for (const square of group.squares.slice(1, -1)) {
         segments.push(square)
       }
       segments.push(`and ${group.squares[group.squares.length - 1]}.`)
