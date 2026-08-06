@@ -5,8 +5,8 @@ import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
 import { SettingButton } from './SettingButton'
 
-const SPEAK_RATE_OPTIONS = [0, 0.1, 0.3, 0.6, 1, 1.5, 2, 4] as const
-const PAUSE_LENGTH_OPTIONS = [0.2, 0.5, 1, 1.5, 2] as const
+const SPEAK_RATE_OPTIONS = [0.2, 0.5, 0.7, 1.0, 1.1, 1.2] as const
+const PAUSE_LENGTH_OPTIONS = [0, 0.1, 0.3, 0.6, 1, 1.5, 2, 4] as const
 
 export function SpeechButtons() {
   const settings = useSettings()

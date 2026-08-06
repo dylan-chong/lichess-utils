@@ -12,7 +12,7 @@ const speechHandler = mockModule(import('../../application/handlers/handleSpeech
 describe('SpeechButtons', () => {
   const mockSettings = {
     speakRate: signal(0.5),
-    pauseLength: signal(0.5),
+    pauseLength: signal(0.6),
     piecesListEnabled: signal(false),
     dividersEnabled: signal(false),
     customBoardEnabled: signal(false),

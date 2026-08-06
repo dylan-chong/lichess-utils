@@ -54,9 +54,9 @@ describe('ControlPanel', () => {
     const rateSelect = within(
       screen.getByText('🔊 rate').closest('label') as HTMLElement
     ).getByRole('combobox') as HTMLSelectElement
-    await user.selectOptions(rateSelect, within(rateSelect).getByText('4'))
+    await user.selectOptions(rateSelect, within(rateSelect).getByText('1.2'))
 
-    expect(settings.speakRate.value).toBe(4)
+    expect(settings.speakRate.value).toBe(1.2)
   })
 
   it('should toggle pieces list when button clicked', async () => {

@@ -18,8 +18,8 @@ export interface Settings {
 }
 
 export const defaultSettings: Settings = {
-  speakRate: 0.6,
-  pauseLength: 0.5,
+  speakRate: 0.5,
+  pauseLength: 0.6,
   piecesListEnabled: false,
   dividersEnabled: false,
   customBoardEnabled: false,
