@@ -36,6 +36,7 @@ describe('ControlPanel', () => {
     expect(screen.getByText('Dividers: false')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('Custom Board: false')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('Flash Mode: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🧘 meditation: false')).toBeInstanceOf(HTMLElement)
   })
 
   it('displays and updates speak rate button from SpeechButtons', async () => {

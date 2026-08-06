@@ -6,7 +6,6 @@ import { ButtonRow } from './ButtonRow'
 import { SettingButton } from './SettingButton'
 
 const SPEAK_RATE_OPTIONS = [0.2, 0.5, 0.7, 1.0, 1.1, 1.2] as const
-const TOGGLE_OPTIONS = [false, true] as const
 
 export function SpeechButtons() {
   const settings = useSettings()
@@ -52,14 +51,6 @@ export function SpeechButtons() {
         <ActionButton
           label="🔊 Stop"
           onClick={() => handleSpeechCommand(SpeechCommand.STOP, settings)}
-        />
-      </ButtonRow>
-
-      <ButtonRow>
-        <SettingButton
-          label="🧘 meditation"
-          setting={settings.meditationEnabled}
-          options={TOGGLE_OPTIONS}
         />
       </ButtonRow>
     </div>

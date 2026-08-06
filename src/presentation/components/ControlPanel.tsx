@@ -137,6 +137,15 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           />
         </ButtonRow>
       </ConditionalControls>
+
+      {/* Row: Meditation */}
+      <ButtonRow>
+        <SettingButton
+          label="🧘 meditation"
+          setting={settings.meditationEnabled}
+          options={TOGGLE_OPTIONS}
+        />
+      </ButtonRow>
     </div>
   )
 }
