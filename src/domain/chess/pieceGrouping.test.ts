@@ -136,6 +136,20 @@ describe('groupByColorAndType', () => {
     expect(result[3].color).toBe(PlayerColor.BLACK)
   })
 
+  it('sorts squares within a group by rank first, then by file within each rank', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'e2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'c2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'b1', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = groupByColorAndType(pieces)
+
+    expect(result[0].squares).toEqual(['a1', 'b1', 'a2', 'c2', 'e2'])
+  })
+
   it('returns empty array when given no pieces', () => {
     const result = groupByColorAndType([])
     expect(result).toEqual([])

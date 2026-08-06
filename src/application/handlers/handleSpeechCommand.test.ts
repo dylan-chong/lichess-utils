@@ -27,7 +27,8 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength
+        settings.pauseLength,
+        undefined
       )
       .returns(undefined)
 
@@ -47,7 +48,8 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength
+        settings.pauseLength,
+        undefined
       )
       .returns(undefined)
 
@@ -70,7 +72,8 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are white.', 'e1 white king.'],
         settings.speakRate.value,
-        settings.pauseLength
+        settings.pauseLength,
+        undefined
       )
       .returns(undefined)
 
@@ -93,11 +96,34 @@ describe('handleSpeechCommand', () => {
       .withArgs(
         ['you are black.', 'e8 black king.'],
         settings.speakRate.value,
-        settings.pauseLength
+        settings.pauseLength,
+        undefined
       )
       .returns(undefined)
 
     handleSpeechCommand(SpeechCommand.BLACK, settings)
+  })
+
+  it('forwards the onFinished callback to speakSegments', () => {
+    const pieces = [
+      { square: 'e1', color: PlayerColor.WHITE as const, type: PieceType.KING as const },
+    ]
+    const onFinished = () => {}
+
+    boardReader.expects('readPiecePositions').withArgs().returns(pieces)
+    speechText.expects('generateAllPiecesSegments').withArgs(pieces).returns(['e1 white king.'])
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+    speechSynthesizer
+      .expects('speakSegments')
+      .withArgs(
+        ['you are white.', 'e1 white king.'],
+        settings.speakRate.value,
+        settings.pauseLength,
+        onFinished
+      )
+      .returns(undefined)
+
+    handleSpeechCommand(SpeechCommand.ALL, settings, onFinished)
   })
 
   it('stops speaking', () => {

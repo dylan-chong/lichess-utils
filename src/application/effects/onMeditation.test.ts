@@ -8,7 +8,7 @@ const handleMeditation = mockModule(import('../handlers/handleMeditation'))
 
 describe('setupMeditationEffect', () => {
   it('starts meditation loop when enabled', () => {
-    const loopState: MeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const loopState: MeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const settings = createSettingsStore()
 
     handleMeditation.expects('startMeditationLoop').withArgs(loopState, settings).returns(undefined)
@@ -23,7 +23,7 @@ describe('setupMeditationEffect', () => {
   })
 
   it('stops meditation loop when disabled', () => {
-    const loopState: MeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const loopState: MeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const settings = createSettingsStore()
 
     handleMeditation.expects('stopMeditationLoop').withArgs(loopState).returns(undefined)
@@ -38,7 +38,7 @@ describe('setupMeditationEffect', () => {
   })
 
   it('cleanup function is idempotent', () => {
-    const loopState: MeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const loopState: MeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const settings = createSettingsStore()
 
     handleMeditation.expects('startMeditationLoop').withArgs(loopState, settings).returns(undefined)

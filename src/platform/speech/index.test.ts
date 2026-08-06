@@ -123,6 +123,55 @@ describe('speakSegments', () => {
     vi.useRealTimers()
   })
 
+  it('calls onFinished after the last segment finishes speaking', () => {
+    vi.useFakeTimers()
+
+    const mockSynthesis = {} as SpeechSynthesis
+    const mockUtteranceClass = {} as typeof SpeechSynthesisUtterance
+    const utteranceA = { rate: 0 } as SpeechSynthesisUtterance
+    const onFinished = vi.fn()
+
+    core.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    core.expects('getSpeechSynthesisUtterance').withArgs().returns(mockUtteranceClass)
+    core.expects('createUtterance').withArgs(mockUtteranceClass, 'only').returns(utteranceA)
+    core.expects('speak').withArgs(mockSynthesis, utteranceA).returns(undefined)
+
+    speakSegments(['only'], 1, signal(0.5), onFinished)
+    utteranceA.onend?.({} as SpeechSynthesisEvent)
+    vi.advanceTimersByTime(500)
+
+    expect(onFinished).toHaveBeenCalledOnce()
+
+    vi.useRealTimers()
+  })
+
+  it('does not call onFinished if the sequence is cancelled before finishing', () => {
+    vi.useFakeTimers()
+
+    const mockSynthesis = {} as SpeechSynthesis
+    const mockUtteranceClass = {} as typeof SpeechSynthesisUtterance
+    const utteranceA = { rate: 0 } as SpeechSynthesisUtterance
+    const onFinished = vi.fn()
+
+    core.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    core.expects('getSpeechSynthesisUtterance').withArgs().returns(mockUtteranceClass)
+    core.expects('createUtterance').withArgs(mockUtteranceClass, 'first').returns(utteranceA)
+    core.expects('speak').withArgs(mockSynthesis, utteranceA).returns(undefined)
+
+    speakSegments(['first', 'second'], 1, signal(0.5), onFinished)
+
+    core.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+    core.expects('cancel').withArgs(mockSynthesis).returns(undefined)
+    stopSpeaking()
+
+    utteranceA.onend?.({} as SpeechSynthesisEvent)
+    vi.advanceTimersByTime(500)
+
+    expect(onFinished).not.toHaveBeenCalled()
+
+    vi.useRealTimers()
+  })
+
   it('uses the current signal value for each pause, reflecting mid-sequence changes', () => {
     vi.useFakeTimers()
 

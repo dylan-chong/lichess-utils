@@ -74,6 +74,15 @@ export function groupByColorAndType(pieces: PiecePosition[]): GroupedPieces[] {
     groups.get(key)?.squares.push(piece.square)
   }
 
+  // Sort squares within each group by rank (1 first), then by file (a-h) within each rank
+  for (const group of groups.values()) {
+    group.squares.sort((a, b) => {
+      const rankDiff = a[1].localeCompare(b[1])
+      if (rankDiff !== 0) return rankDiff
+      return a[0].localeCompare(b[0])
+    })
+  }
+
   // Sort groups by color (white first) then by piece type (pawn, knight, bishop, rook, queen, king)
   return Array.from(groups.values()).sort((a, b) => {
     if (a.color !== b.color) {

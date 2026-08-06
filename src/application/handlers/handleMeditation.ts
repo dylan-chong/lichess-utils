@@ -7,21 +7,20 @@ export const MEDITATION_WAIT_MS = 60_000
 export const MEDITATION_TOTAL_MS = 20 * 60_000
 
 export interface MeditationLoopState {
-  intervalId: ReturnType<typeof setInterval> | null
+  timeoutId: ReturnType<typeof setTimeout> | null
   elapsedMs: number
 }
 
 export function createMeditationLoopState(): MeditationLoopState {
-  return { intervalId: null, elapsedMs: 0 }
+  return { timeoutId: null, elapsedMs: 0 }
 }
 
 export function startMeditationLoop(loopState: MeditationLoopState, settings: SettingsStore): void {
   stopMeditationLoop(loopState)
 
   loopState.elapsedMs = 0
-  handleSpeechCommand(SpeechCommand.ALL, settings)
 
-  loopState.intervalId = setInterval(() => {
+  const handleFinished = (): void => {
     loopState.elapsedMs += MEDITATION_WAIT_MS
 
     if (loopState.elapsedMs >= MEDITATION_TOTAL_MS) {
@@ -29,14 +28,18 @@ export function startMeditationLoop(loopState: MeditationLoopState, settings: Se
       return
     }
 
-    handleSpeechCommand(SpeechCommand.ALL, settings)
-  }, MEDITATION_WAIT_MS)
+    loopState.timeoutId = setTimeout(() => {
+      handleSpeechCommand(SpeechCommand.ALL, settings, handleFinished)
+    }, MEDITATION_WAIT_MS)
+  }
+
+  handleSpeechCommand(SpeechCommand.ALL, settings, handleFinished)
 }
 
 export function stopMeditationLoop(loopState: MeditationLoopState): void {
-  if (loopState.intervalId !== null) {
-    clearInterval(loopState.intervalId)
-    loopState.intervalId = null
+  if (loopState.timeoutId !== null) {
+    clearTimeout(loopState.timeoutId)
+    loopState.timeoutId = null
   }
   stopSpeaking()
 }

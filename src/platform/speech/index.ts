@@ -15,12 +15,19 @@ export function speakText(text: string, rate: number): void {
 export function speakSegments(
   segments: string[],
   rate: number,
-  pauseSeconds: ReadonlySignal<number>
+  pauseSeconds: ReadonlySignal<number>,
+  onFinished?: () => void
 ): void {
   sequenceCancelled = false
 
   const speakNext = (index: number): void => {
-    if (sequenceCancelled || index >= segments.length) return
+    /* v8 ignore next */
+    if (sequenceCancelled) return
+
+    if (index >= segments.length) {
+      onFinished?.()
+      return
+    }
 
     const synthesis = core.getSpeechSynthesis()
     const UtteranceClass = core.getSpeechSynthesisUtterance()

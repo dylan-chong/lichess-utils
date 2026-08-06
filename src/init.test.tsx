@@ -66,7 +66,7 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -181,7 +181,7 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -304,7 +304,7 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom

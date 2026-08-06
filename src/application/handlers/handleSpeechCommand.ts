@@ -10,12 +10,25 @@ import { speakSegments, stopSpeaking } from '../../platform/speech'
 import { getPlayerColor, readPiecePositions } from '../services/boardReader/reader'
 import type { SettingsStore } from '../settings/settingsStore'
 
-function speakWithAnnouncement(segments: string[], settings: SettingsStore): void {
+function speakWithAnnouncement(
+  segments: string[],
+  settings: SettingsStore,
+  onFinished?: () => void
+): void {
   const announcement = `you are ${getPlayerColor()}.`
-  speakSegments([announcement, ...segments], settings.speakRate.value, settings.pauseLength)
+  speakSegments(
+    [announcement, ...segments],
+    settings.speakRate.value,
+    settings.pauseLength,
+    onFinished
+  )
 }
 
-export function handleSpeechCommand(command: string, settings: SettingsStore): void {
+export function handleSpeechCommand(
+  command: string,
+  settings: SettingsStore,
+  onFinished?: () => void
+): void {
   if (command === SpeechCommand.STOP) {
     stopSpeaking()
     return
@@ -25,14 +38,14 @@ export function handleSpeechCommand(command: string, settings: SettingsStore): v
 
   if (command === SpeechCommand.ALL) {
     const segments = generateAllPiecesSegments(pieces)
-    speakWithAnnouncement(segments, settings)
+    speakWithAnnouncement(segments, settings, onFinished)
     return
   }
 
   if (command === SpeechCommand.WHITE || command === SpeechCommand.BLACK) {
     const color = command === SpeechCommand.WHITE ? PlayerColor.WHITE : PlayerColor.BLACK
     const segments = generateColorSegments(pieces, color)
-    speakWithAnnouncement(segments, settings)
+    speakWithAnnouncement(segments, settings, onFinished)
     return
   }
 
@@ -40,5 +53,5 @@ export function handleSpeechCommand(command: string, settings: SettingsStore): v
   const quadrant = command as Quadrant
   const filtered = filterQuadrant(pieces, quadrant)
   const segments = generateQuadrantSegments(filtered)
-  speakWithAnnouncement(segments, settings)
+  speakWithAnnouncement(segments, settings, onFinished)
 }
