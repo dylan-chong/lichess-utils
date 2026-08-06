@@ -19,7 +19,7 @@ describe('generateQuadrantText', () => {
     ]
 
     const result = generateQuadrantText(pieces)
-    expect(result).toBe('white pawns on a2 and b2. a1 white rook.')
+    expect(result).toBe('white pawns on A-2 and B-2. A-1 white rook.')
   })
 
   it('generates text for three or more pieces of same type with Oxford comma', () => {
@@ -30,7 +30,7 @@ describe('generateQuadrantText', () => {
     ]
 
     const result = generateQuadrantText(pieces)
-    expect(result).toBe('white pawns on a2, b2, and e4.')
+    expect(result).toBe('white pawns on A-2, B-2, and E-4.')
   })
 
   it('generates text for single pieces', () => {
@@ -39,7 +39,7 @@ describe('generateQuadrantText', () => {
     ]
 
     const result = generateQuadrantText(pieces)
-    expect(result).toBe('e1 white king.')
+    expect(result).toBe('E-1 white king.')
   })
 
   it('returns empty string when given no pieces', () => {
@@ -56,7 +56,7 @@ describe('generateAllPiecesText', () => {
     ]
 
     const result = generateAllPiecesText(pieces)
-    expect(result).toBe('a1 white rook. a8 black rook.')
+    expect(result).toBe('A-1 white rook. A-8 black rook.')
   })
 })
 
@@ -68,7 +68,7 @@ describe('generateColorText', () => {
     ]
 
     const result = generateColorText(pieces, PlayerColor.WHITE)
-    expect(result).toBe('a1 white rook.')
+    expect(result).toBe('A-1 white rook.')
   })
 
   it('generates text for black pieces only', () => {
@@ -78,7 +78,7 @@ describe('generateColorText', () => {
     ]
 
     const result = generateColorText(pieces, PlayerColor.BLACK)
-    expect(result).toBe('a8 black rook.')
+    expect(result).toBe('A-8 black rook.')
   })
 })
 
@@ -92,7 +92,7 @@ describe('generateQuadrantSegments', () => {
     ]
 
     const result = generateQuadrantSegments(pieces)
-    expect(result).toEqual(['white pawns on a2', 'b2', 'and e4.', 'e1 white king.'])
+    expect(result).toEqual(['white pawns on A-2', 'B-2', 'and E-4.', 'E-1 white king.'])
   })
 
   it('returns empty array when given no pieces', () => {
@@ -107,7 +107,7 @@ describe('generateAllPiecesSegments', () => {
       { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
-    expect(generateAllPiecesSegments(pieces)).toEqual(['a1 white rook.', 'a8 black rook.'])
+    expect(generateAllPiecesSegments(pieces)).toEqual(['A-1 white rook.', 'A-8 black rook.'])
   })
 })
 
@@ -118,7 +118,7 @@ describe('generateColorSegments', () => {
       { square: 'a8', color: PlayerColor.BLACK, type: PieceType.ROOK },
     ]
 
-    expect(generateColorSegments(pieces, PlayerColor.WHITE)).toEqual(['a1 white rook.'])
-    expect(generateColorSegments(pieces, PlayerColor.BLACK)).toEqual(['a8 black rook.'])
+    expect(generateColorSegments(pieces, PlayerColor.WHITE)).toEqual(['A-1 white rook.'])
+    expect(generateColorSegments(pieces, PlayerColor.BLACK)).toEqual(['A-8 black rook.'])
   })
 })
