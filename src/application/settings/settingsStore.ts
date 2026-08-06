@@ -20,6 +20,7 @@ export interface SettingsStore {
   flashModeEnabled: Signal<boolean>
   flashDuration: Signal<number>
   flashInterval: Signal<number>
+  meditationEnabled: Signal<boolean>
 }
 
 export function createSettingsStore(): SettingsStore {
@@ -38,6 +39,7 @@ export function createSettingsStore(): SettingsStore {
     flashModeEnabled: signal(defaultSettings.flashModeEnabled),
     flashDuration: signal(defaultSettings.flashDuration),
     flashInterval: signal(defaultSettings.flashInterval),
+    meditationEnabled: signal(defaultSettings.meditationEnabled),
   }
 }
 

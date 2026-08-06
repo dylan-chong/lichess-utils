@@ -110,6 +110,7 @@ describe('settingsStore', () => {
         flashModeEnabled: defaultSettings.flashModeEnabled,
         flashDuration: defaultSettings.flashDuration,
         flashInterval: defaultSettings.flashInterval,
+        meditationEnabled: defaultSettings.meditationEnabled,
       }
 
       storageMock
@@ -136,6 +137,7 @@ describe('settingsStore', () => {
         flashModeEnabled: defaultSettings.flashModeEnabled,
         flashDuration: defaultSettings.flashDuration,
         flashInterval: defaultSettings.flashInterval,
+        meditationEnabled: defaultSettings.meditationEnabled,
       }
 
       storageMock
@@ -164,6 +166,7 @@ describe('settingsStore', () => {
         flashModeEnabled: defaultSettings.flashModeEnabled,
         flashDuration: defaultSettings.flashDuration,
         flashInterval: defaultSettings.flashInterval,
+        meditationEnabled: defaultSettings.meditationEnabled,
       })
 
       storageMock

@@ -5,12 +5,14 @@ import { setupCustomBoardEffect } from './application/effects/onCustomBoard'
 import { setupDividersEffect } from './application/effects/onDividers'
 import { setupFlashEffect } from './application/effects/onFlash'
 import { setupHoverModeEffect } from './application/effects/onHoverMode'
+import { setupMeditationEffect } from './application/effects/onMeditation'
 import { setupParallaxEffect } from './application/effects/onParallax'
 import { setupPieceStyleEffect } from './application/effects/onPieceStyle'
 import { handleAnnotate } from './application/handlers/handleAnnotate'
 import { createBlackSegmentsState } from './application/handlers/handleBlackSegments'
 import { createCustomBoardState } from './application/handlers/handleCustomBoard'
 import { createFlashLoopState } from './application/handlers/handleFlash'
+import { createMeditationLoopState } from './application/handlers/handleMeditation'
 import { setupKeyboardCommands, teardownKeyboardCommands } from './application/input/keyboardInput'
 import {
   createBoardObserver,
@@ -72,6 +74,8 @@ export async function init() {
     customBoardState,
     settings
   )
+  const meditationLoopState = createMeditationLoopState()
+  const cleanupMeditation = setupMeditationEffect(meditationLoopState, settings)
 
   // Create 3D drawings state
   const drawings3DState = createDrawings3DState()
@@ -98,6 +102,7 @@ export async function init() {
     cleanupHover()
     cleanupPieceStyle()
     cleanupBlackSegments()
+    cleanupMeditation()
     stopHoverAnimation(hoverState)
     stopBoardObserver(boardObserverState)
     destroyFlashOverlay(flashState)

@@ -13,6 +13,7 @@ export interface Settings {
   flashModeEnabled: boolean
   flashDuration: number
   flashInterval: number
+  meditationEnabled: boolean
 }
 
 export const defaultSettings: Settings = {
@@ -30,4 +31,5 @@ export const defaultSettings: Settings = {
   flashModeEnabled: false,
   flashDuration: 1,
   flashInterval: 3,
+  meditationEnabled: false,
 }

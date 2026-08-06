@@ -25,6 +25,7 @@ describe('SpeechButtons', () => {
     flashModeEnabled: signal(false),
     flashDuration: signal(1000),
     flashInterval: signal(3),
+    meditationEnabled: signal(false),
   }
 
   it('renders all three rows of buttons', () => {
@@ -48,6 +49,9 @@ describe('SpeechButtons', () => {
     // Row 3: Rate and Stop
     expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
+
+    // Row 4: Meditation
+    expect(screen.getByText('🧘 meditation: false')).toBeInstanceOf(HTMLElement)
   })
 
   it('calls handleSpeechCommand with WK when white king side button is clicked', async () => {

@@ -11,6 +11,7 @@ const boardObserver = mockModule(import('./application/observers/observerState')
 const flashOverlay = mockModule(import('./presentation/non-preact-components/flash'))
 const handleFlash = mockModule(import('./application/handlers/handleFlash'))
 const handleBlackSegments = mockModule(import('./application/handlers/handleBlackSegments'))
+const handleMeditation = mockModule(import('./application/handlers/handleMeditation'))
 const handleCustomBoard = mockModule(import('./application/handlers/handleCustomBoard'))
 const dividersOverlay = mockModule(import('./presentation/non-preact-components/dividers'))
 const annotations = mockModule(import('./presentation/non-preact-components/annotations'))
@@ -22,6 +23,7 @@ const onParallax = mockModule(import('./application/effects/onParallax'))
 const onHoverMode = mockModule(import('./application/effects/onHoverMode'))
 const onPieceStyle = mockModule(import('./application/effects/onPieceStyle'))
 const onBlackSegments = mockModule(import('./application/effects/onBlackSegments'))
+const onMeditation = mockModule(import('./application/effects/onMeditation'))
 const hoverAnimation = mockModule(import('./presentation/3d/hoverAnimation'))
 const drawings3d = mockModule(import('./presentation/3d/drawings3d'))
 const handleAnnotateMock = mockModule(import('./application/handlers/handleAnnotate'))
@@ -63,6 +65,8 @@ describe('init', () => {
     }
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
+    const mockCleanupMeditation = () => {}
+    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -116,6 +120,14 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    handleMeditation
+      .expects('createMeditationLoopState')
+      .withArgs()
+      .returns(mockMeditationLoopState)
+    onMeditation
+      .expects('setupMeditationEffect')
+      .withArgs(mockMeditationLoopState, mockSettings)
+      .returns(mockCleanupMeditation)
     drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
@@ -168,6 +180,8 @@ describe('init', () => {
     }
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
+    const mockCleanupMeditation = () => {}
+    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -221,6 +235,14 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    handleMeditation
+      .expects('createMeditationLoopState')
+      .withArgs()
+      .returns(mockMeditationLoopState)
+    onMeditation
+      .expects('setupMeditationEffect')
+      .withArgs(mockMeditationLoopState, mockSettings)
+      .returns(mockCleanupMeditation)
     drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
@@ -281,6 +303,8 @@ describe('init', () => {
     }
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
+    const mockCleanupMeditation = () => {}
+    const mockMeditationLoopState = { intervalId: null, elapsedMs: 0 }
     const mockSettings = {} as unknown as SettingsStore
 
     dom
@@ -334,6 +358,14 @@ describe('init', () => {
       .expects('setupBlackSegmentsEffect')
       .withArgs(mockBlackSegmentsState, mockCustomBoardState, mockSettings)
       .returns(mockCleanupBlackSegments)
+    handleMeditation
+      .expects('createMeditationLoopState')
+      .withArgs()
+      .returns(mockMeditationLoopState)
+    onMeditation
+      .expects('setupMeditationEffect')
+      .withArgs(mockMeditationLoopState, mockSettings)
+      .returns(mockCleanupMeditation)
     drawings3d.expects('createDrawings3DState').withArgs().returns({ objects: [] })
     keyboardInput
       .expects('setupKeyboardCommands')
