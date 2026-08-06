@@ -48,8 +48,8 @@ describe('SpeechButtons', () => {
     expect(screen.getByText("🔊 b's pieces")).toBeInstanceOf(HTMLElement)
 
     // Row 3: Rate, Pause, and Stop
-    expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('⏸ pause: 0.5')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 pause')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 

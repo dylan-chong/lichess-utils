@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals'
-import { render, screen } from '@testing-library/preact'
+import { render, screen, within } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSettingsStore } from '../../application/settings/settingsStore'
@@ -29,7 +29,7 @@ describe('ControlPanel', () => {
     )
 
     // Speech buttons
-    expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
 
     // Main controls
     expect(screen.getByText('Pieces List: false')).toBeInstanceOf(HTMLElement)
@@ -39,7 +39,7 @@ describe('ControlPanel', () => {
     expect(screen.getByText('🧘 meditation: false')).toBeInstanceOf(HTMLElement)
   })
 
-  it('displays and updates speak rate button from SpeechButtons', async () => {
+  it('displays and updates speak rate dropdown from SpeechButtons', async () => {
     const user = userEvent.setup()
     const boardChanged = signal(0)
 
@@ -49,12 +49,14 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
 
-    await user.click(screen.getByText('🔊 rate: 0.5'))
+    const rateSelect = within(
+      screen.getByText('🔊 rate').closest('label') as HTMLElement
+    ).getByRole('combobox') as HTMLSelectElement
+    await user.selectOptions(rateSelect, within(rateSelect).getByText('4'))
 
-    expect(settings.speakRate.value).toBe(0.7)
-    expect(screen.getByText('🔊 rate: 0.7')).toBeInstanceOf(HTMLElement)
+    expect(settings.speakRate.value).toBe(4)
   })
 
   it('should toggle pieces list when button clicked', async () => {
@@ -164,7 +166,7 @@ describe('ControlPanel', () => {
       expect(screen.getByText('Obfuscations: true')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates parallax button', async () => {
+    it('displays and updates parallax dropdown', async () => {
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -174,15 +176,17 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Parallax: 0')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Parallax')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Parallax: 0'))
+      const select = within(screen.getByText('Parallax').closest('label') as HTMLElement).getByRole(
+        'combobox'
+      ) as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('20'))
 
       expect(settings.parallax.value).toBe(20)
-      expect(screen.getByText('Parallax: 20')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates hover mode button', async () => {
+    it('displays and updates hover mode dropdown', async () => {
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -192,12 +196,14 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Hover Mode: off')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Hover Mode')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Hover Mode: off'))
+      const select = within(
+        screen.getByText('Hover Mode').closest('label') as HTMLElement
+      ).getByRole('combobox') as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('small'))
 
       expect(settings.hoverMode.value).toBe('small')
-      expect(screen.getByText('Hover Mode: small')).toBeInstanceOf(HTMLElement)
     })
   })
 
@@ -207,7 +213,7 @@ describe('ControlPanel', () => {
       settings.obfuscationsEnabled.value = true
     })
 
-    it('displays and updates piece style button', async () => {
+    it('displays and updates piece style dropdown', async () => {
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -217,15 +223,17 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Piece Style: icons')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Piece Style')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Piece Style: icons'))
+      const select = within(
+        screen.getByText('Piece Style').closest('label') as HTMLElement
+      ).getByRole('combobox') as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('3d'))
 
       expect(settings.pieceStyle.value).toBe('3d')
-      expect(screen.getByText('Piece Style: 3d')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates blur button', async () => {
+    it('displays and updates blur dropdown', async () => {
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -235,15 +243,17 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Blur: 0')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Blur')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Blur: 0'))
+      const select = within(screen.getByText('Blur').closest('label') as HTMLElement).getByRole(
+        'combobox'
+      ) as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('1'))
 
       expect(settings.blur.value).toBe(1)
-      expect(screen.getByText('Blur: 1')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates black segments button', async () => {
+    it('displays and updates black segments dropdown', async () => {
       const user = userEvent.setup()
       const boardChanged = signal(0)
 
@@ -253,15 +263,17 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Black Segments: none')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Black Segments')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Black Segments: none'))
+      const select = within(
+        screen.getByText('Black Segments').closest('label') as HTMLElement
+      ).getByRole('combobox') as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('1/4'))
 
       expect(settings.blackSegments.value).toBe('1/4')
-      expect(screen.getByText('Black Segments: 1/4')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates timing button when black segments is not none', async () => {
+    it('displays and updates timing dropdown when black segments is not none', async () => {
       const user = userEvent.setup()
       settings.blackSegments.value = '1/4'
       const boardChanged = signal(0)
@@ -272,17 +284,19 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Timing: rotate-10s')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Timing')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Timing: rotate-10s'))
+      const select = within(screen.getByText('Timing').closest('label') as HTMLElement).getByRole(
+        'combobox'
+      ) as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('rotate-30s'))
 
       expect(settings.blackSegmentsTiming.value).toBe('rotate-30s')
-      expect(screen.getByText('Timing: rotate-30s')).toBeInstanceOf(HTMLElement)
     })
   })
 
   describe('Flash Mode nested controls', () => {
-    it('displays and updates flash duration button', async () => {
+    it('displays and updates flash duration dropdown', async () => {
       settings.flashModeEnabled.value = true
       const user = userEvent.setup()
       const boardChanged = signal(0)
@@ -293,15 +307,17 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Flash Duration: 1')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Flash Duration')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Flash Duration: 1'))
+      const select = within(
+        screen.getByText('Flash Duration').closest('label') as HTMLElement
+      ).getByRole('combobox') as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('100'))
 
       expect(settings.flashDuration.value).toBe(100)
-      expect(screen.getByText('Flash Duration: 100')).toBeInstanceOf(HTMLElement)
     })
 
-    it('displays and updates flash interval button', async () => {
+    it('displays and updates flash interval dropdown', async () => {
       settings.flashModeEnabled.value = true
       const user = userEvent.setup()
       const boardChanged = signal(0)
@@ -312,12 +328,14 @@ describe('ControlPanel', () => {
         </SettingsProvider>
       )
 
-      expect(screen.getByText('Flash Interval: 3')).toBeInstanceOf(HTMLElement)
+      expect(screen.getByText('Flash Interval')).toBeInstanceOf(HTMLElement)
 
-      await user.click(screen.getByText('Flash Interval: 3'))
+      const select = within(
+        screen.getByText('Flash Interval').closest('label') as HTMLElement
+      ).getByRole('combobox') as HTMLSelectElement
+      await user.selectOptions(select, within(select).getByText('5'))
 
       expect(settings.flashInterval.value).toBe(5)
-      expect(screen.getByText('Flash Interval: 5')).toBeInstanceOf(HTMLElement)
     })
   })
 })
