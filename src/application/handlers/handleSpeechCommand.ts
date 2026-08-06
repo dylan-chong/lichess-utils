@@ -2,13 +2,18 @@ import { PlayerColor, type Quadrant } from '../../constants/chess'
 import { SpeechCommand } from '../../constants/commands'
 import { filterQuadrant } from '../../domain/chess/pieceGrouping'
 import {
-  generateAllPiecesText,
-  generateColorText,
-  generateQuadrantText,
+  generateAllPiecesSegments,
+  generateColorSegments,
+  generateQuadrantSegments,
 } from '../../domain/speech/speechText'
-import { speakText, stopSpeaking } from '../../platform/speech'
-import { readPiecePositions } from '../services/boardReader/reader'
+import { speakSegments, stopSpeaking } from '../../platform/speech'
+import { getPlayerColor, readPiecePositions } from '../services/boardReader/reader'
 import type { SettingsStore } from '../settings/settingsStore'
+
+function speakWithAnnouncement(segments: string[], settings: SettingsStore): void {
+  const announcement = `you are ${getPlayerColor()}.`
+  speakSegments([announcement, ...segments], settings.speakRate.value, settings.pauseLength.value)
+}
 
 export function handleSpeechCommand(command: string, settings: SettingsStore): void {
   if (command === SpeechCommand.STOP) {
@@ -19,21 +24,21 @@ export function handleSpeechCommand(command: string, settings: SettingsStore): v
   const pieces = readPiecePositions()
 
   if (command === SpeechCommand.ALL) {
-    const text = generateAllPiecesText(pieces)
-    speakText(text, settings.speakRate.value)
+    const segments = generateAllPiecesSegments(pieces)
+    speakWithAnnouncement(segments, settings)
     return
   }
 
   if (command === SpeechCommand.WHITE || command === SpeechCommand.BLACK) {
     const color = command === SpeechCommand.WHITE ? PlayerColor.WHITE : PlayerColor.BLACK
-    const text = generateColorText(pieces, color)
-    speakText(text, settings.speakRate.value)
+    const segments = generateColorSegments(pieces, color)
+    speakWithAnnouncement(segments, settings)
     return
   }
 
   // Quadrant commands: wk, wq, bk, bq
   const quadrant = command as Quadrant
   const filtered = filterQuadrant(pieces, quadrant)
-  const text = generateQuadrantText(filtered)
-  speakText(text, settings.speakRate.value)
+  const segments = generateQuadrantSegments(filtered)
+  speakWithAnnouncement(segments, settings)
 }

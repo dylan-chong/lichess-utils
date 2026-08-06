@@ -96,6 +96,28 @@ describe('groupByColorAndType', () => {
     ])
   })
 
+  it('sorts piece types in pawn, knight, bishop, rook, queen, king order', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'e1', color: PlayerColor.WHITE, type: PieceType.KING },
+      { square: 'd1', color: PlayerColor.WHITE, type: PieceType.QUEEN },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+      { square: 'c1', color: PlayerColor.WHITE, type: PieceType.BISHOP },
+      { square: 'b1', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = groupByColorAndType(pieces)
+
+    expect(result.map((g) => g.type)).toEqual([
+      PieceType.PAWN,
+      PieceType.KNIGHT,
+      PieceType.BISHOP,
+      PieceType.ROOK,
+      PieceType.QUEEN,
+      PieceType.KING,
+    ])
+  })
+
   it('sorts white pieces before black pieces', () => {
     // Input with BLACK pieces before WHITE to test sorting
     const pieces: PiecePosition[] = [

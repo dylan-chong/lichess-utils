@@ -1,4 +1,4 @@
-import { type PieceType, PlayerColor, Quadrant } from '../../constants/chess'
+import { PIECE_TYPE_VALUES, type PieceType, PlayerColor, Quadrant } from '../../constants/chess'
 
 export interface PiecePosition {
   square: string
@@ -74,11 +74,14 @@ export function groupByColorAndType(pieces: PiecePosition[]): GroupedPieces[] {
     groups.get(key)?.squares.push(piece.square)
   }
 
-  // Sort groups by color (white first) then type
+  // Sort groups by color (white first) then by piece type (pawn, knight, bishop, rook, queen, king)
   return Array.from(groups.values()).sort((a, b) => {
     if (a.color !== b.color) {
       return a.color === PlayerColor.WHITE ? -1 : 1
     }
-    return a.type.localeCompare(b.type)
+    return (
+      PIECE_TYPE_VALUES.indexOf(a.type as PieceType) -
+      PIECE_TYPE_VALUES.indexOf(b.type as PieceType)
+    )
   })
 }

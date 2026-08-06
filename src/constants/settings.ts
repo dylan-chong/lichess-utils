@@ -1,5 +1,6 @@
 export interface Settings {
   speakRate: number
+  pauseLength: number
   piecesListEnabled: boolean
   dividersEnabled: boolean
   customBoardEnabled: boolean
@@ -18,6 +19,7 @@ export interface Settings {
 
 export const defaultSettings: Settings = {
   speakRate: 0.5,
+  pauseLength: 0.5,
   piecesListEnabled: false,
   dividersEnabled: false,
   customBoardEnabled: false,

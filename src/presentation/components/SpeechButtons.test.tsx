@@ -12,6 +12,7 @@ const speechHandler = mockModule(import('../../application/handlers/handleSpeech
 describe('SpeechButtons', () => {
   const mockSettings = {
     speakRate: signal(0.5),
+    pauseLength: signal(0.5),
     piecesListEnabled: signal(false),
     dividersEnabled: signal(false),
     customBoardEnabled: signal(false),
@@ -46,8 +47,9 @@ describe('SpeechButtons', () => {
     expect(screen.getByText("🔊 w's pieces")).toBeInstanceOf(HTMLElement)
     expect(screen.getByText("🔊 b's pieces")).toBeInstanceOf(HTMLElement)
 
-    // Row 3: Rate and Stop
+    // Row 3: Rate, Pause, and Stop
     expect(screen.getByText('🔊 rate: 0.5')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('⏸ pause: 0.5')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 

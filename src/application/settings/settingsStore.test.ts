@@ -97,6 +97,7 @@ describe('settingsStore', () => {
 
       const expectedData = {
         speakRate: 1.8,
+        pauseLength: defaultSettings.pauseLength,
         piecesListEnabled: false,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,
@@ -124,6 +125,7 @@ describe('settingsStore', () => {
     it('should serialize all signal values', () => {
       const expectedData = {
         speakRate: defaultSettings.speakRate,
+        pauseLength: defaultSettings.pauseLength,
         piecesListEnabled: defaultSettings.piecesListEnabled,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,
@@ -153,6 +155,7 @@ describe('settingsStore', () => {
     it('should call saveSettings when effect runs', () => {
       const expectedJson = JSON.stringify({
         speakRate: defaultSettings.speakRate,
+        pauseLength: defaultSettings.pauseLength,
         piecesListEnabled: defaultSettings.piecesListEnabled,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,
