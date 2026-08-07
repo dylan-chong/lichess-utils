@@ -17,19 +17,19 @@ export function SpeechButtons() {
       <SectionHeading label="Speak quadrants" />
       <ButtonRow>
         <ActionButton
-          label="🔊 ♔ side"
+          label="🔊 WK side"
           onClick={() => handleSpeechCommand(SpeechCommand.WK, settings)}
         />
         <ActionButton
-          label="🔊 ♕ side"
+          label="🔊 WQ side"
           onClick={() => handleSpeechCommand(SpeechCommand.WQ, settings)}
         />
         <ActionButton
-          label="🔊 ♚ side"
+          label="🔊 BK side"
           onClick={() => handleSpeechCommand(SpeechCommand.BK, settings)}
         />
         <ActionButton
-          label="🔊 ♛ side"
+          label="🔊 BQ side"
           onClick={() => handleSpeechCommand(SpeechCommand.BQ, settings)}
         />
       </ButtonRow>
@@ -37,24 +37,24 @@ export function SpeechButtons() {
       <SectionHeading label="Speak all" />
       <ButtonRow>
         <ActionButton
-          label="🔊 all pieces"
+          label="🔊 All pieces"
           onClick={() => handleSpeechCommand(SpeechCommand.ALL, settings)}
         />
         <ActionButton
-          label="🔊 w's pieces"
+          label="🔊 W's pieces"
           onClick={() => handleSpeechCommand(SpeechCommand.WHITE, settings)}
         />
         <ActionButton
-          label="🔊 b's pieces"
+          label="🔊 B's pieces"
           onClick={() => handleSpeechCommand(SpeechCommand.BLACK, settings)}
         />
       </ButtonRow>
 
       <SectionHeading label="Speak settings" />
       <ButtonRow>
-        <SettingButton label="🔊 rate" setting={settings.speakRate} options={SPEAK_RATE_OPTIONS} />
+        <SettingButton label="🔊 Rate" setting={settings.speakRate} options={SPEAK_RATE_OPTIONS} />
         <SettingButton
-          label="🔊 pause"
+          label="🔊 Pause"
           setting={settings.pauseLength}
           options={PAUSE_LENGTH_OPTIONS}
         />

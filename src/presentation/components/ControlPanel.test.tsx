@@ -29,14 +29,14 @@ describe('ControlPanel', () => {
     )
 
     // Speech buttons
-    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
 
     // Main controls
-    expect(screen.getByText('Pieces List: false')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('Dividers: false')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('Custom Board: false')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('Flash Mode: false')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🧘 meditation: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('📋 Pieces List: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('➕ Dividers: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🎨 Custom Board: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔦 Flash Mode: false')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🧘 Meditation: false')).toBeInstanceOf(HTMLElement)
   })
 
   it('displays and updates speak rate dropdown from SpeechButtons', async () => {
@@ -49,10 +49,10 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
 
     const rateSelect = within(
-      screen.getByText('🔊 rate').closest('label') as HTMLElement
+      screen.getByText('🔊 Rate').closest('label') as HTMLElement
     ).getByRole('combobox') as HTMLSelectElement
     await user.selectOptions(rateSelect, within(rateSelect).getByText('1.2'))
 
@@ -69,11 +69,11 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Pieces List: false')
+    const button = screen.getByText('📋 Pieces List: false')
     await user.click(button)
 
     expect(settings.piecesListEnabled.value).toBe(true)
-    expect(screen.getByText('Pieces List: true')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('📋 Pieces List: true')).toBeInstanceOf(HTMLElement)
   })
 
   it('should toggle dividers when button clicked', async () => {
@@ -86,11 +86,11 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Dividers: false')
+    const button = screen.getByText('➕ Dividers: false')
     await user.click(button)
 
     expect(settings.dividersEnabled.value).toBe(true)
-    expect(screen.getByText('Dividers: true')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('➕ Dividers: true')).toBeInstanceOf(HTMLElement)
   })
 
   it('should toggle custom board when button clicked', async () => {
@@ -103,11 +103,11 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Custom Board: false')
+    const button = screen.getByText('🎨 Custom Board: false')
     await user.click(button)
 
     expect(settings.customBoardEnabled.value).toBe(true)
-    expect(screen.getByText('Custom Board: true')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🎨 Custom Board: true')).toBeInstanceOf(HTMLElement)
   })
 
   it('should toggle flash mode when button clicked', async () => {
@@ -120,11 +120,11 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    const button = screen.getByText('Flash Mode: false')
+    const button = screen.getByText('🔦 Flash Mode: false')
     await user.click(button)
 
     expect(settings.flashModeEnabled.value).toBe(true)
-    expect(screen.getByText('Flash Mode: true')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔦 Flash Mode: true')).toBeInstanceOf(HTMLElement)
   })
 
   it('clicking Annotate Board button calls onAnnotate', async () => {
@@ -138,7 +138,7 @@ describe('ControlPanel', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('Annotate Board'))
+    await user.click(screen.getByText('✏️ Annotate Board'))
 
     expect(onAnnotate).toHaveBeenCalledOnce()
   })

@@ -38,39 +38,15 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
       {/* Speech Buttons - Always Visible */}
       <SpeechButtons />
 
-      <SectionHeading label="Utils" />
-      <ButtonRow>
-        <SettingButton
-          label="Pieces List"
-          setting={settings.piecesListEnabled}
-          options={TOGGLE_OPTIONS}
-        />
-      </ButtonRow>
-      <ConditionalControls condition={settings.piecesListEnabled}>
-        <PiecesList boardChanged={boardChanged} />
-      </ConditionalControls>
-
-      <ButtonRow>
-        <ActionButton label="Annotate Board" onClick={onAnnotate} />
-      </ButtonRow>
-
-      <ButtonRow>
-        <SettingButton
-          label="🧘 meditation"
-          setting={settings.meditationEnabled}
-          options={TOGGLE_OPTIONS}
-        />
-      </ButtonRow>
-
       <SectionHeading label="Board mods" />
       <ButtonRow>
         <SettingButton
-          label="Dividers"
+          label="➕ Dividers"
           setting={settings.dividersEnabled}
           options={TOGGLE_OPTIONS}
         />
         <SettingButton
-          label="Custom Board"
+          label="🎨 Custom Board"
           setting={settings.customBoardEnabled}
           options={TOGGLE_OPTIONS}
         />
@@ -123,7 +99,7 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
 
       <ButtonRow>
         <SettingButton
-          label="Flash Mode"
+          label="🔦 Flash Mode"
           setting={settings.flashModeEnabled}
           options={TOGGLE_OPTIONS}
         />
@@ -144,6 +120,30 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           />
         </ButtonRow>
       </ConditionalControls>
+
+      <SectionHeading label="Utils" />
+      <ButtonRow>
+        <SettingButton
+          label="📋 Pieces List"
+          setting={settings.piecesListEnabled}
+          options={TOGGLE_OPTIONS}
+        />
+      </ButtonRow>
+      <ConditionalControls condition={settings.piecesListEnabled}>
+        <PiecesList boardChanged={boardChanged} />
+      </ConditionalControls>
+
+      <ButtonRow>
+        <ActionButton label="✏️ Annotate Board" onClick={onAnnotate} />
+      </ButtonRow>
+
+      <ButtonRow>
+        <SettingButton
+          label="🧘 Meditation"
+          setting={settings.meditationEnabled}
+          options={TOGGLE_OPTIONS}
+        />
+      </ButtonRow>
     </div>
   )
 }

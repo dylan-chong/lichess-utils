@@ -65,22 +65,22 @@ These are clickable buttons rendered in the UI, grouped into rows:
 **Row 1 — Quadrant Speech:**
 | Button | Command | What it speaks |
 |--------|---------|----------------|
-| 🔊 ♔ side | `pwk` | White's king-side pieces (files e-h, ranks 1-4) |
-| 🔊 ♕ side | `pwq` | White's queen-side pieces (files a-d, ranks 1-4) |
-| 🔊 ♚ side | `pbk` | Black's king-side pieces (files e-h, ranks 5-8) |
-| 🔊 ♛ side | `pbq` | Black's queen-side pieces (files a-d, ranks 5-8) |
+| 🔊 WK side | `pwk` | White's king-side pieces (files e-h, ranks 1-4) |
+| 🔊 WQ side | `pwq` | White's queen-side pieces (files a-d, ranks 1-4) |
+| 🔊 BK side | `pbk` | Black's king-side pieces (files e-h, ranks 5-8) |
+| 🔊 BQ side | `pbq` | Black's queen-side pieces (files a-d, ranks 5-8) |
 
 **Row 2 — All/Color Speech:**
 | Button | Command | What it speaks |
 |--------|---------|----------------|
-| 🔊 all pieces | `pa` | All pieces on the board |
-| 🔊 w's pieces | `pww` | All white pieces |
-| 🔊 b's pieces | `pbb` | All black pieces |
+| 🔊 All pieces | `pa` | All pieces on the board |
+| 🔊 W's pieces | `pww` | All white pieces |
+| 🔊 B's pieces | `pbb` | All black pieces |
 
 **Row 3 — Speak Rate & Stop:**
 | Element | Command | Description |
 |---------|---------|-------------|
-| 🔊 rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
+| 🔊 Rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
 | 🔊 Stop (button) | `pss` | Stop speaking immediately |
 
 ### 2.2 Main Controls (Always Visible)
@@ -217,9 +217,9 @@ The controls appear in a nested hierarchy - some controls only show up when thei
 
 ```
 Speech Buttons (always visible)
-├─ Row: 🔊 ♔ side, 🔊 ♕ side, 🔊 ♚ side, 🔊 ♛ side
-├─ Row: 🔊 all pieces, 🔊 w's pieces, 🔊 b's pieces
-├─ Row: 🔊 rate (dropdown), 🔊 Stop (button)
+├─ Row: 🔊 WK side, 🔊 WQ side, 🔊 BK side, 🔊 BQ side
+├─ Row: 🔊 All pieces, 🔊 W's pieces, 🔊 B's pieces
+├─ Row: 🔊 Rate (dropdown), 🔊 Stop (button)
 
 Main Controls (always visible)
 ├─ Pieces List

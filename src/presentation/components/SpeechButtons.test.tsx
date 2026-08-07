@@ -37,19 +37,19 @@ describe('SpeechButtons', () => {
     )
 
     // Row 1: Quadrant buttons
-    expect(screen.getByText('🔊 ♔ side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ♕ side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ♚ side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ♛ side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 WK side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 WQ side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 BK side')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 BQ side')).toBeInstanceOf(HTMLElement)
 
     // Row 2: All/Color buttons
-    expect(screen.getByText('🔊 all pieces')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText("🔊 w's pieces")).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText("🔊 b's pieces")).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 All pieces')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText("🔊 W's pieces")).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText("🔊 B's pieces")).toBeInstanceOf(HTMLElement)
 
     // Row 3: Rate, Pause, and Stop
-    expect(screen.getByText('🔊 rate')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 pause')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Pause')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 
@@ -66,7 +66,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ♔ side'))
+    await user.click(screen.getByText('🔊 WK side'))
   })
 
   it('calls handleSpeechCommand with ALL when all pieces button is clicked', async () => {
@@ -82,7 +82,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 all pieces'))
+    await user.click(screen.getByText('🔊 All pieces'))
   })
 
   it('calls handleSpeechCommand with STOP when stop button is clicked', async () => {
@@ -114,7 +114,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ♕ side'))
+    await user.click(screen.getByText('🔊 WQ side'))
   })
 
   it('calls handleSpeechCommand with BK when black king side button is clicked', async () => {
@@ -130,7 +130,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ♚ side'))
+    await user.click(screen.getByText('🔊 BK side'))
   })
 
   it('calls handleSpeechCommand with BQ when black queen side button is clicked', async () => {
@@ -146,7 +146,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ♛ side'))
+    await user.click(screen.getByText('🔊 BQ side'))
   })
 
   it('calls handleSpeechCommand with WHITE when white pieces button is clicked', async () => {
@@ -162,7 +162,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText("🔊 w's pieces"))
+    await user.click(screen.getByText("🔊 W's pieces"))
   })
 
   it('calls handleSpeechCommand with BLACK when black pieces button is clicked', async () => {
@@ -178,6 +178,6 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText("🔊 b's pieces"))
+    await user.click(screen.getByText("🔊 B's pieces"))
   })
 })
