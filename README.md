@@ -13,6 +13,23 @@ Mobile friendly (browser only of course)
 
 ![screenshot](./screenshot.png)
 
+## Installation
+
+1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension (Chrome, Firefox) or Userscripts (Safari)
+    - Make sure to enable "Allow user scripts" for Tampermonkey in your browser's extension settings (required by some browsers, e.g. Chrome's Developer Mode toggle)
+2. [Click here to install the script](https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js) — Tampermonkey will prompt you to install it. For Safari, copy the script to your Userscripts directory instead.
+3. The script auto-updates when a new version is pushed to this repo
+4. On lichess.org:
+    - enable keyboard move input
+    - you'll probably want to enable move narration
+    - go to a puzzle
+    - turn on blindfold mode
+- type into the move input box `pwk` to read out pieces on the white-kingside quadrant
+    - (the 'invalid input' sound plays when you type, but just ignore that sound)
+- profit from blindfold chess puzzle practice!
+
+---
+
 ## Architecture Overview
 
 This codebase follows a strict layered architecture with 5 main layers. Each layer has clear responsibilities and can only depend on layers at the same level or below. This ensures modularity, testability, and maintainability.
@@ -218,17 +235,3 @@ tsc --noEmit         # Type check
 1. Create wrapper in `src/platform/`
 2. Create adapter in `src/adapters-*/` if needed
 3. Use from application or presentation layer
-
-### Installation
-
-1. Install the [Tampermonkey](https://www.tampermonkey.net/) browser extension (Chrome, Firefox) or Userscripts (Safari)
-2. [Click here to install the script](https://raw.githubusercontent.com/dylan-chong/lichess-utils/main/lichess-board-speaker.user.js) — Tampermonkey will prompt you to install it. For Safari, copy the script to your Userscripts directory instead.
-3. The script auto-updates when a new version is pushed to this repo
-4. On lichess.org:
-    - enable keyboard move input
-    - you'll probably want to enable move narration
-    - go to a puzzle
-    - turn on blindfold mode
-- type into the move input box `pwk` to read out pieces on the white-kingside quadrant
-    - (the 'invalid input' sound plays when you type, but just ignore that sound)
-- profit from blindfold chess puzzle practice!
