@@ -3,6 +3,7 @@ import { SpeechCommand } from '../../constants/commands'
 import { useSettings } from '../contexts/SettingsContext'
 import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
+import { SectionHeading } from './SectionHeading'
 import { SettingButton } from './SettingButton'
 
 const SPEAK_RATE_OPTIONS = [0.2, 0.5, 0.7, 1.0, 1.1, 1.2] as const
@@ -13,6 +14,7 @@ export function SpeechButtons() {
 
   return (
     <div>
+      <SectionHeading label="Speak quadrants" />
       <ButtonRow>
         <ActionButton
           label="🔊 ♔ side"
@@ -32,6 +34,7 @@ export function SpeechButtons() {
         />
       </ButtonRow>
 
+      <SectionHeading label="Speak all" />
       <ButtonRow>
         <ActionButton
           label="🔊 all pieces"
@@ -47,6 +50,7 @@ export function SpeechButtons() {
         />
       </ButtonRow>
 
+      <SectionHeading label="Speak settings" />
       <ButtonRow>
         <SettingButton label="🔊 rate" setting={settings.speakRate} options={SPEAK_RATE_OPTIONS} />
         <SettingButton

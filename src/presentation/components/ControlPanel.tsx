@@ -14,6 +14,7 @@ import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
 import { ConditionalControls } from './ConditionalControls'
 import { PiecesList } from './PiecesList'
+import { SectionHeading } from './SectionHeading'
 import { SettingButton } from './SettingButton'
 import { SpeechButtons } from './SpeechButtons'
 
@@ -37,7 +38,7 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
       {/* Speech Buttons - Always Visible */}
       <SpeechButtons />
 
-      {/* Row: Pieces List */}
+      <SectionHeading label="Utils" />
       <ButtonRow>
         <SettingButton
           label="Pieces List"
@@ -49,12 +50,19 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
         <PiecesList boardChanged={boardChanged} />
       </ConditionalControls>
 
-      {/* Row: Annotate Board */}
       <ButtonRow>
         <ActionButton label="Annotate Board" onClick={onAnnotate} />
       </ButtonRow>
 
-      {/* Row: Dividers and Custom Board */}
+      <ButtonRow>
+        <SettingButton
+          label="🧘 meditation"
+          setting={settings.meditationEnabled}
+          options={TOGGLE_OPTIONS}
+        />
+      </ButtonRow>
+
+      <SectionHeading label="Board mods" />
       <ButtonRow>
         <SettingButton
           label="Dividers"
@@ -113,7 +121,6 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
         </ConditionalControls>
       </ConditionalControls>
 
-      {/* Row: Flash Mode */}
       <ButtonRow>
         <SettingButton
           label="Flash Mode"
@@ -137,15 +144,6 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           />
         </ButtonRow>
       </ConditionalControls>
-
-      {/* Row: Meditation */}
-      <ButtonRow>
-        <SettingButton
-          label="🧘 meditation"
-          setting={settings.meditationEnabled}
-          options={TOGGLE_OPTIONS}
-        />
-      </ButtonRow>
     </div>
   )
 }
