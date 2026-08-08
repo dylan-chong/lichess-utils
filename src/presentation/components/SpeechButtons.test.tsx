@@ -66,10 +66,10 @@ describe('SpeechButtons', () => {
     )
 
     // Row 1-2: Quadrant arrow buttons
-    expect(screen.getByText('🔊 ↖')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ↗')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ↙')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 ↘')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↖️')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↗️')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↙️')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↘️')).toBeInstanceOf(HTMLElement)
 
     // Row 3: White/Black
     expect(screen.getByText('🔊 White')).toBeInstanceOf(HTMLElement)
@@ -158,7 +158,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ↖'))
+    await user.click(screen.getByText('🔊 ↖️'))
   })
 
   it('calls handleSpeechCommand with WK when top-left is clicked as a black player', async () => {
@@ -175,7 +175,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ↖'))
+    await user.click(screen.getByText('🔊 ↖️'))
   })
 
   it('calls handleSpeechCommand with the correct quadrant for top-right as a white player', async () => {
@@ -192,7 +192,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ↗'))
+    await user.click(screen.getByText('🔊 ↗️'))
   })
 
   it('calls handleSpeechCommand with the correct quadrant for bottom-left as a white player', async () => {
@@ -209,7 +209,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ↙'))
+    await user.click(screen.getByText('🔊 ↙️'))
   })
 
   it('calls handleSpeechCommand with the correct quadrant for bottom-right as a white player', async () => {
@@ -226,7 +226,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 ↘'))
+    await user.click(screen.getByText('🔊 ↘️'))
   })
 
   it('calls handleSpeechCommand with ALL when the All button is clicked', async () => {

@@ -34,14 +34,14 @@ export function SpeechButtons() {
 
   return (
     <div>
-      <SectionHeading label="Speak quadrants" />
+      <SectionHeading label="Speak" />
       <ButtonRow>
-        <ActionButton label="🔊 ↖" onClick={() => speakQuadrantAt('top-left')} />
-        <ActionButton label="🔊 ↗" onClick={() => speakQuadrantAt('top-right')} />
+        <ActionButton label="🔊 ↖️" onClick={() => speakQuadrantAt('top-left')} />
+        <ActionButton label="🔊 ↗️" onClick={() => speakQuadrantAt('top-right')} />
       </ButtonRow>
       <ButtonRow>
-        <ActionButton label="🔊 ↙" onClick={() => speakQuadrantAt('bottom-left')} />
-        <ActionButton label="🔊 ↘" onClick={() => speakQuadrantAt('bottom-right')} />
+        <ActionButton label="🔊 ↙️" onClick={() => speakQuadrantAt('bottom-left')} />
+        <ActionButton label="🔊 ↘️" onClick={() => speakQuadrantAt('bottom-right')} />
       </ButtonRow>
       <ButtonRow>
         <ActionButton
