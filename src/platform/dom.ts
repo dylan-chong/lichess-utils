@@ -26,10 +26,6 @@ export function appendChild(parent: Element, child: Element): void {
   parent.appendChild(child)
 }
 
-export function insertAfter(target: Element, newElement: Element): void {
-  target.after(newElement)
-}
-
 export function removeElement(element: Element): void {
   element.remove()
 }

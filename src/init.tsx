@@ -25,7 +25,7 @@ import {
   setupAutoSave,
 } from './application/settings/settingsStore'
 import { DomSelector } from './constants/dom'
-import { createDiv, insertAfter, querySelector, waitForElement } from './platform/dom'
+import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
 import { createDrawings3DState } from './presentation/3d/drawings3d'
 import { createHoverAnimationState, stopHoverAnimation } from './presentation/3d/hoverAnimation'
 import { createRoot, destroyRoot } from './presentation/components/root'
@@ -83,18 +83,20 @@ export async function init() {
   // Set up commands
   setupKeyboardCommands(settings, annotationsState, customBoardState, drawings3DState)
 
-  // Mount Preact UI as a sibling after .keyboard-move, since that element
-  // itself can be display:none depending on lichess's responsive layout tier.
-  // .keyboard-move's parent is a CSS grid with named areas, so without an
-  // explicit grid-column the browser's auto-placement decides which cell we
-  // land in — and that varies with the grid template (e.g. layout-altering
-  // extensions like Prettier Lichess), sometimes placing us beside the board
-  // instead of below it. Force full width so placement is deterministic.
+  // Mount Preact UI inside .keyboard-move, below its existing input/hint text.
+  // .keyboard-move is display:flex with flex-direction:row, so a plain
+  // appended child would sit beside that content instead of below it. Force
+  // the container to wrap and the mount point to take a full row so it
+  // renders on its own line spanning the container's width, regardless of
+  // the surrounding page layout (e.g. layout-altering extensions like
+  // Prettier Lichess, which affect the outer grid but not .keyboard-move's
+  // own already-correct width).
   const mountPoint = createDiv()
-  mountPoint.style.gridColumn = '1 / -1'
+  mountPoint.style.flexBasis = '100%'
   const keyboardMove = querySelector(DomSelector.KEYBOARD_MOVE)
-  if (keyboardMove) {
-    insertAfter(keyboardMove, mountPoint)
+  if (keyboardMove instanceof HTMLElement) {
+    keyboardMove.style.flexWrap = 'wrap'
+    appendChild(keyboardMove, mountPoint)
   }
 
   createRoot(boardChanged, mountPoint, settings, handleAnnotate)

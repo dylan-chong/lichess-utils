@@ -6,7 +6,6 @@ import {
   createImage,
   createSvgElement,
   getBoundingClientRect,
-  insertAfter,
   querySelector,
   querySelectorAll,
   waitForElement,
@@ -77,18 +76,6 @@ describe('dom', () => {
 
     expect(parent.children.length).toBe(1)
     expect(parent.firstChild).toBe(child)
-  })
-
-  it('insertAfter inserts the new element as the next sibling of the target', () => {
-    const parent = document.createElement('div')
-    const target = document.createElement('span')
-    const newElement = document.createElement('a')
-    parent.appendChild(target)
-
-    insertAfter(target, newElement)
-
-    expect(target.nextElementSibling).toBe(newElement)
-    expect(newElement.parentElement).toBe(parent)
   })
 
   it('getBoundingClientRect returns element bounds', () => {

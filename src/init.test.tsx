@@ -135,7 +135,7 @@ describe('init', () => {
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
-    dom.expects('insertAfter').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
+    dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
     root
       .expects('createRoot')
       .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
@@ -250,7 +250,7 @@ describe('init', () => {
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(mockKeyboardMove)
-    dom.expects('insertAfter').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
+    dom.expects('appendChild').withArgs(mockKeyboardMove, mockMountPoint).returns(undefined)
     root
       .expects('createRoot')
       .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
@@ -373,7 +373,7 @@ describe('init', () => {
       .returns(undefined)
     dom.expects('createDiv').withArgs().returns(mockMountPoint)
     dom.expects('querySelector').withArgs('.keyboard-move').returns(null) // Simulate missing element
-    // insertAfter should NOT be called when keyboardMove is null
+    // appendChild should NOT be called when keyboardMove is null
     root
       .expects('createRoot')
       .withArgs(mockBoardChanged, mockMountPoint, mockSettings, handleAnnotateMock.handleAnnotate)
