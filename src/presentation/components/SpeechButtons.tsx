@@ -18,6 +18,10 @@ export function SpeechButtons() {
   const [voiceNames, setVoiceNames] = useState<string[]>(() => getAvailableVoiceNames())
 
   useEffect(() => {
+    // Voices may finish loading asynchronously before this listener is
+    // attached (the 'voiceschanged' event only fires once), so re-check here
+    // in case that already happened, not just on future changes.
+    setVoiceNames(getAvailableVoiceNames())
     onVoicesChanged(() => setVoiceNames(getAvailableVoiceNames()))
   }, [])
 

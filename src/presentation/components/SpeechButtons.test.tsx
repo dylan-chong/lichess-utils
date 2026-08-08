@@ -82,6 +82,32 @@ describe('SpeechButtons', () => {
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 
+  it('picks up voices that finished loading between the initial render and the effect running', () => {
+    let getVoicesCallCount = 0
+    window.speechSynthesis = {
+      getVoices: () => {
+        getVoicesCallCount++
+        // Simulate the voice list only becoming populated after the first call
+        // (e.g. an async load that completes without 'voiceschanged' firing again).
+        return getVoicesCallCount === 1 ? [] : [{ name: 'Alice' } as SpeechSynthesisVoice]
+      },
+      addEventListener: (_type: string, listener: () => void) => {
+        voicesChangedListener = listener
+      },
+      speak: (utterance: SpeechSynthesisUtterance) => {
+        spokenUtterances.push(utterance)
+      },
+    } as unknown as SpeechSynthesis
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    expect(screen.getByText('Alice')).toBeInstanceOf(HTMLElement)
+  })
+
   it('refreshes the voice dropdown options when the browser reports new voices', () => {
     render(
       <SettingsProvider settings={mockSettings}>
