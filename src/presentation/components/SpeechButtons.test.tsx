@@ -12,14 +12,26 @@ const speechHandler = mockModule(import('../../application/handlers/handleSpeech
 describe('SpeechButtons', () => {
   let voiceNames: string[]
   let voicesChangedListener: (() => void) | undefined
+  let spokenUtterances: SpeechSynthesisUtterance[]
 
   beforeEach(() => {
     voiceNames = []
     voicesChangedListener = undefined
+    spokenUtterances = []
+    global.SpeechSynthesisUtterance = class {
+      text: string
+      voice: SpeechSynthesisVoice | null = null
+      constructor(text: string) {
+        this.text = text
+      }
+    } as unknown as typeof SpeechSynthesisUtterance
     window.speechSynthesis = {
       getVoices: () => voiceNames.map((name) => ({ name }) as SpeechSynthesisVoice),
       addEventListener: (_type: string, listener: () => void) => {
         voicesChangedListener = listener
+      },
+      speak: (utterance: SpeechSynthesisUtterance) => {
+        spokenUtterances.push(utterance)
       },
     } as unknown as SpeechSynthesis
   })
@@ -83,6 +95,25 @@ describe('SpeechButtons', () => {
     act(() => voicesChangedListener?.())
 
     expect(screen.getByText('Alice')).toBeInstanceOf(HTMLElement)
+  })
+
+  it('speaks a test phrase with the newly selected voice', async () => {
+    const user = userEvent.setup()
+    voiceNames = ['Alice']
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    const voiceSelect = screen.getByText('🔊 Voice').closest('label')?.querySelector('select')
+    if (!voiceSelect) throw new Error('voice select not found')
+    await user.selectOptions(voiceSelect, screen.getByText('Alice'))
+
+    expect(spokenUtterances).toHaveLength(1)
+    expect(spokenUtterances[0].text).toBe('test pawns on B-2 and D-2.')
+    expect(spokenUtterances[0].voice?.name).toBe('Alice')
   })
 
   it('calls handleSpeechCommand with WK when white king side button is clicked', async () => {

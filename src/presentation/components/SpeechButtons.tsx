@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'preact/hooks'
 import { handleSpeechCommand } from '../../application/handlers/handleSpeechCommand'
 import { SpeechCommand } from '../../constants/commands'
-import { getAvailableVoiceNames, onVoicesChanged } from '../../platform/speech'
+import { generateVoiceTestText } from '../../domain/speech/speechText'
+import { getAvailableVoiceNames, onVoicesChanged, speakText } from '../../platform/speech'
 import { useSettings } from '../contexts/SettingsContext'
 import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
@@ -66,7 +67,14 @@ export function SpeechButtons() {
           setting={settings.pauseLength}
           options={PAUSE_LENGTH_OPTIONS}
         />
-        <VoiceButton label="🔊 Voice" setting={settings.voiceName} voiceNames={voiceNames} />
+        <VoiceButton
+          label="🔊 Voice"
+          setting={settings.voiceName}
+          voiceNames={voiceNames}
+          onChange={(voiceName) =>
+            speakText(generateVoiceTestText(), settings.speakRate.value, voiceName)
+          }
+        />
       </ButtonRow>
       <ButtonRow>
         <ActionButton

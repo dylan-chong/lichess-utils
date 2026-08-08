@@ -8,6 +8,7 @@ import {
   generateColorText,
   generateQuadrantSegments,
   generateQuadrantText,
+  generateVoiceTestText,
 } from './speechText'
 
 describe('generateQuadrantText', () => {
@@ -120,5 +121,11 @@ describe('generateColorSegments', () => {
 
     expect(generateColorSegments(pieces, PlayerColor.WHITE)).toEqual(['A-1 white rook.'])
     expect(generateColorSegments(pieces, PlayerColor.BLACK)).toEqual(['A-8 black rook.'])
+  })
+})
+
+describe('generateVoiceTestText', () => {
+  it('generates a fixed preview phrase for testing a selected voice', () => {
+    expect(generateVoiceTestText()).toBe('test pawns on B-2 and D-2.')
   })
 })

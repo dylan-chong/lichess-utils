@@ -77,3 +77,8 @@ export function generateColorSegments(pieces: PiecePosition[], color: 'white' | 
   const filtered = pieces.filter((p) => p.color === color)
   return generateQuadrantSegments(filtered)
 }
+
+export function generateVoiceTestText(): string {
+  const squares = joinWithAnd(['b2', 'd2'].map(formatSquareForSpeech))
+  return `test pawns on ${squares}.`
+}

@@ -1,7 +1,7 @@
 import { signal } from '@preact/signals'
 import { render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { VoiceButton } from './VoiceButton'
 
 describe('VoiceButton', () => {
@@ -43,5 +43,24 @@ describe('VoiceButton', () => {
     await user.selectOptions(screen.getByRole('combobox'), screen.getByText('Default'))
 
     expect(setting.value).toBe('')
+  })
+
+  it('calls onChange with the newly selected voice name', async () => {
+    const user = userEvent.setup()
+    const setting = signal('')
+    const onChange = vi.fn()
+
+    render(
+      <VoiceButton
+        label="Voice"
+        setting={setting}
+        voiceNames={['Alice', 'Bob']}
+        onChange={onChange}
+      />
+    )
+
+    await user.selectOptions(screen.getByRole('combobox'), screen.getByText('Bob'))
+
+    expect(onChange).toHaveBeenCalledExactlyOnceWith('Bob')
   })
 })

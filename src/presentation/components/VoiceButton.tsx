@@ -4,6 +4,7 @@ interface VoiceButtonProps {
   label: string
   setting: Signal<string>
   voiceNames: readonly string[]
+  onChange?: (voiceName: string) => void
 }
 
 const DEFAULT_VOICE_LABEL = 'Default'
@@ -31,11 +32,13 @@ const selectStyle = {
   cursor: 'pointer',
 }
 
-export function VoiceButton({ label, setting, voiceNames }: VoiceButtonProps) {
+export function VoiceButton({ label, setting, voiceNames, onChange }: VoiceButtonProps) {
   const options = ['', ...voiceNames]
 
   const handleChange = (e: Event) => {
-    setting.value = (e.currentTarget as HTMLSelectElement).value
+    const voiceName = (e.currentTarget as HTMLSelectElement).value
+    setting.value = voiceName
+    onChange?.(voiceName)
   }
 
   return (
