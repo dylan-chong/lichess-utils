@@ -5,6 +5,7 @@ import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { PlayerColor } from '../../constants/chess'
 import { SpeechCommand } from '../../constants/commands'
+import { SpeakOrder } from '../../constants/options'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { SpeechButtons } from './SpeechButtons'
 
@@ -42,6 +43,7 @@ describe('SpeechButtons', () => {
     speakRate: signal(0.5),
     pauseLength: signal(0.6),
     voiceName: signal(''),
+    speakOrder: signal(SpeakOrder.TypeRankFile as string),
     piecesListEnabled: signal(false),
     dividersEnabled: signal(false),
     customBoardEnabled: signal(false),
@@ -79,9 +81,27 @@ describe('SpeechButtons', () => {
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 All')).toBeInstanceOf(HTMLElement)
 
-    // Speak settings: Rate and Pause
+    // Speak settings: Rate, Pause, and Order
     expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Pause')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText(`🔊 Order: ${SpeakOrder.TypeRankFile}`)).toBeInstanceOf(HTMLElement)
+  })
+
+  it('cycles the speak order setting when the Order button is clicked', async () => {
+    const user = userEvent.setup()
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText(`🔊 Order: ${SpeakOrder.TypeRankFile}`))
+
+    expect(screen.getByText(`🔊 Order: ${SpeakOrder.RankFile}`)).toBeInstanceOf(HTMLElement)
+    expect(mockSettings.speakOrder.value).toBe(SpeakOrder.RankFile)
+
+    mockSettings.speakOrder.value = SpeakOrder.TypeRankFile
   })
 
   it('picks up voices that finished loading between the initial render and the effect running', () => {

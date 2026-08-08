@@ -1,7 +1,10 @@
+import { SpeakOrder } from './options'
+
 export interface Settings {
   speakRate: number
   pauseLength: number
   voiceName: string
+  speakOrder: string
   piecesListEnabled: boolean
   dividersEnabled: boolean
   customBoardEnabled: boolean
@@ -22,6 +25,7 @@ export const defaultSettings: Settings = {
   speakRate: 0.5,
   pauseLength: 0.6,
   voiceName: '',
+  speakOrder: SpeakOrder.TypeRankFile,
   piecesListEnabled: false,
   dividersEnabled: false,
   customBoardEnabled: false,

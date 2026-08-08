@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PieceType, PlayerColor } from '../../constants/chess'
+import { SpeakOrder } from '../../constants/options'
 import type { PiecePosition } from '../chess/pieceGrouping'
 import {
   generateAllPiecesSegments,
@@ -47,6 +48,28 @@ describe('generateQuadrantText', () => {
     const result = generateQuadrantText([])
     expect(result).toBe('')
   })
+
+  it('groups by rank/file order, splitting runs interrupted by a different piece, when sortOrder is RankFile', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateQuadrantText(pieces, SpeakOrder.RankFile)
+    expect(result).toBe('F-2 white pawn. G-2 white knight. H-2 white pawn.')
+  })
+
+  it('merges consecutive same-type pieces in rank/file order when sortOrder is RankFile', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateQuadrantText(pieces, SpeakOrder.RankFile)
+    expect(result).toBe('white pawns on F-2, G-2, and H-2.')
+  })
 })
 
 describe('generateAllPiecesText', () => {
@@ -58,6 +81,17 @@ describe('generateAllPiecesText', () => {
 
     const result = generateAllPiecesText(pieces)
     expect(result).toBe('A-1 white rook. A-8 black rook.')
+  })
+
+  it('forwards sortOrder to generateQuadrantText', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateAllPiecesText(pieces, SpeakOrder.RankFile)
+    expect(result).toBe('F-2 white pawn. G-2 white knight. H-2 white pawn.')
   })
 })
 
@@ -81,6 +115,17 @@ describe('generateColorText', () => {
     const result = generateColorText(pieces, PlayerColor.BLACK)
     expect(result).toBe('A-8 black rook.')
   })
+
+  it('forwards sortOrder to generateQuadrantText', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateColorText(pieces, PlayerColor.WHITE, SpeakOrder.RankFile)
+    expect(result).toBe('F-2 white pawn. G-2 white knight. H-2 white pawn.')
+  })
 })
 
 describe('generateQuadrantSegments', () => {
@@ -99,6 +144,28 @@ describe('generateQuadrantSegments', () => {
   it('returns empty array when given no pieces', () => {
     expect(generateQuadrantSegments([])).toEqual([])
   })
+
+  it('groups by rank/file order, splitting runs interrupted by a different piece, when sortOrder is RankFile', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateQuadrantSegments(pieces, SpeakOrder.RankFile)
+    expect(result).toEqual(['F-2 white pawn.', 'G-2 white knight.', 'H-2 white pawn.'])
+  })
+
+  it('merges consecutive same-type pieces in rank/file order when sortOrder is RankFile', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = generateQuadrantSegments(pieces, SpeakOrder.RankFile)
+    expect(result).toEqual(['white pawns on F-2', 'G-2', 'and H-2.'])
+  })
 })
 
 describe('generateAllPiecesSegments', () => {
@@ -109,6 +176,20 @@ describe('generateAllPiecesSegments', () => {
     ]
 
     expect(generateAllPiecesSegments(pieces)).toEqual(['A-1 white rook.', 'A-8 black rook.'])
+  })
+
+  it('forwards sortOrder to generateQuadrantSegments', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    expect(generateAllPiecesSegments(pieces, SpeakOrder.RankFile)).toEqual([
+      'white pawns on F-2',
+      'G-2',
+      'and H-2.',
+    ])
   })
 })
 
@@ -121,6 +202,20 @@ describe('generateColorSegments', () => {
 
     expect(generateColorSegments(pieces, PlayerColor.WHITE)).toEqual(['A-1 white rook.'])
     expect(generateColorSegments(pieces, PlayerColor.BLACK)).toEqual(['A-8 black rook.'])
+  })
+
+  it('forwards sortOrder to generateQuadrantSegments', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    expect(generateColorSegments(pieces, PlayerColor.WHITE, SpeakOrder.RankFile)).toEqual([
+      'white pawns on F-2',
+      'G-2',
+      'and H-2.',
+    ])
   })
 })
 

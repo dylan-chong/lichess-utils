@@ -94,3 +94,29 @@ export function groupByColorAndType(pieces: PiecePosition[]): GroupedPieces[] {
     )
   })
 }
+
+function compareByRankThenFile(a: PiecePosition, b: PiecePosition): number {
+  const rankDiff = a.square[1].localeCompare(b.square[1])
+  if (rankDiff !== 0) return rankDiff
+  return a.square[0].localeCompare(b.square[0])
+}
+
+export function groupByRankFileThenType(pieces: PiecePosition[]): GroupedPieces[] {
+  const sorted = [...pieces].sort(compareByRankThenFile)
+  const groups: GroupedPieces[] = []
+
+  for (const piece of sorted) {
+    if (!piece.square) throw new Error('Piece missing square property')
+    if (!piece.color) throw new Error('Piece missing color property')
+    if (!piece.type) throw new Error('Piece missing type property')
+
+    const lastGroup = groups[groups.length - 1]
+    if (lastGroup && lastGroup.color === piece.color && lastGroup.type === piece.type) {
+      lastGroup.squares.push(piece.square)
+    } else {
+      groups.push({ color: piece.color, type: piece.type, squares: [piece.square] })
+    }
+  }
+
+  return groups
+}

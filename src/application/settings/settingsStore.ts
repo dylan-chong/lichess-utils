@@ -9,6 +9,7 @@ export interface SettingsStore {
   speakRate: Signal<number>
   pauseLength: Signal<number>
   voiceName: Signal<string>
+  speakOrder: Signal<string>
   piecesListEnabled: Signal<boolean>
   dividersEnabled: Signal<boolean>
   customBoardEnabled: Signal<boolean>
@@ -30,6 +31,7 @@ export function createSettingsStore(): SettingsStore {
     speakRate: signal(defaultSettings.speakRate),
     pauseLength: signal(defaultSettings.pauseLength),
     voiceName: signal(defaultSettings.voiceName),
+    speakOrder: signal(defaultSettings.speakOrder),
     piecesListEnabled: signal(defaultSettings.piecesListEnabled),
     dividersEnabled: signal(defaultSettings.dividersEnabled),
     customBoardEnabled: signal(defaultSettings.customBoardEnabled),

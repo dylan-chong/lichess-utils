@@ -65,6 +65,12 @@ export enum FlashDuration {
   Ms2000 = 2000,
 }
 
+// Speech announcement grouping order
+export enum SpeakOrder {
+  TypeRankFile = 'Type, rank, file',
+  RankFile = 'Rank, file',
+}
+
 // Flash interval in seconds
 export enum FlashInterval {
   Sec0_3 = 0.3,
@@ -107,3 +113,7 @@ export const FLASH_DURATION_OPTIONS = Object.values(FlashDuration).filter(
 export const FLASH_INTERVAL_OPTIONS = Object.values(FlashInterval).filter(
   (v) => typeof v === 'number'
 ) as number[]
+
+export const SPEAK_ORDER_OPTIONS = Object.values(SpeakOrder).filter(
+  (v) => typeof v === 'string'
+) as string[]

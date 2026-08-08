@@ -20,7 +20,10 @@ describe('handleSpeechCommand', () => {
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     pieceGrouping.expects('filterQuadrant').withArgs(pieces, Quadrant.WHITE_KING).returns(pieces)
-    speechText.expects('generateQuadrantSegments').withArgs(pieces).returns(['e1 white king.'])
+    speechText
+      .expects('generateQuadrantSegments')
+      .withArgs(pieces, settings.speakOrder.value)
+      .returns(['e1 white king.'])
     boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
     speechSynthesizer
       .expects('speakSegments')
@@ -42,7 +45,10 @@ describe('handleSpeechCommand', () => {
     ]
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    speechText.expects('generateAllPiecesSegments').withArgs(pieces).returns(['e1 white king.'])
+    speechText
+      .expects('generateAllPiecesSegments')
+      .withArgs(pieces, settings.speakOrder.value)
+      .returns(['e1 white king.'])
     boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
     speechSynthesizer
       .expects('speakSegments')
@@ -66,7 +72,7 @@ describe('handleSpeechCommand', () => {
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     speechText
       .expects('generateColorSegments')
-      .withArgs(pieces, PlayerColor.WHITE)
+      .withArgs(pieces, PlayerColor.WHITE, settings.speakOrder.value)
       .returns(['e1 white king.'])
     boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
     speechSynthesizer
@@ -91,7 +97,7 @@ describe('handleSpeechCommand', () => {
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
     speechText
       .expects('generateColorSegments')
-      .withArgs(pieces, PlayerColor.BLACK)
+      .withArgs(pieces, PlayerColor.BLACK, settings.speakOrder.value)
       .returns(['e8 black king.'])
     boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.BLACK)
     speechSynthesizer
@@ -115,7 +121,10 @@ describe('handleSpeechCommand', () => {
     const onFinished = () => {}
 
     boardReader.expects('readPiecePositions').withArgs().returns(pieces)
-    speechText.expects('generateAllPiecesSegments').withArgs(pieces).returns(['e1 white king.'])
+    speechText
+      .expects('generateAllPiecesSegments')
+      .withArgs(pieces, settings.speakOrder.value)
+      .returns(['e1 white king.'])
     boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
     speechSynthesizer
       .expects('speakSegments')

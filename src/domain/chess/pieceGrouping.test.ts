@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { PieceType, PlayerColor, Quadrant } from '../../constants/chess'
-import { filterQuadrant, groupByColorAndType } from './pieceGrouping'
+import { filterQuadrant, groupByColorAndType, groupByRankFileThenType } from './pieceGrouping'
 import type { PiecePosition } from './pieceGrouping'
 
 describe('filterQuadrant', () => {
@@ -185,5 +185,94 @@ describe('groupByColorAndType', () => {
 
     // Should filter out all pieces (return false for invalid quadrant)
     expect(result).toEqual([])
+  })
+})
+
+describe('groupByRankFileThenType', () => {
+  it('groups pieces strictly in rank-then-file order, ignoring type/color for ordering', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'a2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'e1', color: PlayerColor.WHITE, type: PieceType.KING },
+      { square: 'a1', color: PlayerColor.WHITE, type: PieceType.ROOK },
+    ]
+
+    const result = groupByRankFileThenType(pieces)
+
+    expect(result).toEqual([
+      { color: PlayerColor.WHITE, type: PieceType.ROOK, squares: ['a1'] },
+      { color: PlayerColor.WHITE, type: PieceType.KING, squares: ['e1'] },
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['a2'] },
+    ])
+  })
+
+  it('merges consecutive same-color same-type pieces into one group', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = groupByRankFileThenType(pieces)
+
+    expect(result).toEqual([
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['f2', 'g2', 'h2'] },
+    ])
+  })
+
+  it('splits a run of same-type pieces when a different piece sits between them in rank/file order', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.WHITE, type: PieceType.KNIGHT },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = groupByRankFileThenType(pieces)
+
+    expect(result).toEqual([
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['f2'] },
+      { color: PlayerColor.WHITE, type: PieceType.KNIGHT, squares: ['g2'] },
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['h2'] },
+    ])
+  })
+
+  it('splits a run of same-type pieces when a different color sits between them in rank/file order', () => {
+    const pieces: PiecePosition[] = [
+      { square: 'f2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+      { square: 'g2', color: PlayerColor.BLACK, type: PieceType.PAWN },
+      { square: 'h2', color: PlayerColor.WHITE, type: PieceType.PAWN },
+    ]
+
+    const result = groupByRankFileThenType(pieces)
+
+    expect(result).toEqual([
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['f2'] },
+      { color: PlayerColor.BLACK, type: PieceType.PAWN, squares: ['g2'] },
+      { color: PlayerColor.WHITE, type: PieceType.PAWN, squares: ['h2'] },
+    ])
+  })
+
+  it('returns empty array when given no pieces', () => {
+    const result = groupByRankFileThenType([])
+    expect(result).toEqual([])
+  })
+
+  it('throws for missing square', () => {
+    expect(() =>
+      groupByRankFileThenType([
+        { square: undefined as any, color: PlayerColor.WHITE, type: PieceType.PAWN },
+      ])
+    ).toThrow('Piece missing square property')
+  })
+
+  it('throws for missing color', () => {
+    expect(() =>
+      groupByRankFileThenType([{ square: 'a1', color: undefined as any, type: PieceType.PAWN }])
+    ).toThrow('Piece missing color property')
+  })
+
+  it('throws for missing type', () => {
+    expect(() =>
+      groupByRankFileThenType([{ square: 'a1', color: PlayerColor.WHITE, type: undefined as any }])
+    ).toThrow('Piece missing type property')
   })
 })

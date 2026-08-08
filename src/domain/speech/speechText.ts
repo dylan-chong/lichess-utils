@@ -1,4 +1,9 @@
-import { type PiecePosition, groupByColorAndType } from '../chess/pieceGrouping'
+import { SpeakOrder } from '../../constants/options'
+import {
+  type PiecePosition,
+  groupByColorAndType,
+  groupByRankFileThenType,
+} from '../chess/pieceGrouping'
 
 function joinWithAnd(items: string[]): string {
   if (items.length === 2) return `${items[0]} and ${items[1]}`
@@ -9,10 +14,16 @@ function formatSquareForSpeech(square: string): string {
   return `${square[0].toUpperCase()}-${square[1]}`
 }
 
-export function generateQuadrantText(pieces: PiecePosition[]): string {
+export function generateQuadrantText(
+  pieces: PiecePosition[],
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string {
   if (pieces.length === 0) return ''
 
-  const groups = groupByColorAndType(pieces)
+  const groups =
+    sortOrder === SpeakOrder.RankFile
+      ? groupByRankFileThenType(pieces)
+      : groupByColorAndType(pieces)
   const sentences: string[] = []
 
   for (const group of groups) {
@@ -33,19 +44,32 @@ export function generateQuadrantText(pieces: PiecePosition[]): string {
   return `${sentences.join('. ')}.`
 }
 
-export function generateAllPiecesText(pieces: PiecePosition[]): string {
-  return generateQuadrantText(pieces)
+export function generateAllPiecesText(
+  pieces: PiecePosition[],
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string {
+  return generateQuadrantText(pieces, sortOrder)
 }
 
-export function generateColorText(pieces: PiecePosition[], color: 'white' | 'black'): string {
+export function generateColorText(
+  pieces: PiecePosition[],
+  color: 'white' | 'black',
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string {
   const filtered = pieces.filter((p) => p.color === color)
-  return generateQuadrantText(filtered)
+  return generateQuadrantText(filtered, sortOrder)
 }
 
-export function generateQuadrantSegments(pieces: PiecePosition[]): string[] {
+export function generateQuadrantSegments(
+  pieces: PiecePosition[],
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string[] {
   if (pieces.length === 0) return []
 
-  const groups = groupByColorAndType(pieces)
+  const groups =
+    sortOrder === SpeakOrder.RankFile
+      ? groupByRankFileThenType(pieces)
+      : groupByColorAndType(pieces)
   const segments: string[] = []
 
   for (const group of groups) {
@@ -69,13 +93,20 @@ export function generateQuadrantSegments(pieces: PiecePosition[]): string[] {
   return segments
 }
 
-export function generateAllPiecesSegments(pieces: PiecePosition[]): string[] {
-  return generateQuadrantSegments(pieces)
+export function generateAllPiecesSegments(
+  pieces: PiecePosition[],
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string[] {
+  return generateQuadrantSegments(pieces, sortOrder)
 }
 
-export function generateColorSegments(pieces: PiecePosition[], color: 'white' | 'black'): string[] {
+export function generateColorSegments(
+  pieces: PiecePosition[],
+  color: 'white' | 'black',
+  sortOrder: string = SpeakOrder.TypeRankFile
+): string[] {
   const filtered = pieces.filter((p) => p.color === color)
-  return generateQuadrantSegments(filtered)
+  return generateQuadrantSegments(filtered, sortOrder)
 }
 
 export function generateVoiceTestText(): string {

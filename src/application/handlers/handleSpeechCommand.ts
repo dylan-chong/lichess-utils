@@ -38,14 +38,14 @@ export function handleSpeechCommand(
   const pieces = readPiecePositions()
 
   if (command === SpeechCommand.ALL) {
-    const segments = generateAllPiecesSegments(pieces)
+    const segments = generateAllPiecesSegments(pieces, settings.speakOrder.value)
     speakWithAnnouncement(segments, settings, onFinished)
     return
   }
 
   if (command === SpeechCommand.WHITE || command === SpeechCommand.BLACK) {
     const color = command === SpeechCommand.WHITE ? PlayerColor.WHITE : PlayerColor.BLACK
-    const segments = generateColorSegments(pieces, color)
+    const segments = generateColorSegments(pieces, color, settings.speakOrder.value)
     speakWithAnnouncement(segments, settings, onFinished)
     return
   }
@@ -53,6 +53,6 @@ export function handleSpeechCommand(
   // Quadrant commands: wk, wq, bk, bq
   const quadrant = command as Quadrant
   const filtered = filterQuadrant(pieces, quadrant)
-  const segments = generateQuadrantSegments(filtered)
+  const segments = generateQuadrantSegments(filtered, settings.speakOrder.value)
   speakWithAnnouncement(segments, settings, onFinished)
 }

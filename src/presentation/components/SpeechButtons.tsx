@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { handleSpeechCommand } from '../../application/handlers/handleSpeechCommand'
 import { getPlayerColor } from '../../application/services/boardReader/reader'
 import { SpeechCommand } from '../../constants/commands'
+import { SPEAK_ORDER_OPTIONS } from '../../constants/options'
 import { getQuadrantAtScreenPosition } from '../../domain/chess/quadrantLayout'
 import { generateVoiceTestText } from '../../domain/speech/speechText'
 import { getAvailableVoiceNames, onVoicesChanged, speakText } from '../../platform/speech'
@@ -79,6 +80,11 @@ export function SpeechButtons() {
           onChange={(voiceName) =>
             speakText(generateVoiceTestText(), settings.speakRate.value, voiceName)
           }
+        />
+        <SettingButton
+          label="🔊 Order"
+          setting={settings.speakOrder}
+          options={SPEAK_ORDER_OPTIONS}
         />
       </ButtonRow>
     </div>

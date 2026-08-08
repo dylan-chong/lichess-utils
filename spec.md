@@ -85,6 +85,7 @@ These are clickable buttons rendered in the UI, grouped into rows:
 | 🔊 Rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
 | 🔊 Pause (dropdown) | - | Pause length between spoken segments |
 | 🔊 Voice (dropdown) | - | Selects which of the browser/OS's available speech voices to use (defaults to the system default voice) |
+| 🔊 Order (toggle) | - | "Type, rank, file" (default) groups pieces by type first; "Rank, file" announces pieces strictly in board-scan order, still merging consecutive same-type pieces |
 
 ### 2.2 Main Controls (Always Visible)
 
@@ -224,7 +225,7 @@ Speech Buttons (always visible)
 ├─ Row: 🔊 ↙, 🔊 ↘ (bottom-left/bottom-right quadrant, board-relative)
 ├─ Row: 🔊 White, 🔊 Black
 ├─ Row: 🔊 Stop, 🔊 All
-├─ Row: 🔊 Rate (dropdown), 🔊 Pause (dropdown), 🔊 Voice (dropdown)
+├─ Row: 🔊 Rate (dropdown), 🔊 Pause (dropdown), 🔊 Voice (dropdown), 🔊 Order (toggle)
 
 Main Controls (always visible)
 ├─ Pieces List
