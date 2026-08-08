@@ -45,6 +45,28 @@ describe('VoiceButton', () => {
     expect(setting.value).toBe('')
   })
 
+  it('sizes the dropdown to the length of the current value, not the widest option', () => {
+    const setting = signal('Bob')
+
+    render(
+      <VoiceButton
+        label="Voice"
+        setting={setting}
+        voiceNames={['Alice', 'A Very Long Voice Name']}
+      />
+    )
+
+    expect((screen.getByRole('combobox') as HTMLSelectElement).style.width).toBe('5ch')
+  })
+
+  it('sizes the dropdown using the Default label width when no voice is selected', () => {
+    const setting = signal('')
+
+    render(<VoiceButton label="Voice" setting={setting} voiceNames={['Alice']} />)
+
+    expect((screen.getByRole('combobox') as HTMLSelectElement).style.width).toBe('9ch')
+  })
+
   it('calls onChange with the newly selected voice name', async () => {
     const user = userEvent.setup()
     const setting = signal('')

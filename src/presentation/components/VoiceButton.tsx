@@ -34,6 +34,10 @@ const selectStyle = {
 
 export function VoiceButton({ label, setting, voiceNames, onChange }: VoiceButtonProps) {
   const options = ['', ...voiceNames]
+  // Native <select> sizes to its widest option, not the selected one, so
+  // size it in `ch` units off the current value's length to keep it compact.
+  const currentLabel = setting.value || DEFAULT_VOICE_LABEL
+  const widthStyle = { width: `${currentLabel.length + 2}ch` }
 
   const handleChange = (e: Event) => {
     const voiceName = (e.currentTarget as HTMLSelectElement).value
@@ -45,7 +49,11 @@ export function VoiceButton({ label, setting, voiceNames, onChange }: VoiceButto
     <div style={dropdownContainerStyle}>
       <label>
         {label}
-        <select value={setting.value} onChange={handleChange} style={selectStyle}>
+        <select
+          value={setting.value}
+          onChange={handleChange}
+          style={{ ...selectStyle, ...widthStyle }}
+        >
           {options.map((voiceName) => (
             <option key={voiceName} value={voiceName}>
               {voiceName || DEFAULT_VOICE_LABEL}
