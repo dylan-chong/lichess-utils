@@ -84,8 +84,14 @@ export async function init() {
   setupKeyboardCommands(settings, annotationsState, customBoardState, drawings3DState)
 
   // Mount Preact UI as a sibling after .keyboard-move, since that element
-  // itself can be display:none depending on lichess's responsive layout tier
+  // itself can be display:none depending on lichess's responsive layout tier.
+  // .keyboard-move's parent is a CSS grid with named areas, so without an
+  // explicit grid-column the browser's auto-placement decides which cell we
+  // land in — and that varies with the grid template (e.g. layout-altering
+  // extensions like Prettier Lichess), sometimes placing us beside the board
+  // instead of below it. Force full width so placement is deterministic.
   const mountPoint = createDiv()
+  mountPoint.style.gridColumn = '1 / -1'
   const keyboardMove = querySelector(DomSelector.KEYBOARD_MOVE)
   if (keyboardMove) {
     insertAfter(keyboardMove, mountPoint)
