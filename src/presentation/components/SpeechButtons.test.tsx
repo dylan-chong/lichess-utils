@@ -3,11 +3,13 @@ import { act, render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
 import { mockModule } from 'simone'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { PlayerColor } from '../../constants/chess'
 import { SpeechCommand } from '../../constants/commands'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { SpeechButtons } from './SpeechButtons'
 
 const speechHandler = mockModule(import('../../application/handlers/handleSpeechCommand'))
+const boardReader = mockModule(import('../../application/services/boardReader/reader'))
 
 describe('SpeechButtons', () => {
   let voiceNames: string[]
@@ -56,30 +58,30 @@ describe('SpeechButtons', () => {
     meditationEnabled: signal(false),
   }
 
-  it('renders all three rows of buttons', () => {
+  it('renders all rows of buttons', () => {
     render(
       <SettingsProvider settings={mockSettings}>
         <SpeechButtons />
       </SettingsProvider>
     )
 
-    // Row 1: Quadrant buttons
-    expect(screen.getByText('🔊 WK side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 WQ side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 BK side')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText('🔊 BQ side')).toBeInstanceOf(HTMLElement)
+    // Row 1-2: Quadrant arrow buttons
+    expect(screen.getByText('🔊 ↖')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↗')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↙')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 ↘')).toBeInstanceOf(HTMLElement)
 
-    // Row 2: All/Color buttons
-    expect(screen.getByText('🔊 All pieces')).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText("🔊 W's pieces")).toBeInstanceOf(HTMLElement)
-    expect(screen.getByText("🔊 B's pieces")).toBeInstanceOf(HTMLElement)
+    // Row 3: White/Black
+    expect(screen.getByText('🔊 White')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 Black')).toBeInstanceOf(HTMLElement)
 
-    // Row 3: Rate and Pause
+    // Row 4: Stop/All
+    expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
+    expect(screen.getByText('🔊 All')).toBeInstanceOf(HTMLElement)
+
+    // Speak settings: Rate and Pause
     expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Pause')).toBeInstanceOf(HTMLElement)
-
-    // Row 4: Stop
-    expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
   })
 
   it('picks up voices that finished loading between the initial render and the effect running', () => {
@@ -142,8 +144,26 @@ describe('SpeechButtons', () => {
     expect(spokenUtterances[0].voice?.name).toBe('Alice')
   })
 
-  it('calls handleSpeechCommand with WK when white king side button is clicked', async () => {
+  it('calls handleSpeechCommand with BQ when top-left is clicked as a white player', async () => {
     const user = userEvent.setup()
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.BQ, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ↖'))
+  })
+
+  it('calls handleSpeechCommand with WK when top-left is clicked as a black player', async () => {
+    const user = userEvent.setup()
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.BLACK)
     speechHandler
       .expects('handleSpeechCommand')
       .withArgs(SpeechCommand.WK, mockSettings)
@@ -155,10 +175,61 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 WK side'))
+    await user.click(screen.getByText('🔊 ↖'))
   })
 
-  it('calls handleSpeechCommand with ALL when all pieces button is clicked', async () => {
+  it('calls handleSpeechCommand with the correct quadrant for top-right as a white player', async () => {
+    const user = userEvent.setup()
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.BK, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ↗'))
+  })
+
+  it('calls handleSpeechCommand with the correct quadrant for bottom-left as a white player', async () => {
+    const user = userEvent.setup()
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.WQ, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ↙'))
+  })
+
+  it('calls handleSpeechCommand with the correct quadrant for bottom-right as a white player', async () => {
+    const user = userEvent.setup()
+    boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+    speechHandler
+      .expects('handleSpeechCommand')
+      .withArgs(SpeechCommand.WK, mockSettings)
+      .returns(undefined)
+
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    await user.click(screen.getByText('🔊 ↘'))
+  })
+
+  it('calls handleSpeechCommand with ALL when the All button is clicked', async () => {
     const user = userEvent.setup()
     speechHandler
       .expects('handleSpeechCommand')
@@ -171,7 +242,7 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText('🔊 All pieces'))
+    await user.click(screen.getByText('🔊 All'))
   })
 
   it('calls handleSpeechCommand with STOP when stop button is clicked', async () => {
@@ -190,55 +261,7 @@ describe('SpeechButtons', () => {
     await user.click(screen.getByText('🔊 Stop'))
   })
 
-  it('calls handleSpeechCommand with WQ when white queen side button is clicked', async () => {
-    const user = userEvent.setup()
-    speechHandler
-      .expects('handleSpeechCommand')
-      .withArgs(SpeechCommand.WQ, mockSettings)
-      .returns(undefined)
-
-    render(
-      <SettingsProvider settings={mockSettings}>
-        <SpeechButtons />
-      </SettingsProvider>
-    )
-
-    await user.click(screen.getByText('🔊 WQ side'))
-  })
-
-  it('calls handleSpeechCommand with BK when black king side button is clicked', async () => {
-    const user = userEvent.setup()
-    speechHandler
-      .expects('handleSpeechCommand')
-      .withArgs(SpeechCommand.BK, mockSettings)
-      .returns(undefined)
-
-    render(
-      <SettingsProvider settings={mockSettings}>
-        <SpeechButtons />
-      </SettingsProvider>
-    )
-
-    await user.click(screen.getByText('🔊 BK side'))
-  })
-
-  it('calls handleSpeechCommand with BQ when black queen side button is clicked', async () => {
-    const user = userEvent.setup()
-    speechHandler
-      .expects('handleSpeechCommand')
-      .withArgs(SpeechCommand.BQ, mockSettings)
-      .returns(undefined)
-
-    render(
-      <SettingsProvider settings={mockSettings}>
-        <SpeechButtons />
-      </SettingsProvider>
-    )
-
-    await user.click(screen.getByText('🔊 BQ side'))
-  })
-
-  it('calls handleSpeechCommand with WHITE when white pieces button is clicked', async () => {
+  it('calls handleSpeechCommand with WHITE when the White button is clicked', async () => {
     const user = userEvent.setup()
     speechHandler
       .expects('handleSpeechCommand')
@@ -251,10 +274,10 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText("🔊 W's pieces"))
+    await user.click(screen.getByText('🔊 White'))
   })
 
-  it('calls handleSpeechCommand with BLACK when black pieces button is clicked', async () => {
+  it('calls handleSpeechCommand with BLACK when the Black button is clicked', async () => {
     const user = userEvent.setup()
     speechHandler
       .expects('handleSpeechCommand')
@@ -267,6 +290,6 @@ describe('SpeechButtons', () => {
       </SettingsProvider>
     )
 
-    await user.click(screen.getByText("🔊 B's pieces"))
+    await user.click(screen.getByText('🔊 Black'))
   })
 })

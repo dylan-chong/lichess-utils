@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'preact/hooks'
 import { handleSpeechCommand } from '../../application/handlers/handleSpeechCommand'
+import { getPlayerColor } from '../../application/services/boardReader/reader'
 import { SpeechCommand } from '../../constants/commands'
+import { getQuadrantAtScreenPosition } from '../../domain/chess/quadrantLayout'
 import { generateVoiceTestText } from '../../domain/speech/speechText'
 import { getAvailableVoiceNames, onVoicesChanged, speakText } from '../../platform/speech'
 import { useSettings } from '../contexts/SettingsContext'
@@ -25,41 +27,40 @@ export function SpeechButtons() {
     onVoicesChanged(() => setVoiceNames(getAvailableVoiceNames()))
   }, [])
 
+  const speakQuadrantAt = (position: 'top-left' | 'top-right' | 'bottom-left' | 'bottom-right') => {
+    const quadrant = getQuadrantAtScreenPosition(position, getPlayerColor())
+    handleSpeechCommand(quadrant, settings)
+  }
+
   return (
     <div>
       <SectionHeading label="Speak quadrants" />
       <ButtonRow>
-        <ActionButton
-          label="🔊 WK side"
-          onClick={() => handleSpeechCommand(SpeechCommand.WK, settings)}
-        />
-        <ActionButton
-          label="🔊 WQ side"
-          onClick={() => handleSpeechCommand(SpeechCommand.WQ, settings)}
-        />
-        <ActionButton
-          label="🔊 BK side"
-          onClick={() => handleSpeechCommand(SpeechCommand.BK, settings)}
-        />
-        <ActionButton
-          label="🔊 BQ side"
-          onClick={() => handleSpeechCommand(SpeechCommand.BQ, settings)}
-        />
+        <ActionButton label="🔊 ↖" onClick={() => speakQuadrantAt('top-left')} />
+        <ActionButton label="🔊 ↗" onClick={() => speakQuadrantAt('top-right')} />
       </ButtonRow>
-
-      <SectionHeading label="Speak all" />
+      <ButtonRow>
+        <ActionButton label="🔊 ↙" onClick={() => speakQuadrantAt('bottom-left')} />
+        <ActionButton label="🔊 ↘" onClick={() => speakQuadrantAt('bottom-right')} />
+      </ButtonRow>
       <ButtonRow>
         <ActionButton
-          label="🔊 All pieces"
-          onClick={() => handleSpeechCommand(SpeechCommand.ALL, settings)}
-        />
-        <ActionButton
-          label="🔊 W's pieces"
+          label="🔊 White"
           onClick={() => handleSpeechCommand(SpeechCommand.WHITE, settings)}
         />
         <ActionButton
-          label="🔊 B's pieces"
+          label="🔊 Black"
           onClick={() => handleSpeechCommand(SpeechCommand.BLACK, settings)}
+        />
+      </ButtonRow>
+      <ButtonRow>
+        <ActionButton
+          label="🔊 Stop"
+          onClick={() => handleSpeechCommand(SpeechCommand.STOP, settings)}
+        />
+        <ActionButton
+          label="🔊 All"
+          onClick={() => handleSpeechCommand(SpeechCommand.ALL, settings)}
         />
       </ButtonRow>
 
@@ -78,12 +79,6 @@ export function SpeechButtons() {
           onChange={(voiceName) =>
             speakText(generateVoiceTestText(), settings.speakRate.value, voiceName)
           }
-        />
-      </ButtonRow>
-      <ButtonRow>
-        <ActionButton
-          label="🔊 Stop"
-          onClick={() => handleSpeechCommand(SpeechCommand.STOP, settings)}
         />
       </ButtonRow>
     </div>

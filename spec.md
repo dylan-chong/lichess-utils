@@ -62,32 +62,29 @@ All keyboard commands are typed into the move input field and start with `p` (fo
 
 These are clickable buttons rendered in the UI, grouped into rows:
 
-**Row 1 — Quadrant Speech:**
+**Row 1-2 — Quadrant Speech (2x2 arrows matching board layout):**
 | Button | Command | What it speaks |
 |--------|---------|----------------|
-| 🔊 WK side | `pwk` | White's king-side pieces (files e-h, ranks 1-4) |
-| 🔊 WQ side | `pwq` | White's queen-side pieces (files a-d, ranks 1-4) |
-| 🔊 BK side | `pbk` | Black's king-side pieces (files e-h, ranks 5-8) |
-| 🔊 BQ side | `pbq` | Black's queen-side pieces (files a-d, ranks 5-8) |
+| 🔊 ↖ / 🔊 ↗ / 🔊 ↙ / 🔊 ↘ | `pwk`/`pwq`/`pbk`/`pbq` | Pieces in the quadrant at that screen position. The quadrant each arrow speaks depends on which color you're playing (the board flips for black), resolved at click time via `getPlayerColor()` |
 
-**Row 2 — All/Color Speech:**
+**Row 3 — Color Speech:**
 | Button | Command | What it speaks |
 |--------|---------|----------------|
-| 🔊 All pieces | `pa` | All pieces on the board |
-| 🔊 W's pieces | `pww` | All white pieces |
-| 🔊 B's pieces | `pbb` | All black pieces |
+| 🔊 White | `pww` | All white pieces |
+| 🔊 Black | `pbb` | All black pieces |
 
-**Row 3 — Speak Settings:**
+**Row 4 — Stop/All:**
+| Button | Command | What it speaks |
+|--------|---------|----------------|
+| 🔊 Stop | `pss` | Stop speaking immediately |
+| 🔊 All | `pa` | All pieces on the board |
+
+**Speak settings row:**
 | Element | Command | Description |
 |---------|---------|-------------|
 | 🔊 Rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
 | 🔊 Pause (dropdown) | - | Pause length between spoken segments |
 | 🔊 Voice (dropdown) | - | Selects which of the browser/OS's available speech voices to use (defaults to the system default voice) |
-
-**Row 4 — Stop:**
-| Element | Command | Description |
-|---------|---------|-------------|
-| 🔊 Stop (button) | `pss` | Stop speaking immediately |
 
 ### 2.2 Main Controls (Always Visible)
 
@@ -223,9 +220,11 @@ The controls appear in a nested hierarchy - some controls only show up when thei
 
 ```
 Speech Buttons (always visible)
-├─ Row: 🔊 WK side, 🔊 WQ side, 🔊 BK side, 🔊 BQ side
-├─ Row: 🔊 All pieces, 🔊 W's pieces, 🔊 B's pieces
-├─ Row: 🔊 Rate (dropdown), 🔊 Stop (button)
+├─ Row: 🔊 ↖, 🔊 ↗ (top-left/top-right quadrant, board-relative)
+├─ Row: 🔊 ↙, 🔊 ↘ (bottom-left/bottom-right quadrant, board-relative)
+├─ Row: 🔊 White, 🔊 Black
+├─ Row: 🔊 Stop, 🔊 All
+├─ Row: 🔊 Rate (dropdown), 🔊 Pause (dropdown), 🔊 Voice (dropdown)
 
 Main Controls (always visible)
 ├─ Pieces List
