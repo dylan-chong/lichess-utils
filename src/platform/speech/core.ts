@@ -14,6 +14,14 @@ export function cancel(synthesis: SpeechSynthesis): void {
   synthesis.cancel()
 }
 
+export function getVoices(synthesis: SpeechSynthesis): SpeechSynthesisVoice[] {
+  return synthesis.getVoices()
+}
+
+export function onVoicesChanged(synthesis: SpeechSynthesis, callback: () => void): void {
+  synthesis.addEventListener('voiceschanged', callback)
+}
+
 export function createUtterance(
   UtteranceClass: typeof SpeechSynthesisUtterance,
   text: string

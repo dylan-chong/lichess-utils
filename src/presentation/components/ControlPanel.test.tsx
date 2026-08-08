@@ -11,6 +11,11 @@ describe('ControlPanel', () => {
   let settings: ReturnType<typeof createSettingsStore>
 
   beforeEach(() => {
+    window.speechSynthesis = {
+      getVoices: () => [],
+      addEventListener: () => {},
+    } as unknown as SpeechSynthesis
+
     // Create fresh settings instance for each test
     settings = createSettingsStore()
     settings.speakRate.value = defaultSettings.speakRate

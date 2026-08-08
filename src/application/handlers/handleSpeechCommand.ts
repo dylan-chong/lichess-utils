@@ -20,7 +20,8 @@ function speakWithAnnouncement(
     [announcement, ...segments],
     settings.speakRate.value,
     settings.pauseLength,
-    onFinished
+    onFinished,
+    settings.voiceName.value
   )
 }
 

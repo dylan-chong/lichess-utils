@@ -98,6 +98,7 @@ describe('settingsStore', () => {
       const expectedData = {
         speakRate: 1.8,
         pauseLength: defaultSettings.pauseLength,
+        voiceName: defaultSettings.voiceName,
         piecesListEnabled: false,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,
@@ -126,6 +127,7 @@ describe('settingsStore', () => {
       const expectedData = {
         speakRate: defaultSettings.speakRate,
         pauseLength: defaultSettings.pauseLength,
+        voiceName: defaultSettings.voiceName,
         piecesListEnabled: defaultSettings.piecesListEnabled,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,
@@ -156,6 +158,7 @@ describe('settingsStore', () => {
       const expectedJson = JSON.stringify({
         speakRate: defaultSettings.speakRate,
         pauseLength: defaultSettings.pauseLength,
+        voiceName: defaultSettings.voiceName,
         piecesListEnabled: defaultSettings.piecesListEnabled,
         dividersEnabled: defaultSettings.dividersEnabled,
         customBoardEnabled: defaultSettings.customBoardEnabled,

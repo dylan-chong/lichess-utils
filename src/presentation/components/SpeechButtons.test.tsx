@@ -1,8 +1,8 @@
 import { signal } from '@preact/signals'
-import { render, screen } from '@testing-library/preact'
+import { act, render, screen } from '@testing-library/preact'
 import userEvent from '@testing-library/user-event'
 import { mockModule } from 'simone'
-import { describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it } from 'vitest'
 import { SpeechCommand } from '../../constants/commands'
 import { SettingsProvider } from '../contexts/SettingsContext'
 import { SpeechButtons } from './SpeechButtons'
@@ -10,9 +10,24 @@ import { SpeechButtons } from './SpeechButtons'
 const speechHandler = mockModule(import('../../application/handlers/handleSpeechCommand'))
 
 describe('SpeechButtons', () => {
+  let voiceNames: string[]
+  let voicesChangedListener: (() => void) | undefined
+
+  beforeEach(() => {
+    voiceNames = []
+    voicesChangedListener = undefined
+    window.speechSynthesis = {
+      getVoices: () => voiceNames.map((name) => ({ name }) as SpeechSynthesisVoice),
+      addEventListener: (_type: string, listener: () => void) => {
+        voicesChangedListener = listener
+      },
+    } as unknown as SpeechSynthesis
+  })
+
   const mockSettings = {
     speakRate: signal(0.5),
     pauseLength: signal(0.6),
+    voiceName: signal(''),
     piecesListEnabled: signal(false),
     dividersEnabled: signal(false),
     customBoardEnabled: signal(false),
@@ -47,10 +62,27 @@ describe('SpeechButtons', () => {
     expect(screen.getByText("🔊 W's pieces")).toBeInstanceOf(HTMLElement)
     expect(screen.getByText("🔊 B's pieces")).toBeInstanceOf(HTMLElement)
 
-    // Row 3: Rate, Pause, and Stop
+    // Row 3: Rate and Pause
     expect(screen.getByText('🔊 Rate')).toBeInstanceOf(HTMLElement)
     expect(screen.getByText('🔊 Pause')).toBeInstanceOf(HTMLElement)
+
+    // Row 4: Stop
     expect(screen.getByText('🔊 Stop')).toBeInstanceOf(HTMLElement)
+  })
+
+  it('refreshes the voice dropdown options when the browser reports new voices', () => {
+    render(
+      <SettingsProvider settings={mockSettings}>
+        <SpeechButtons />
+      </SettingsProvider>
+    )
+
+    expect(screen.queryByText('Alice')).toBeNull()
+
+    voiceNames = ['Alice']
+    act(() => voicesChangedListener?.())
+
+    expect(screen.getByText('Alice')).toBeInstanceOf(HTMLElement)
   })
 
   it('calls handleSpeechCommand with WK when white king side button is clicked', async () => {

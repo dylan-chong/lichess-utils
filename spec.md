@@ -77,10 +77,16 @@ These are clickable buttons rendered in the UI, grouped into rows:
 | 🔊 W's pieces | `pww` | All white pieces |
 | 🔊 B's pieces | `pbb` | All black pieces |
 
-**Row 3 — Speak Rate & Stop:**
+**Row 3 — Speak Settings:**
 | Element | Command | Description |
 |---------|---------|-------------|
 | 🔊 Rate (dropdown) | `psr` | Speak rate: 0.2, 0.5, 0.7, 1.0, 1.1, 1.2 |
+| 🔊 Pause (dropdown) | - | Pause length between spoken segments |
+| 🔊 Voice (dropdown) | - | Selects which of the browser/OS's available speech voices to use (defaults to the system default voice) |
+
+**Row 4 — Stop:**
+| Element | Command | Description |
+|---------|---------|-------------|
 | 🔊 Stop (button) | `pss` | Stop speaking immediately |
 
 ### 2.2 Main Controls (Always Visible)

@@ -4,6 +4,8 @@ import {
   createUtterance,
   getSpeechSynthesis,
   getSpeechSynthesisUtterance,
+  getVoices,
+  onVoicesChanged,
   speak,
 } from './core'
 
@@ -67,5 +69,28 @@ describe('speech core', () => {
 
     cancel(mockSynthesis)
     expect(cancelCalled).toBe(true)
+  })
+
+  it('getVoices returns synthesis.getVoices()', () => {
+    const mockVoices = [{ name: 'Alice' }] as any
+    const mockSynthesis = {
+      getVoices: () => mockVoices,
+    } as any
+
+    expect(getVoices(mockSynthesis)).toBe(mockVoices)
+  })
+
+  it('onVoicesChanged registers a voiceschanged listener', () => {
+    const registered: { type: string; callback: () => void }[] = []
+    const mockSynthesis = {
+      addEventListener: (type: string, callback: () => void) => {
+        registered.push({ type, callback })
+      },
+    } as any
+    const callback = () => {}
+
+    onVoicesChanged(mockSynthesis, callback)
+
+    expect(registered).toEqual([{ type: 'voiceschanged', callback }])
   })
 })
