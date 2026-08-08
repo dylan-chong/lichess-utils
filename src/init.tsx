@@ -25,7 +25,7 @@ import {
   setupAutoSave,
 } from './application/settings/settingsStore'
 import { DomSelector } from './constants/dom'
-import { appendChild, createDiv, querySelector, waitForElement } from './platform/dom'
+import { createDiv, insertAfter, querySelector, waitForElement } from './platform/dom'
 import { createDrawings3DState } from './presentation/3d/drawings3d'
 import { createHoverAnimationState, stopHoverAnimation } from './presentation/3d/hoverAnimation'
 import { createRoot, destroyRoot } from './presentation/components/root'
@@ -83,11 +83,12 @@ export async function init() {
   // Set up commands
   setupKeyboardCommands(settings, annotationsState, customBoardState, drawings3DState)
 
-  // Mount Preact UI
+  // Mount Preact UI as a sibling after .keyboard-move, since that element
+  // itself can be display:none depending on lichess's responsive layout tier
   const mountPoint = createDiv()
   const keyboardMove = querySelector(DomSelector.KEYBOARD_MOVE)
   if (keyboardMove) {
-    appendChild(keyboardMove, mountPoint)
+    insertAfter(keyboardMove, mountPoint)
   }
 
   createRoot(boardChanged, mountPoint, settings, handleAnnotate)
