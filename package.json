@@ -1,6 +1,6 @@
 {
   "name": "lichess-board-speaker",
-  "version": "4.8.0",
+  "version": "4.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite build --watch",
@@ -33,7 +33,7 @@
     "happy-dom": "^20.10.1",
     "husky": "^9.1.7",
     "lint-staged": "^15.5.2",
-    "simone": "file:../simone/simone-4.0.2.tgz",
+    "simone": "github:dylan-chong/simone#v5.1.4",
     "tsx": "4.22.4",
     "typescript": "^5.9.3",
     "unplugin-swc": "^1.5.9",

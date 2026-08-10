@@ -66,13 +66,10 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0, stepIndex: 0, wakeLock: null }
     const mockSettings = {} as unknown as SettingsStore
 
-    dom
-      .expects('waitForElement')
-      .withArgs('.keyboard-move')
-      .returns(Promise.resolve(mockKeyboardMove))
+    dom.expects('waitForElement').withArgs('.keyboard-move').resolves(mockKeyboardMove)
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
@@ -181,13 +178,10 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0, stepIndex: 0, wakeLock: null }
     const mockSettings = {} as unknown as SettingsStore
 
-    dom
-      .expects('waitForElement')
-      .withArgs('.keyboard-move')
-      .returns(Promise.resolve(mockKeyboardMove))
+    dom.expects('waitForElement').withArgs('.keyboard-move').resolves(mockKeyboardMove)
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)
@@ -304,13 +298,10 @@ describe('init', () => {
     const mockHoverState = { animationId: null, startTime: null }
     const mockBlackSegmentsState = { counter: 0, intervalId: null }
     const mockCleanupMeditation = () => {}
-    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0 }
+    const mockMeditationLoopState = { timeoutId: null, elapsedMs: 0, stepIndex: 0, wakeLock: null }
     const mockSettings = {} as unknown as SettingsStore
 
-    dom
-      .expects('waitForElement')
-      .withArgs('.keyboard-move')
-      .returns(Promise.resolve(document.createElement('div')))
+    dom.expects('waitForElement').withArgs('.keyboard-move').resolves(document.createElement('div'))
     settingsStore.expects('createSettingsStore').withArgs().returns(mockSettings)
     settingsStore.expects('loadSettings').withArgs(mockSettings).returns(undefined)
     settingsStore.expects('setupAutoSave').withArgs(mockSettings).returns(undefined)

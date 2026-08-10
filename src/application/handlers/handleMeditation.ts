@@ -1,39 +1,84 @@
 import { SpeechCommand } from '../../constants/commands'
+import type { ScreenPosition } from '../../domain/chess/quadrantLayout'
+import { getQuadrantAtScreenPosition } from '../../domain/chess/quadrantLayout'
 import { stopSpeaking } from '../../platform/speech'
+import { isWakeLockSupported, releaseWakeLock, requestWakeLock } from '../../platform/wakeLock'
+import { getPlayerColor } from '../services/boardReader/reader'
 import type { SettingsStore } from '../settings/settingsStore'
 import { handleSpeechCommand } from './handleSpeechCommand'
 
 export const MEDITATION_WAIT_MS = 60_000
 export const MEDITATION_TOTAL_MS = 20 * 60_000
 
+type MeditationStep = { kind: 'quadrant'; position: ScreenPosition } | { kind: 'all' }
+
+const INTRO_STEPS: MeditationStep[] = [
+  // TODO after the tests have been completed and passing - there are enums for these positions
+  { kind: 'quadrant', position: 'top-left' },
+  { kind: 'quadrant', position: 'top-left' },
+  { kind: 'quadrant', position: 'top-right' },
+  { kind: 'quadrant', position: 'top-right' },
+  { kind: 'quadrant', position: 'bottom-left' },
+  { kind: 'quadrant', position: 'bottom-left' },
+  { kind: 'quadrant', position: 'bottom-right' },
+  { kind: 'quadrant', position: 'bottom-right' },
+]
+
 export interface MeditationLoopState {
   timeoutId: ReturnType<typeof setTimeout> | null
   elapsedMs: number
+  stepIndex: number
+  wakeLock: WakeLockSentinel | null
 }
 
 export function createMeditationLoopState(): MeditationLoopState {
-  return { timeoutId: null, elapsedMs: 0 }
+  return { timeoutId: null, elapsedMs: 0, stepIndex: 0, wakeLock: null }
 }
 
 export function startMeditationLoop(loopState: MeditationLoopState, settings: SettingsStore): void {
   stopMeditationLoop(loopState)
 
   loopState.elapsedMs = 0
+  loopState.stepIndex = 0
 
-  const handleFinished = (): void => {
-    loopState.elapsedMs += MEDITATION_WAIT_MS
-
-    if (loopState.elapsedMs >= MEDITATION_TOTAL_MS) {
-      settings.meditationEnabled.value = false
-      return
-    }
-
-    loopState.timeoutId = setTimeout(() => {
-      handleSpeechCommand(SpeechCommand.ALL, settings, handleFinished)
-    }, MEDITATION_WAIT_MS)
+  if (isWakeLockSupported()) {
+    requestWakeLock()
+      .then((lock) => {
+        loopState.wakeLock = lock
+      })
+      .catch(() => {
+        loopState.wakeLock = null
+      })
   }
 
-  handleSpeechCommand(SpeechCommand.ALL, settings, handleFinished)
+  const runStep = (): void => {
+    const onFinished = (): void => {
+      loopState.elapsedMs += MEDITATION_WAIT_MS
+
+      if (loopState.elapsedMs >= MEDITATION_TOTAL_MS) {
+        settings.meditationEnabled.value = false
+        return
+      }
+
+      loopState.stepIndex += 1
+
+      loopState.timeoutId = setTimeout(() => {
+        runStep()
+      }, MEDITATION_WAIT_MS)
+    }
+
+    if (loopState.stepIndex < INTRO_STEPS.length) {
+      const step = INTRO_STEPS[loopState.stepIndex]
+      if (step.kind === 'quadrant') {
+        const quadrant = getQuadrantAtScreenPosition(step.position, getPlayerColor())
+        handleSpeechCommand(quadrant, settings, onFinished)
+      }
+    } else {
+      handleSpeechCommand(SpeechCommand.ALL, settings, onFinished)
+    }
+  }
+
+  runStep()
 }
 
 export function stopMeditationLoop(loopState: MeditationLoopState): void {
@@ -42,4 +87,10 @@ export function stopMeditationLoop(loopState: MeditationLoopState): void {
     loopState.timeoutId = null
   }
   stopSpeaking()
+  if (loopState.wakeLock) {
+    releaseWakeLock(loopState.wakeLock).catch(() => {
+      // Ignore errors when releasing wake lock
+    })
+    loopState.wakeLock = null
+  }
 }
