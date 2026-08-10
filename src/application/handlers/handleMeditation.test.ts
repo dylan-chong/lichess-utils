@@ -1,8 +1,11 @@
-import { mockModule } from 'simone'
+import { match, mockModule } from 'simone'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { PlayerColor, Quadrant } from '../../constants/chess'
+import { SpeechCommand } from '../../constants/commands'
 import { getQuadrantAtScreenPosition } from '../../domain/chess/quadrantLayout'
+import type { ScreenPosition } from '../../domain/chess/quadrantLayout'
 import { createSettingsStore } from '../settings/settingsStore'
+import type { SettingsStore } from '../settings/settingsStore'
 import {
   MEDITATION_TOTAL_MS,
   MEDITATION_WAIT_MS,
@@ -19,11 +22,7 @@ const wakeLock = mockModule(import('../../platform/wakeLock'))
 describe('handleMeditation', () => {
   let settings: ReturnType<typeof createSettingsStore>
   let mockSynthesis: SpeechSynthesis
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const callbacks: any[] = []
-
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { match } = require('simone') as any
+  const callbacks: Array<() => void> = []
 
   function expectStopSpeaking() {
     speechCore.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
@@ -60,21 +59,34 @@ describe('handleMeditation', () => {
       wakeLock.expects('isWakeLockSupported').withArgs().returns(false)
 
       const ticks = MEDITATION_TOTAL_MS / MEDITATION_WAIT_MS
+      const introPositions: ScreenPosition[] = [
+        'top-left',
+        'top-left',
+        'top-right',
+        'top-right',
+        'bottom-left',
+        'bottom-left',
+        'bottom-right',
+        'bottom-right',
+      ]
 
-      // Setup expectations for all ticks (8 intro + remaining board reads)
+      // Setup expectations for all ticks (8 intro quadrant reads + repeating board)
       for (let i = 0; i < ticks; i++) {
-        if (i > 0) {
+        const expectedCommand =
+          i < introPositions.length
+            ? getQuadrantAtScreenPosition(introPositions[i], PlayerColor.WHITE)
+            : SpeechCommand.ALL
+        if (i < introPositions.length) {
           boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
         }
         speechHandler
           .expects('handleSpeechCommand')
-          .withArgs(expect.any(String), settings, match.fn())
-          .calls((_command: any, _settings: any, callback: any): any => {
-            callbacks.push(callback)
+          .withArgs(expectedCommand, settings, match.fn())
+          .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+            if (callback) callbacks.push(callback)
           })
       }
 
-      boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       startMeditationLoop(loopState, settings)
 
       // Run through all 20 ticks
@@ -103,8 +115,8 @@ describe('handleMeditation', () => {
       speechHandler
         .expects('handleSpeechCommand')
         .withArgs(firstQuadrant, settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       // Second step: black perspective (simulating board flip)
@@ -113,8 +125,8 @@ describe('handleMeditation', () => {
       speechHandler
         .expects('handleSpeechCommand')
         .withArgs(secondQuadrant, settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -135,9 +147,9 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -151,9 +163,9 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -170,9 +182,9 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -189,9 +201,9 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -199,13 +211,13 @@ describe('handleMeditation', () => {
 
       callbacks.length = 0
       expectStopSpeaking()
-      boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       wakeLock.expects('isWakeLockSupported').withArgs().returns(false)
+      boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -223,9 +235,17 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
+        })
+
+      boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+      speechHandler
+        .expects('handleSpeechCommand')
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -248,9 +268,9 @@ describe('handleMeditation', () => {
       boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
       speechHandler
         .expects('handleSpeechCommand')
-        .withArgs(expect.any(String), settings, match.fn())
-        .calls((_command: any, _settings: any, callback: any): any => {
-          callbacks.push(callback)
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
         })
 
       startMeditationLoop(loopState, settings)
@@ -261,6 +281,37 @@ describe('handleMeditation', () => {
       wakeLock.expects('releaseWakeLock').withArgs(mockSentinel).resolves()
 
       stopMeditationLoop(loopState)
+
+      expect(loopState.wakeLock).toBe(null)
+    })
+
+    it('ignores errors when releasing wake lock fails', async () => {
+      const loopState = createMeditationLoopState()
+      const mockSentinel = { release: vi.fn() } as unknown as WakeLockSentinel
+
+      expectStopSpeaking()
+      wakeLock.expects('isWakeLockSupported').withArgs().returns(true)
+      wakeLock.expects('requestWakeLock').withArgs().resolves(mockSentinel)
+      boardReader.expects('getPlayerColor').withArgs().returns(PlayerColor.WHITE)
+      speechHandler
+        .expects('handleSpeechCommand')
+        .withArgs(getQuadrantAtScreenPosition('top-left', PlayerColor.WHITE), settings, match.fn())
+        .calls((_command: string, _settings: SettingsStore, callback?: () => void): void => {
+          if (callback) callbacks.push(callback)
+        })
+
+      startMeditationLoop(loopState, settings)
+      await vi.runAllTimersAsync()
+
+      speechCore.expects('getSpeechSynthesis').withArgs().returns(mockSynthesis)
+      speechCore.expects('cancel').withArgs(mockSynthesis).returns(undefined)
+      wakeLock
+        .expects('releaseWakeLock')
+        .withArgs(mockSentinel)
+        .rejects(new Error('release failed'))
+
+      stopMeditationLoop(loopState)
+      await vi.runAllTimersAsync()
 
       expect(loopState.wakeLock).toBe(null)
     })

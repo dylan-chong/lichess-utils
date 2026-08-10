@@ -10,18 +10,16 @@ import { handleSpeechCommand } from './handleSpeechCommand'
 export const MEDITATION_WAIT_MS = 60_000
 export const MEDITATION_TOTAL_MS = 20 * 60_000
 
-type MeditationStep = { kind: 'quadrant'; position: ScreenPosition } | { kind: 'all' }
-
-const INTRO_STEPS: MeditationStep[] = [
+const INTRO_STEPS: ScreenPosition[] = [
   // TODO after the tests have been completed and passing - there are enums for these positions
-  { kind: 'quadrant', position: 'top-left' },
-  { kind: 'quadrant', position: 'top-left' },
-  { kind: 'quadrant', position: 'top-right' },
-  { kind: 'quadrant', position: 'top-right' },
-  { kind: 'quadrant', position: 'bottom-left' },
-  { kind: 'quadrant', position: 'bottom-left' },
-  { kind: 'quadrant', position: 'bottom-right' },
-  { kind: 'quadrant', position: 'bottom-right' },
+  'top-left',
+  'top-left',
+  'top-right',
+  'top-right',
+  'bottom-left',
+  'bottom-left',
+  'bottom-right',
+  'bottom-right',
 ]
 
 export interface MeditationLoopState {
@@ -68,11 +66,9 @@ export function startMeditationLoop(loopState: MeditationLoopState, settings: Se
     }
 
     if (loopState.stepIndex < INTRO_STEPS.length) {
-      const step = INTRO_STEPS[loopState.stepIndex]
-      if (step.kind === 'quadrant') {
-        const quadrant = getQuadrantAtScreenPosition(step.position, getPlayerColor())
-        handleSpeechCommand(quadrant, settings, onFinished)
-      }
+      const position = INTRO_STEPS[loopState.stepIndex]
+      const quadrant = getQuadrantAtScreenPosition(position, getPlayerColor())
+      handleSpeechCommand(quadrant, settings, onFinished)
     } else {
       handleSpeechCommand(SpeechCommand.ALL, settings, onFinished)
     }
