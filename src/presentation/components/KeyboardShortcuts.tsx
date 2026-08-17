@@ -14,7 +14,7 @@ const containerStyle = {
 
 const shortcutStyle = {
   fontFamily: 'monospace',
-  fontWeight: 'bold',
+  fontStyle: 'italic',
 }
 
 export function KeyboardShortcuts() {
@@ -22,7 +22,7 @@ export function KeyboardShortcuts() {
     <div style={containerStyle}>
       {SHORTCUTS.map((shortcut) => (
         <div key={shortcut.command}>
-          <span style={shortcutStyle}>*{shortcut.command}*</span> - {shortcut.description}
+          <span style={shortcutStyle}>{shortcut.command}</span> - {shortcut.description}
         </div>
       ))}
     </div>

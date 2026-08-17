@@ -17,4 +17,9 @@ export const SHORTCUTS: Shortcut[] = [
   // Stop/All
   { command: 'pss', description: 'Stop speaking immediately' },
   { command: 'pa', description: 'Speak all pieces on the board' },
+
+  // Drawing Commands
+  { command: '-<square>', description: 'Draw circle on a square (e.g., -a1)' },
+  { command: '-<from><to>', description: 'Draw arrow between squares (e.g., -a1b2)' },
+  { command: '-<sq1>,<sq2>,...', description: 'Draw multiple annotations (e.g., -d4,e4f6)' },
 ]

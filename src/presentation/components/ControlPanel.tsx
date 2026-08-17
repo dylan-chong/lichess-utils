@@ -129,22 +129,25 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           setting={settings.piecesListEnabled}
           options={TOGGLE_OPTIONS}
         />
+      </ButtonRow>
+      <ConditionalControls condition={settings.piecesListEnabled}>
+        <PiecesList boardChanged={boardChanged} />
+      </ConditionalControls>
+
+      <ButtonRow>
+        <ActionButton label="✏️ Annotate Board" onClick={onAnnotate} />
+      </ButtonRow>
+
+      <ButtonRow>
         <SettingButton
           label="⌨️ Keyboard Shortcuts"
           setting={settings.keyboardShortcutsEnabled}
           options={TOGGLE_OPTIONS}
         />
       </ButtonRow>
-      <ConditionalControls condition={settings.piecesListEnabled}>
-        <PiecesList boardChanged={boardChanged} />
-      </ConditionalControls>
       <ConditionalControls condition={settings.keyboardShortcutsEnabled}>
         <KeyboardShortcuts />
       </ConditionalControls>
-
-      <ButtonRow>
-        <ActionButton label="✏️ Annotate Board" onClick={onAnnotate} />
-      </ButtonRow>
 
       <ButtonRow>
         <SettingButton
