@@ -45,6 +45,7 @@ describe('SpeechButtons', () => {
     voiceName: signal(''),
     speakOrder: signal(SpeakOrder.TypeRankFile as string),
     piecesListEnabled: signal(false),
+    keyboardShortcutsEnabled: signal(false),
     dividersEnabled: signal(false),
     customBoardEnabled: signal(false),
     obfuscationsEnabled: signal(false),

@@ -6,6 +6,7 @@ export interface Settings {
   voiceName: string
   speakOrder: string
   piecesListEnabled: boolean
+  keyboardShortcutsEnabled: boolean
   dividersEnabled: boolean
   customBoardEnabled: boolean
   obfuscationsEnabled: boolean
@@ -27,6 +28,7 @@ export const defaultSettings: Settings = {
   voiceName: '',
   speakOrder: SpeakOrder.TypeRankFile,
   piecesListEnabled: false,
+  keyboardShortcutsEnabled: false,
   dividersEnabled: false,
   customBoardEnabled: false,
   obfuscationsEnabled: false,

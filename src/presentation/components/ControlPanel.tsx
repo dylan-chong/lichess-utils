@@ -13,6 +13,7 @@ import { useSettings } from '../contexts/SettingsContext'
 import { ActionButton } from './ActionButton'
 import { ButtonRow } from './ButtonRow'
 import { ConditionalControls } from './ConditionalControls'
+import { KeyboardShortcuts } from './KeyboardShortcuts'
 import { PiecesList } from './PiecesList'
 import { SectionHeading } from './SectionHeading'
 import { SettingButton } from './SettingButton'
@@ -128,9 +129,17 @@ export function ControlPanel({ boardChanged, onAnnotate }: ControlPanelProps) {
           setting={settings.piecesListEnabled}
           options={TOGGLE_OPTIONS}
         />
+        <SettingButton
+          label="⌨️ Keyboard Shortcuts"
+          setting={settings.keyboardShortcutsEnabled}
+          options={TOGGLE_OPTIONS}
+        />
       </ButtonRow>
       <ConditionalControls condition={settings.piecesListEnabled}>
         <PiecesList boardChanged={boardChanged} />
+      </ConditionalControls>
+      <ConditionalControls condition={settings.keyboardShortcutsEnabled}>
+        <KeyboardShortcuts />
       </ConditionalControls>
 
       <ButtonRow>

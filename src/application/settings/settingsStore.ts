@@ -11,6 +11,7 @@ export interface SettingsStore {
   voiceName: Signal<string>
   speakOrder: Signal<string>
   piecesListEnabled: Signal<boolean>
+  keyboardShortcutsEnabled: Signal<boolean>
   dividersEnabled: Signal<boolean>
   customBoardEnabled: Signal<boolean>
   obfuscationsEnabled: Signal<boolean>
@@ -33,6 +34,7 @@ export function createSettingsStore(): SettingsStore {
     voiceName: signal(defaultSettings.voiceName),
     speakOrder: signal(defaultSettings.speakOrder),
     piecesListEnabled: signal(defaultSettings.piecesListEnabled),
+    keyboardShortcutsEnabled: signal(defaultSettings.keyboardShortcutsEnabled),
     dividersEnabled: signal(defaultSettings.dividersEnabled),
     customBoardEnabled: signal(defaultSettings.customBoardEnabled),
     obfuscationsEnabled: signal(defaultSettings.obfuscationsEnabled),
