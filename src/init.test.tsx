@@ -49,6 +49,7 @@ describe('init', () => {
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
+      pollId: null,
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
@@ -161,6 +162,7 @@ describe('init', () => {
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
+      pollId: null,
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}
@@ -281,6 +283,7 @@ describe('init', () => {
     const mockBoardObserverState = {
       observer: new MutationObserver(() => {}),
       boardChanged: mockBoardChanged,
+      pollId: null,
     }
     const mockCleanupDividers = () => {}
     const mockCleanupFlash = () => {}

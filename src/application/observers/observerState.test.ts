@@ -1,5 +1,5 @@
 import { signal } from '@preact/signals-core'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createBoardObserver, startBoardObserver, stopBoardObserver } from './observerState'
 
 describe('boardObserver', () => {
@@ -50,5 +50,45 @@ describe('boardObserver', () => {
 
     // Should not throw, just return without starting observer
     expect(() => startBoardObserver(state)).not.toThrow()
+  })
+
+  describe('periodic poll backstop', () => {
+    beforeEach(() => {
+      vi.useFakeTimers()
+    })
+
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('increments boardChanged on a timer even without a mutation', () => {
+      const boardChanged = signal(0)
+      const state = createBoardObserver(boardChanged)
+      startBoardObserver(state)
+
+      vi.advanceTimersByTime(3000)
+
+      expect(boardChanged.value).toBe(3)
+
+      stopBoardObserver(state)
+    })
+
+    it('does not throw when stopping an observer that was never started', () => {
+      const boardChanged = signal(0)
+      const state = createBoardObserver(boardChanged)
+
+      expect(() => stopBoardObserver(state)).not.toThrow()
+    })
+
+    it('stops polling after stopBoardObserver', () => {
+      const boardChanged = signal(0)
+      const state = createBoardObserver(boardChanged)
+      startBoardObserver(state)
+      stopBoardObserver(state)
+
+      vi.advanceTimersByTime(3000)
+
+      expect(boardChanged.value).toBe(0)
+    })
   })
 })

@@ -11,7 +11,6 @@ export const MEDITATION_WAIT_MS = 60_000
 export const MEDITATION_TOTAL_MS = 20 * 60_000
 
 const INTRO_STEPS: ScreenPosition[] = [
-  // TODO after the tests have been completed and passing - there are enums for these positions
   'top-left',
   'top-left',
   'top-right',
